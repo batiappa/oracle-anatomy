@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>COMMIT의 여정 · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c에서 UPDATE와 COMMIT 한 번이 Buffer Cache, Undo, Redo, LGWR, DBWn을 거치는 과정을 10단계 애니메이션으로 따라가는 인터랙티브 레슨.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="Oracle 해부도">
+<meta property="og:title" content="COMMIT의 여정 · Oracle 해부도">
+<meta property="og:description" content="Oracle Database 19c에서 UPDATE와 COMMIT이 Buffer Cache, Undo, Redo, LGWR, DBWn을 거치는 과정을 10단계 애니메이션으로 따라갑니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 왼쪽은 아이소메트릭 무대(지표 칩 · 장면 · 콘솔 · 단계 바), 오른쪽은 단계 설명 패널. 960px 아래에서는 위아래로 쌓는다. */
+:root {
+  --bg: #e5e9ee;
+  --panel: #f7f9fb;
+  --panel-2: #edf1f5;
+  --ink: #17202b;
+  --muted: #5a6676;
+  --line: #cfd6de;
+  --grid: #d2d9e1;
+  --track: #dde3ea;
+  --accent: #2453c7;
+  --accent-ink: #ffffff;
+  --c-data: #0b8582;
+  --c-undo: #6a4bdc;
+  --c-redo: #c27400;
+  --c-signal: #d13f37;
+  --c-sql: #4f5d70;
+  --c-muted: #6b7686;
+  --box-top: #ffffff;
+  --box-left: #dce2e9;
+  --box-right: #c4cdd8;
+  --box-stroke: #7b8899;
+  --cell: #e8edf2;
+  --cell-other: #c9d2dc;
+  --shadow: rgba(23, 32, 43, 0.13);
+  --console-bg: #18202b;
+  --console-ink: #d7dee8;
+  --console-dim: #8592a5;
+  --font-sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #161d25; --panel-2: #1c242e; --ink: #e4e9ef; --muted: #95a2b3;
+    --line: #2b3542; --grid: #1c2530; --track: #1f2833; --accent: #7d9dff; --accent-ink: #0f141a;
+    --c-data: #2fc2bd; --c-undo: #a690ff; --c-redo: #f0ad35; --c-signal: #ff6a60; --c-sql: #9fb0c4; --c-muted: #8a96a7;
+    --box-top: #2c3746; --box-left: #212a36; --box-right: #19212b; --box-stroke: #4d5c70;
+    --cell: #1e2732; --cell-other: #364354; --shadow: rgba(0, 0, 0, 0.45);
+    --console-bg: #0a0e13; --console-ink: #d7dee8; --console-dim: #7d8a9c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #161d25; --panel-2: #1c242e; --ink: #e4e9ef; --muted: #95a2b3;
+  --line: #2b3542; --grid: #1c2530; --track: #1f2833; --accent: #7d9dff; --accent-ink: #0f141a;
+  --c-data: #2fc2bd; --c-undo: #a690ff; --c-redo: #f0ad35; --c-signal: #ff6a60; --c-sql: #9fb0c4; --c-muted: #8a96a7;
+  --box-top: #2c3746; --box-left: #212a36; --box-right: #19212b; --box-stroke: #4d5c70;
+  --cell: #1e2732; --cell-other: #364354; --shadow: rgba(0, 0, 0, 0.45);
+  --console-bg: #0a0e13; --console-ink: #d7dee8; --console-dim: #7d8a9c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+code, kbd, .mono { font-family: var(--font-mono); }
+
+/* ---------- header ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.top-in {
+  max-width: 1360px; margin: 0 auto;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 14px;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-name { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
+.brand-sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.top-spacer { flex: 1; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 36px; height: 36px;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--panel); cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--muted); }
+
+/* ---------- page grid ---------- */
+.wrap {
+  max-width: 1360px; margin: 0 auto;
+  padding-block: 22px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start;
+}
+.col-main, .col-side { display: grid; gap: 16px; min-width: 0; }
+.col-side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
+
+/* ---------- lesson head ---------- */
+.lesson-head { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+.eyebrow b { color: var(--ink); font-weight: 600; }
+.head-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: clamp(26px, 3.2vw, 34px); line-height: 1.2; letter-spacing: -0.02em; font-weight: 700; text-wrap: balance; }
+h1 code { font-size: 0.92em; font-weight: 600; color: var(--c-redo); }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-family: var(--font-mono); font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted); white-space: nowrap;
+}
+.summary { margin: 0; color: var(--muted); max-width: 62ch; }
+.badge.ver { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+.top-link { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.top-link:hover { border-color: var(--muted); }
+
+/* ---------- footer ---------- */
+.foot { border-top: 1px solid var(--line); }
+.foot-in {
+  max-width: 1360px; margin: 0 auto;
+  padding-block: 22px 34px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 40px;
+  font-size: 13px; color: var(--muted);
+}
+.foot h2 { font-size: 13.5px; color: var(--ink); margin: 0 0 6px; }
+.foot p { margin: 0 0 6px; max-width: 70ch; }
+.foot a { color: var(--accent); }
+.foot .legal { font-size: 12px; }
+@media (max-width: 760px) { .foot-in { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- stage ---------- */
+.stage { overflow: hidden; }
+.metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding: 14px 14px 0; }
+.metric {
+  border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px;
+  padding: 6px 10px 7px; min-width: 0;
+}
+.metric-k { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.metric-v {
+  font-family: var(--font-mono); font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.metric.empty .metric-v { color: var(--muted); font-weight: 400; }
+.metric.flash { animation: flash 0.9s ease-out; }
+@keyframes flash { 0% { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+.scene-wrap { overflow-x: auto; }
+#scene { display: block; width: 100%; min-width: 560px; height: auto; overflow: hidden; }
+
+.stage-foot {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: end;
+  padding: 0 14px 14px;
+}
+.console {
+  background: var(--console-bg); color: var(--console-ink); border-radius: 10px;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.55; min-width: 0; overflow: hidden;
+}
+.console-title {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  color: var(--console-dim); border-bottom: 1px solid rgba(255, 255, 255, 0.07); font-size: 11px;
+}
+.console-title i { width: 7px; height: 7px; border-radius: 50%; background: var(--console-dim); opacity: 0.6; }
+.console pre { margin: 0; padding: 8px 12px 10px; white-space: pre; overflow-x: auto; min-height: 5.6em; }
+.console .ln-new { animation: type-in 0.5s ease-out; }
+.console .cmt { color: var(--console-dim); }
+.console .ok { color: var(--c-data); }
+.console .warn { color: var(--c-redo); }
+@keyframes type-in { from { opacity: 0; transform: translateX(-4px); } }
+
+.foot-side { display: grid; gap: 10px; justify-items: end; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto auto; gap: 3px 14px; font-size: 12px; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend i { width: 9px; height: 9px; border-radius: 50%; }
+.ctrls { display: flex; gap: 6px; }
+
+/* ---------- stepper ---------- */
+.stepper { padding: 14px 16px 16px; }
+.stepper-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.stepper-head b { font-size: 14px; }
+.stepper-head span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.steps { display: flex; justify-content: space-between; position: relative; list-style: none; margin: 0; padding: 0; }
+.steps::before { content: ""; position: absolute; left: 16px; right: 16px; top: 15px; height: 2px; background: var(--line); }
+.steps li { position: relative; display: grid; justify-items: center; gap: 4px; }
+.dot {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  background: var(--panel); border: 2px solid var(--line); color: var(--muted);
+  transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+.dot:hover { border-color: var(--muted); }
+.dot.seen { border-color: color-mix(in srgb, var(--chap) 60%, var(--line)); color: var(--ink); }
+.dot.now { background: var(--chap); border-color: var(--chap); color: var(--accent-ink); transform: scale(1.12); }
+.step-short { position: absolute; top: 38px; font-size: 11.5px; font-weight: 600; white-space: nowrap; color: var(--ink); }
+.steps li:first-child .step-short { left: 0; }
+.steps li:last-child .step-short { right: 0; }
+.stepper { padding-bottom: 34px; }
+
+/* ---------- step panel ---------- */
+.step-card { padding: 18px 18px 14px; display: grid; gap: 12px; }
+.step-top { display: flex; justify-content: space-between; align-items: center; }
+.step-count { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.chap {
+  font-size: 11.5px; font-weight: 600; padding: 2px 10px; border-radius: 999px;
+  color: var(--chap); background: color-mix(in srgb, var(--chap) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chap) 35%, transparent);
+}
+.step-title { margin: 0; font-size: 20px; line-height: 1.35; letter-spacing: -0.01em; text-wrap: balance; }
+.step-body p { margin: 0 0 10px; }
+.step-body p:last-child { margin-bottom: 0; }
+.step-body code {
+  font-size: 0.86em; padding: 1px 5px; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.term { font-weight: 600; border-bottom: 1.5px dotted var(--muted); }
+.callout {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start;
+  padding: 11px 12px; border-radius: 10px; font-size: 14px;
+  background: color-mix(in srgb, var(--tone) 9%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+}
+.callout-ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); }
+.callout-k { font-size: 11.5px; font-weight: 600; color: var(--tone); display: block; }
+.callout code { font-size: 0.86em; }
+.changes { display: grid; gap: 4px; }
+.changes-k { font-size: 12px; color: var(--muted); }
+.changes ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-family: var(--font-mono); font-size: 12.5px; }
+.changes li { display: flex; gap: 8px; }
+.changes li b { width: 1em; flex: none; text-align: center; }
+.chg-add b { color: var(--c-data); }
+.chg-mod b { color: var(--c-redo); }
+.chg-bad b { color: var(--c-signal); }
+.nav { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-top: 2px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 42px; padding: 0 14px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;
+  border: 1px solid var(--line); background: var(--panel);
+}
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); justify-content: space-between; min-width: 0; }
+.btn-primary:hover:not(:disabled) { border-color: var(--accent); filter: brightness(1.06); }
+.btn-primary span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.keys { font-size: 11.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+kbd { font-size: 10.5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--panel-2); }
+
+.side-card { padding: 14px 16px; }
+.side-card h2 { font-size: 13.5px; margin: 0 0 8px; }
+.goals { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.goals button {
+  width: 100%; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 9px; align-items: start; text-align: left;
+  padding: 5px 6px; border: 0; background: none; border-radius: 6px; cursor: pointer; font-size: 13.5px; line-height: 1.45;
+}
+.goals button:hover { background: var(--panel-2); }
+.chk { width: 16px; height: 16px; margin-top: 2px; border-radius: 4px; border: 1.5px solid var(--line); display: grid; place-items: center; }
+.goals .done .chk { background: var(--c-data); border-color: var(--c-data); color: var(--accent-ink); }
+.goals .done .chk svg { display: block; }
+.chk svg { display: none; }
+
+.outline { display: grid; gap: 10px; font-size: 13px; }
+.outline-part b { display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; font-family: var(--font-mono); margin-bottom: 2px; }
+.outline-part ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.outline-part li { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; color: var(--muted); }
+.outline-part li.cur { color: var(--ink); font-weight: 600; }
+.outline-part li em { font-style: normal; font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 400; white-space: nowrap; }
+.outline-part li.cur em { color: var(--accent); }
+
+/* ---------- SVG scene ---------- */
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.zone { fill: color-mix(in srgb, var(--accent) 5%, transparent); stroke: color-mix(in srgb, var(--accent) 30%, var(--line)); stroke-width: 1.2; stroke-dasharray: 5 5; transition: opacity 0.5s; }
+.zone-label { font-family: var(--font-mono); font-size: 12px; font-weight: 600; fill: color-mix(in srgb, var(--accent) 65%, var(--muted)); letter-spacing: 0.04em; transition: opacity 0.5s; }
+.zone-g.off { opacity: 0; }
+
+.link { transition: opacity 0.5s; }
+.link.off { opacity: 0; }
+.link .trk { fill: none; stroke: var(--track); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.link .ln { fill: none; stroke: var(--box-stroke); stroke-width: 1.4; stroke-dasharray: 3 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; transition: stroke 0.4s, opacity 0.4s; }
+.link.arc .trk { display: none; }
+.link.arc .ln { stroke-dasharray: 2 6; }
+.link.act .ln { stroke: var(--k); opacity: 0.9; }
+
+.ent { transition: opacity 0.45s; }
+.ent.off { opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; }
+.ent.dim { opacity: 0.32; }
+.ent.enter { animation: drop 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes drop { from { transform: translateY(-16px); opacity: 0; } }
+.face { stroke: var(--box-stroke); stroke-width: 1; stroke-linejoin: round; }
+.face.top { fill: color-mix(in srgb, var(--tone) 13%, var(--box-top)); }
+.face.left { fill: color-mix(in srgb, var(--tone) 20%, var(--box-left)); }
+.face.right { fill: color-mix(in srgb, var(--tone) 24%, var(--box-right)); }
+.ring-line { fill: none; stroke: var(--box-stroke); stroke-width: 1; opacity: 0.55; }
+.led { stroke: var(--tone); stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
+.shadow { fill: var(--shadow); }
+.focus-ring { fill: color-mix(in srgb, var(--accent) 10%, transparent); stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 6 5; opacity: 0; transition: opacity 0.4s; }
+.ent.focus .focus-ring { opacity: 1; animation: march 1.6s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -22; } }
+.cell { fill: var(--cell); stroke: color-mix(in srgb, var(--box-stroke) 45%, transparent); stroke-width: 0.8; transition: fill 0.5s; }
+.cell.other { fill: var(--cell-other); }
+.cell.data { fill: color-mix(in srgb, var(--c-data) 38%, var(--cell)); }
+.cell.dataDirty { fill: var(--c-data); }
+.cell.undo { fill: color-mix(in srgb, var(--c-undo) 38%, var(--cell)); }
+.cell.undoDirty { fill: var(--c-undo); }
+.seg { fill: var(--cell); stroke: color-mix(in srgb, var(--box-stroke) 45%, transparent); stroke-width: 0.8; transition: fill 0.4s; }
+.seg.redo { fill: var(--c-redo); }
+.seg.commit { fill: var(--c-signal); }
+
+.pill rect { fill: var(--panel); stroke: var(--line); stroke-width: 1; }
+.pill text { font-family: var(--font-mono); font-size: 11px; fill: var(--ink); dominant-baseline: central; }
+.pill.lbl text { font-weight: 600; }
+.pill.lbl .pdot { fill: var(--tone); }
+.pill.tag rect { fill: color-mix(in srgb, var(--k) 12%, var(--panel)); stroke: color-mix(in srgb, var(--k) 45%, transparent); }
+.pill.tag text { fill: color-mix(in srgb, var(--k) 75%, var(--ink)); font-weight: 500; }
+.pill.tag { animation: fade-up 0.5s ease-out both; }
+@keyframes fade-up { from { opacity: 0; transform: translateY(5px); } }
+
+.flowdot { fill: var(--k); }
+.flowhalo { fill: var(--k); opacity: 0.22; }
+
+.k-data { --k: var(--c-data); }
+.k-undo { --k: var(--c-undo); }
+.k-redo { --k: var(--c-redo); }
+.k-signal { --k: var(--c-signal); }
+.k-sql { --k: var(--c-sql); }
+.k-muted { --k: var(--c-muted); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1080px) { .wrap { grid-template-columns: minmax(0, 1fr) 340px; } }
+@media (max-width: 960px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); }
+  .col-side { position: static; }
+}
+@media (max-width: 640px) {
+  .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stage-foot { grid-template-columns: minmax(0, 1fr); }
+  .foot-side { justify-items: start; grid-template-columns: minmax(0, 1fr) auto; align-items: center; width: 100%; }
+  .brand-sub { display: none; }
+  .dot { width: 26px; height: 26px; font-size: 11.5px; }
+  .steps::before { top: 12px; left: 13px; right: 13px; }
+  .step-short { top: 31px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 3 29 10.5 16 18 3 10.5Z" fill="var(--c-redo)"/>
+        <path d="M3 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 70%, #000)"/>
+        <path d="M29 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 50%, #000)"/>
+        <path d="M3 17.5 16 25l13-7.5v4L16 29 3 21.5Z" fill="var(--c-data)"/>
+        <path d="M16 25v4l13-7.5v-4Z" fill="color-mix(in srgb, var(--c-data) 60%, #000)"/>
+      </svg>
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 2 · 트랜잭션</b> / 4개 중 1번째 레슨</div>
+      <div class="head-row">
+        <h1><code>COMMIT</code>의 여정</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12분</span><span class="badge">중급</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">UPDATE 한 문장과 COMMIT을 따라가며, 커밋이 빠르면서도 안전한 이유를 알아봅니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Oracle 인스턴스 구조와 데이터 흐름 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL 요청</li>
+            <li><i style="background:var(--c-data)"></i>데이터 블록</li>
+            <li><i style="background:var(--c-undo)"></i>Undo</li>
+            <li><i style="background:var(--c-redo)"></i>Redo</li>
+            <li><i style="background:var(--c-signal)"></i>커밋 신호</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하도록 만든 인터랙티브 학습 사이트입니다. 다이어그램 엔진은 외부 그래픽 라이브러리 없이 SVG와 JavaScript로 직접 구현했고, 레슨은 데이터 파일만 추가하면 늘어나는 구조입니다.</p>
+      <p id="authorLine" hidden></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 기준입니다. 화면의 SCN, 블록 번호, 시간 같은 수치는 설명을 위한 예시 값입니다.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   사이트 정보. 비워 두면 해당 항목은 화면에 나오지 않는다.
+   ===================================================================== */
+const SITE = {
+  author: '',      // 예: '홍길동'
+  github: 'https://github.com/batiappa/oracle-anatomy',
+  contact: '',     // 예: 이력서나 LinkedIn 주소 (https://...)
+};
+
+/* =====================================================================
+   레슨 데이터. 엔진은 아래쪽에 있고, 새 레슨은 이 객체만 바꿔 넣으면 된다.
+   좌표는 아이소메트릭 격자 단위 [gx, gy], 높이는 z 단위.
+   ===================================================================== */
+const LESSON = {
+  metrics: [
+    { key: 'scn', label: 'SCN' },
+    { key: 'dirty', label: 'Dirty 블록' },
+    { key: 'redo', label: 'Redo 버퍼' },
+    { key: 'rfile', label: 'Redo 로그 파일' },
+    { key: 'wait', label: 'COMMIT 대기' },
+  ],
+  goals: [
+    { text: 'UPDATE가 Buffer Cache에서 블록을 바꾸는 과정', step: 2 },
+    { text: 'Undo가 하는 두 가지 일', step: 3 },
+    { text: 'Redo와 커밋 레코드, log file sync', step: 5 },
+    { text: '커밋이 빠른 이유: LGWR와 DBWn의 분업', step: 7 },
+    { text: '사례: 정전 후 복구, 한 건마다 커밋하는 배치', step: 9 },
+  ],
+  outline: [
+    { part: '파트 1 · 아키텍처', items: ['인스턴스와 데이터베이스', 'SGA와 PGA', '백그라운드 프로세스'] },
+    { part: '파트 2 · 트랜잭션', items: ['COMMIT의 여정', 'Undo와 읽기 일관성', '잠금과 대기', '체크포인트'], current: 0 },
+    { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
+    { part: '파트 4 · 가용성', items: ['Archivelog와 RMAN', 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+  zones: [
+    { id: 'sga', from: [5.2, -1.4], to: [11.2, 8.4], label: 'SGA · 공유 메모리', members: ['bc', 'lb'] },
+    { id: 'bg', from: [11.8, -0.6], to: [14.6, 7.6], label: '백그라운드 프로세스', members: ['dbwr', 'lgwr', 'smon'] },
+    { id: 'disk', from: [15.0, -0.6], to: [18.0, 7.6], label: '디스크', members: ['df', 'rl'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-1, 3], size: [2, 2, 0.5], label: '앱 · SQL*Plus', tone: 'sql' },
+    sp:   { type: 'box', at: [2.6, 3.4], size: [1.5, 1.5, 1.3], label: '서버 프로세스', tone: 'sql', led: true },
+    bc:   { type: 'box', at: [6.2, -0.6], size: [4, 3, 0.6], label: 'Buffer Cache', tone: 'data', cells: [4, 3] },
+    lb:   { type: 'box', at: [6.2, 5.6], size: [4, 1.1, 0.45], label: 'Redo Log Buffer', tone: 'redo', segs: 8, labelPos: 'left' },
+    dbwr: { type: 'box', at: [12.5, 0.2], size: [1.4, 1.4, 1.2], label: 'DBWn', tone: 'data', led: true },
+    lgwr: { type: 'box', at: [12.5, 5.45], size: [1.4, 1.4, 1.2], label: 'LGWR', tone: 'redo', led: true },
+    smon: { type: 'box', at: [12.5, 2.85], size: [1.4, 1.4, 1.2], label: 'SMON', tone: 'signal', led: true, labelPos: 'left' },
+    df:   { type: 'cyl', at: [16.5, 0.9], r: 1.05, h: 1.7, label: '데이터파일', tone: 'data' },
+    rl:   { type: 'cyl', at: [16.5, 6.15], r: 1.05, h: 1.7, label: '온라인 Redo 로그', tone: 'redo', labelPos: 'right', tagDir: 'down' },
+  },
+  // onDemand 링크는 그 링크를 쓰는 흐름이 있을 때만 보인다.
+  links: {
+    sql:     { from: 'app', to: 'sp' },
+    sp_bc:   { from: 'sp', to: 'bc' },
+    sp_lb:   { from: 'sp', to: 'lb' },
+    lb_lgwr: { from: 'lb', to: 'lgwr' },
+    lgwr_rl: { from: 'lgwr', to: 'rl' },
+    bc_dbwr: { from: 'bc', to: 'dbwr' },
+    dbwr_df: { from: 'dbwr', to: 'df' },
+    read:    { from: 'df', to: 'bc', via: [[16.5, -1.1], [9.4, -1.1]], onDemand: true },
+    post:    { from: 'sp', to: 'lgwr', arc: 120, onDemand: true },
+    rl_smon: { from: 'rl', to: 'smon', via: [[16.5, 3.55]], onDemand: true },
+    smon_bc: { from: 'smon', to: 'bc', via: [[9.6, 3.55], [9.6, 1.9]], onDemand: true },
+  },
+  baseCells: { 0: 'other', 2: 'other', 3: 'other', 7: 'other', 8: 'other' },
+  steps: [
+    {
+      short: '문제', chapter: 'problem',
+      title: 'COMMIT은 정말 디스크에 썼을까?',
+      body: [
+        '주문 1042번을 결제 완료로 바꾸고 <code>COMMIT;</code>을 입력합니다. 1 ms쯤 뒤에 <code>Commit complete.</code>가 뜹니다.',
+        '데이터파일은 수십 GB이고, 바꿀 블록은 그 안 어딘가에 있습니다. 그 짧은 시간에 정말 거기까지 썼을까요? SQL 한 문장을 따라가 봅니다.',
+      ],
+      callout: { kind: 'insight', text: '커밋은 데이터파일을 고치는 일이 아닙니다. 무엇을 바꿨는지 적은 짧은 기록을 디스크에 남기는 일입니다.' },
+      changes: ['+ 앱 세션', '+ 서버 프로세스'],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp'], focus: ['app'],
+      tags: { app: [{ text: "1042 → 'PAID'", tone: 'sql' }] },
+      flows: [{ link: 'sql', kind: 'sql', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> UPDATE orders', "  2  SET status = 'PAID'", '  3  WHERE order_id = 1042;'] },
+    },
+    {
+      short: '블록 읽기', chapter: 'technique',
+      title: '먼저 블록을 메모리로 가져온다',
+      body: [
+        '서버 프로세스는 디스크의 행을 직접 고치지 않습니다. 먼저 행이 들어 있는 8 KB <span class="term">블록</span>을 SGA의 <span class="term">Buffer Cache</span>에서 찾습니다.',
+        '캐시에 없으면 데이터파일에서 블록을 읽어 옵니다. 이것을 물리적 읽기라고 합니다.',
+      ],
+      callout: { kind: 'tip', text: '같은 블록을 다시 쓰면 메모리에서 바로 찾습니다(논리적 읽기). 자주 쓰는 블록이 캐시에 오래 머물수록 디스크를 덜 읽습니다.' },
+      changes: ['+ Buffer Cache (SGA)', '+ 데이터파일', '+ 블록 1개 읽기: 8 KB'],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'df'], focus: ['bc'],
+      cells: { 5: 'data' },
+      tags: { bc: [{ text: '블록 4471 적재', tone: 'data' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_bc', kind: 'sql', n: 1, bounce: true }, { link: 'read', kind: 'data', n: 1, rate: 0.8 }],
+      console: { same: true },
+    },
+    {
+      short: 'Undo', chapter: 'technique',
+      title: '바꾸기 전 값을 Undo에 남긴다',
+      body: [
+        "값을 바꾸기 전에 Oracle은 원래 값 <code>'NEW'</code>를 담은 <span class=\"term\">Undo</span> 레코드를 만듭니다. Undo 레코드도 블록에 저장되고, 그 블록 역시 Buffer Cache에 있습니다.",
+        'Undo는 두 가지 일을 합니다. <code>ROLLBACK</code>하면 이 값으로 되돌리고, 다른 세션이 이 행을 읽으면 커밋 전 모습을 보여 줍니다.',
+      ],
+      callout: { kind: 'insight', text: "다른 세션은 내가 커밋하기 전까지 'NEW'를 봅니다. 잠금이 풀리기를 기다리지 않고 Undo로 옛 모습을 만들어 읽습니다. 이것이 읽기 일관성입니다." },
+      changes: ['+ Undo 블록 (Buffer Cache 안)', "+ 이전 값: 'NEW'"],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'df'], focus: ['bc'],
+      cells: { 5: 'data', 10: 'undo' },
+      tags: { bc: [{ text: "Undo: 이전 값 'NEW'", tone: 'undo' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_bc', kind: 'undo', n: 2 }],
+      console: { same: true },
+    },
+    {
+      short: 'Redo', chapter: 'technique',
+      title: '변경 내용을 Redo로 적는다',
+      body: [
+        "이번 변경은 두 군데입니다. 데이터 블록(<code>'NEW'</code> → <code>'PAID'</code>)과 Undo 블록입니다. Oracle은 두 변경을 각각 <span class=\"term\">변경 벡터</span>로 만들어 <span class=\"term\">Redo Log Buffer</span>에 넣고, 그다음 블록을 고칩니다.",
+        '고친 블록은 이제 디스크 내용과 다릅니다. 이런 블록을 <span class="term">dirty</span> 블록이라고 부릅니다. 데이터파일은 아직 그대로입니다.',
+      ],
+      callout: { kind: 'tip', text: 'Redo에는 Undo 블록의 변경도 들어갑니다. 그래서 장애가 나도 Redo만 있으면 Undo까지 되살릴 수 있습니다.' },
+      changes: ['+ Redo Log Buffer (SGA)', '+ 변경 벡터 2개 ≈ 450 B', '~ 데이터·Undo 블록 dirty'],
+      metrics: { scn: null, dirty: '2', redo: '≈ 450 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'lb', 'df'], focus: ['lb'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo'],
+      tags: { bc: [{ text: 'dirty 블록 2개', tone: 'data' }], lb: [{ text: '변경 벡터 2개', tone: 'redo' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_lb', kind: 'redo', n: 2 }, { link: 'sp_bc', kind: 'data', n: 1 }],
+      console: { add: ['1 row updated.|ok'] },
+    },
+    {
+      short: 'COMMIT;', chapter: 'technique',
+      title: 'COMMIT을 입력하면',
+      body: [
+        '서버 프로세스는 새 <span class="term">SCN</span>(시스템 변경 번호) <code>8104230</code>을 받아 커밋 레코드를 Redo Log Buffer에 넣습니다.',
+        '그리고 백그라운드 프로세스 <span class="term">LGWR</span>을 깨운 뒤, 쓰기가 끝났다는 답이 올 때까지 기다립니다. 이 기다림이 대기 이벤트 <code>log file sync</code>입니다.',
+      ],
+      callout: { kind: 'insight', text: '커밋하는 순간에도 데이터 블록은 메모리에만 있습니다. 디스크로 가는 것은 Redo뿐입니다.' },
+      changes: ['+ LGWR (로그 기록 프로세스)', '+ 커밋 레코드 · SCN 8104230', '~ 세션: log file sync 대기'],
+      metrics: { scn: '8104230', dirty: '2', redo: '≈ 520 B', rfile: '대기', wait: '기다리는 중' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'df'], focus: ['lgwr'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo', 'commit'],
+      tags: { sp: [{ text: 'log file sync 대기', tone: 'signal' }], lb: [{ text: '+ 커밋 레코드', tone: 'signal' }], lgwr: [{ text: '깨어남', tone: 'signal' }] },
+      flows: [{ link: 'sp_lb', kind: 'signal', n: 1 }, { link: 'post', kind: 'signal', n: 1, rate: 0.8 }],
+      console: { add: ['', 'SQL> COMMIT;'] },
+    },
+    {
+      short: 'LGWR 쓰기', chapter: 'technique',
+      title: 'LGWR이 Redo를 디스크에 쓴다',
+      body: [
+        'LGWR은 버퍼에 쌓인 Redo를 <span class="term">온라인 Redo 로그</span> 파일 끝에 이어 씁니다. 파일 끝에 붙이는 순차 쓰기라 빠르고, 여러 세션의 커밋이 몰리면 한 번에 묶어 씁니다.',
+        '쓰기가 끝나면 LGWR이 서버 프로세스에 알리고, 그제야 화면에 <code>Commit complete.</code>가 뜹니다. 보통 1 ms 안팎이고, 스토리지에 따라 다릅니다.',
+      ],
+      callout: { kind: 'insight', text: '커밋이 보장된다는 것은 Redo가 디스크에 있다는 뜻입니다. 지금 전원이 나가도 이 변경은 살아남습니다.' },
+      changes: ['+ 온라인 Redo 로그 파일', '+ 순차 쓰기 ≈ 1.2 ms', '~ Redo Log Buffer 비움'],
+      metrics: { scn: '8104230', dirty: '2', redo: '0 B', rfile: '기록됨', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'df'], focus: ['rl'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: [],
+      tags: { sp: [{ text: 'Commit complete.', tone: 'data' }], rl: [{ text: 'SCN 8104230까지 기록', tone: 'redo' }], df: [{ text: "아직 1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'lb_lgwr', kind: 'redo', n: 2 }, { link: 'lgwr_rl', kind: 'redo', n: 2 }, { link: 'post', kind: 'data', n: 1, rev: true, rate: 0.8 }],
+      console: { add: ['Commit complete.|ok'] },
+    },
+    {
+      short: 'DBWn', chapter: 'technique',
+      title: '데이터파일은 나중에 몰아서 쓴다',
+      body: [
+        'dirty 블록은 커밋 뒤에도 한동안 메모리에 남습니다. <span class="term">DBWn</span>이 나중에, 체크포인트가 오거나 빈 버퍼가 모자랄 때 여러 블록을 모아 데이터파일에 씁니다.',
+        '규칙이 하나 있습니다. 블록을 데이터파일에 쓰기 전에 그 블록의 Redo가 먼저 디스크에 있어야 합니다. 이것을 <span class="term">Write-Ahead Logging</span>이라고 합니다.',
+      ],
+      callout: { kind: 'tip', text: '데이터파일 쓰기는 흩어진 위치에 하는 랜덤 쓰기라 느립니다. 이 일을 커밋 경로에서 빼냈기 때문에 커밋이 빠릅니다.' },
+      changes: ['+ DBWn (데이터 기록 프로세스)', "~ 데이터파일: 1042 = 'PAID'", '~ dirty 블록 0개'],
+      metrics: { scn: '8104230', dirty: '0', redo: '0 B', rfile: '기록됨', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: ['dbwr'],
+      cells: { 5: 'data', 10: 'undo' },
+      segs: [],
+      tags: { dbwr: [{ text: '체크포인트 때 몰아서', tone: 'data' }], df: [{ text: "1042 = 'PAID'", tone: 'data' }] },
+      flows: [{ link: 'bc_dbwr', kind: 'data', n: 2 }, { link: 'dbwr_df', kind: 'data', n: 2 }],
+      console: { same: true },
+    },
+    {
+      short: '정전', chapter: 'case',
+      title: '사례: 커밋 직후 서버가 꺼졌다',
+      body: [
+        "커밋은 끝났지만 DBWn이 블록을 쓰기 전에 전원이 나갔습니다. SGA는 사라졌고, 데이터파일에는 아직 <code>'NEW'</code>가 남아 있습니다.",
+        '다시 시작하면 <span class="term">SMON</span>이 인스턴스 복구를 합니다. 먼저 Redo를 읽어 마지막 체크포인트 이후의 변경을 모두 다시 적용하고(roll forward), 커밋되지 않은 트랜잭션은 Undo로 되돌립니다(roll back).',
+      ],
+      callout: { kind: 'insight', text: "커밋된 'PAID'는 Redo 덕분에 돌아오고, 커밋하지 않은 변경은 사라집니다. Redo가 있으니 데이터파일 쓰기를 미뤄도 안전합니다." },
+      changes: ['× 전원 차단: SGA 내용 사라짐', '+ SMON: roll forward (Redo 재적용)', '+ SMON: roll back (Undo로 되돌림)'],
+      metrics: { scn: '8104230', dirty: '2 (복구됨)', redo: '0 B', rfile: '기록됨', wait: null },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'smon', 'df'], dim: ['app', 'sp'], focus: ['smon'],
+      noBaseCells: true,
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: [],
+      tags: { df: [{ text: "1042 = 'NEW' (쓰기 전 정전)", tone: 'muted' }], bc: [{ text: "1042 = 'PAID' 복원", tone: 'data' }], rl: [{ text: 'Redo 다시 읽기', tone: 'redo' }] },
+
+      flows: [{ link: 'rl_smon', kind: 'redo', n: 2 }, { link: 'smon_bc', kind: 'redo', n: 2 }, { link: 'read', kind: 'data', n: 1, rate: 0.8 }],
+      console: { title: 'alert.log', lines: ['Beginning crash recovery of 1 threads', 'Started redo scan', 'Completed redo scan', 'Started redo application at', 'Completed redo application of 0.01MB', 'Completed crash recovery at|ok'] },
+    },
+    {
+      short: '잦은 커밋', chapter: 'case',
+      title: '사례: 한 건마다 COMMIT 하는 배치',
+      body: [
+        '주문 100만 건을 처리하는 배치가 한 건마다 <code>COMMIT</code>합니다. 커밋할 때마다 LGWR의 쓰기를 기다리니, 한 번에 1 ms만 잡아도 기다리는 시간만 약 1,000초, 17분 가까이 됩니다.',
+        'AWR 보고서에서는 <code>log file sync</code>가 상위 대기 이벤트로 올라옵니다. 업무상 한 단위가 끝나는 곳에서, 예를 들어 5,000건마다 한 번 커밋하면 커밋은 200번으로 줄어듭니다.',
+      ],
+      callout: { kind: 'warn', text: '<code>COMMIT WRITE NOWAIT</code>는 기다림을 없애 주지만, 장애가 나면 방금 커밋한 변경을 잃을 수 있습니다. 잃어도 되는 데이터에만 쓰세요.' },
+      changes: ['× 커밋 1,000,000번', '× log file sync ≈ 1,000 s', '~ 5,000건마다 커밋: 200번'],
+      metrics: { scn: '+1,000,000', dirty: '수천', redo: '계속 쌓임', rfile: '100만 번 씀', wait: '≈ 1,000 s' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: ['lgwr'],
+      cells: { 1: 'dataDirty', 4: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty', 10: 'undoDirty', 11: 'undoDirty' },
+      segs: ['redo', 'commit', 'redo', 'commit', 'redo', 'commit', 'redo', 'commit'],
+      tags: { sp: [{ text: 'COMMIT × 1,000,000', tone: 'signal' }], lgwr: [{ text: '쓰기 × 1,000,000', tone: 'signal' }] },
+      flows: [
+        { link: 'sql', kind: 'sql', n: 3, rate: 2.4 },
+        { link: 'sp_lb', kind: 'signal', n: 3, rate: 2.4 },
+        { link: 'post', kind: 'signal', n: 2, rate: 2, bounce: true },
+        { link: 'lb_lgwr', kind: 'redo', n: 3, rate: 2.4 },
+        { link: 'lgwr_rl', kind: 'redo', n: 3, rate: 2.4 },
+      ],
+      console: { title: 'PL/SQL', lines: ['BEGIN', "  FOR r IN (SELECT order_id FROM orders WHERE status = 'NEW') LOOP", "    UPDATE orders SET status = 'PAID' WHERE order_id = r.order_id;", '    COMMIT;  -- 한 건마다|warn', '  END LOOP;', 'END;'] },
+    },
+    {
+      short: '정리', chapter: 'recap',
+      title: '정리: 커밋은 Redo가 디스크에 닿는 순간',
+      body: [
+        'UPDATE는 Buffer Cache의 블록을 고치고, 그 변경을 Undo와 Redo로 남깁니다.',
+        'COMMIT은 Redo만 디스크에 쓰고 돌아옵니다. LGWR이 파일 끝에 이어 쓰는 빠른 순차 쓰기입니다.',
+        '데이터파일은 DBWn이 나중에 모아서 씁니다. 그 사이에 장애가 나도 Redo로 복구합니다.',
+      ],
+      callout: { kind: 'tip', text: '다음 레슨 ‘Undo와 읽기 일관성’에서는 다른 세션이 어떻게 커밋 전 값을 보는지 따라갑니다.' },
+      changes: [],
+      metrics: { scn: '8104230', dirty: '2 → 0', redo: '0 B', rfile: '기록됨', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: [],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo', 'commit'],
+      tags: { lgwr: [{ text: '커밋 경로 · 순차 쓰기', tone: 'redo' }], dbwr: [{ text: '나중에 · 랜덤 쓰기', tone: 'data' }] },
+      flows: [
+        { link: 'sql', kind: 'sql', n: 1 },
+        { link: 'sp_bc', kind: 'data', n: 1 },
+        { link: 'sp_lb', kind: 'redo', n: 1 },
+        { link: 'lb_lgwr', kind: 'redo', n: 2 },
+        { link: 'lgwr_rl', kind: 'redo', n: 2 },
+        { link: 'bc_dbwr', kind: 'data', n: 1, rate: 0.45 },
+        { link: 'dbwr_df', kind: 'data', n: 1, rate: 0.45 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> UPDATE orders', "  2  SET status = 'PAID'", '  3  WHERE order_id = 1042;', '1 row updated.|ok', '', 'SQL> COMMIT;', 'Commit complete.|ok'] },
+    },
+  ],
+};
+
+/* =====================================================================
+   엔진: 아이소메트릭 SVG 장면 + 단계 UI
+   ===================================================================== */
+const U = 36, C30 = Math.cos(Math.PI / 6);
+const NS = 'http://www.w3.org/2000/svg';
+const iso = (gx, gy, z = 0) => [(gx - gy) * U * C30, (gx + gy) * U * 0.5 - z * U];
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const pts = (arr) => arr.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+const TONE = { data: '--c-data', undo: '--c-undo', redo: '--c-redo', signal: '--c-signal', sql: '--c-sql', muted: '--c-muted' };
+const CHAPTER = {
+  problem: { label: '문제', color: 'var(--c-signal)' },
+  technique: { label: '원리', color: 'var(--accent)' },
+  case: { label: '사례', color: 'var(--c-redo)' },
+  recap: { label: '정리', color: 'var(--c-data)' },
+};
+const CALLOUT = {
+  insight: { label: '핵심', tone: 'var(--accent)', icon: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/>' },
+  tip: { label: '알아두면 좋아요', tone: 'var(--c-data)', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>' },
+  warn: { label: '주의', tone: 'var(--c-signal)', icon: '<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/>' },
+};
+
+const S = { i: 0, paused: false, t0: performance.now(), pauseAt: 0, flows: [], maxSeen: 0, consoleLines: [] };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem('ohb:' + k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem('ohb:' + k, JSON.stringify(v)); } catch (e) {} },
+};
+
+/* ---------- geometry ---------- */
+function center(e) {
+  return e.type === 'cyl' ? e.at : [e.at[0] + e.size[0] / 2, e.at[1] + e.size[1] / 2];
+}
+function topCenter(e) {
+  if (e.type === 'cyl') { const [x, y] = iso(...e.at); return [x, y - e.h * U]; }
+  const c = center(e); return iso(c[0], c[1], e.size[2]);
+}
+function topPoint(e) {
+  if (e.type === 'cyl') { const [x, y] = iso(...e.at); return [x, y - e.h * U - 0.7071 * e.r * U]; }
+  return iso(e.at[0], e.at[1], e.size[2]);
+}
+function labelAnchor(e) {
+  if (e.type === 'box' && e.labelPos === 'left') {
+    const p = iso(e.at[0], e.at[1] + e.size[1], e.size[2]);
+    return { x: p[0] - 12, y: p[1], anchor: 'end' };
+  }
+  if (e.type === 'cyl' && e.labelPos === 'right') {
+    const [cx, cy] = iso(...e.at);
+    return { x: cx + 1.2247 * e.r * U + 10, y: cy - e.h * U * 0.5, anchor: 'start' };
+  }
+  if (e.type === 'box' && e.labelPos === 'right') {
+    const p = iso(e.at[0] + e.size[0], e.at[1], e.size[2]);
+    return { x: p[0] + 12, y: p[1], anchor: 'start' };
+  }
+  const p = topPoint(e);
+  return { x: p[0], y: p[1] - 18, anchor: 'middle' };
+}
+function linkD(L) {
+  const A = LESSON.entities[L.from], B = LESSON.entities[L.to];
+  if (L.arc) {
+    const a = topCenter(A), b = topCenter(B);
+    const mx = (a[0] + b[0]) / 2, my = Math.min(a[1], b[1]) - L.arc;
+    return `M${a[0].toFixed(1)},${a[1].toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+  }
+  const P = [center(A), ...(L.via || []), center(B)].map((p) => iso(p[0], p[1]));
+  return 'M' + P.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+}
+
+/* ---------- scene build ---------- */
+const svg = $('#scene');
+const layer = {};
+const entEls = {}, linkEls = {}, zoneEls = {};
+
+function buildScene() {
+  svg.innerHTML = '';
+  const defs = el('defs', {}, svg);
+  const rg = el('radialGradient', { id: 'fade', cx: '50%', cy: '50%', r: '60%' }, defs);
+  el('stop', { offset: '0.55', 'stop-color': '#fff', 'stop-opacity': 1 }, rg);
+  el('stop', { offset: '1', 'stop-color': '#fff', 'stop-opacity': 0 }, rg);
+  const mask = el('mask', { id: 'gridMask', maskUnits: 'userSpaceOnUse' }, defs);
+
+  ['grid', 'zones', 'links', 'dots', 'ents', 'arcs', 'arcdots', 'labels'].forEach((k) => (layer[k] = el('g', {}, svg)));
+  layer.grid.setAttribute('mask', 'url(#gridMask)');
+
+  // bounds
+  const B = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+  const grow = (p) => { B.x0 = Math.min(B.x0, p[0]); B.x1 = Math.max(B.x1, p[0]); B.y0 = Math.min(B.y0, p[1]); B.y1 = Math.max(B.y1, p[1]); };
+
+  // zones
+  LESSON.zones.forEach((z) => {
+    const g = el('g', { class: 'zone-g off' }, layer.zones);
+    const [x0, y0] = z.from, [x1, y1] = z.to;
+    const c = [iso(x0, y0), iso(x1, y0), iso(x1, y1), iso(x0, y1)];
+    c.forEach(grow);
+    el('polygon', { class: 'zone', points: pts(c) }, g);
+    const p = iso(x0 + 0.35, y1 - 0.3);
+    const t = el('text', { class: 'zone-label', transform: `matrix(${C30},0.5,${-C30},0.5,${p[0].toFixed(1)},${p[1].toFixed(1)})` }, g);
+    t.textContent = z.label;
+    zoneEls[z.id] = g;
+  });
+
+  // entities, back to front
+  const order = Object.keys(LESSON.entities).sort((a, b) => {
+    const ca = center(LESSON.entities[a]), cb = center(LESSON.entities[b]);
+    return ca[0] + ca[1] - (cb[0] + cb[1]);
+  });
+  order.forEach((id) => {
+    const e = LESSON.entities[id];
+    const g = el('g', { class: 'ent off', 'data-id': id, style: `--tone: var(${TONE[e.tone]})` }, layer.ents);
+    if (e.type === 'box') drawBox(g, e, grow); else drawCyl(g, e, grow);
+    const tp = topPoint(e); grow([tp[0], tp[1] - 80]);
+    const la = labelAnchor(e); grow([la.x + (la.anchor === 'end' ? -150 : la.anchor === 'start' ? 150 : 0), la.y - 60]);
+    entEls[id] = g;
+  });
+
+  // links
+  Object.entries(LESSON.links).forEach(([id, L]) => {
+    const g = el('g', { class: 'link off' + (L.arc ? ' arc' : '') }, L.arc ? layer.arcs : layer.links);
+    const d = linkD(L);
+    el('path', { class: 'trk', d }, g);
+    const ln = el('path', { class: 'ln', d }, g);
+    linkEls[id] = { g, path: ln, len: 0 };
+  });
+
+  const pad = 24;
+  const vb = [B.x0 - pad, B.y0 - pad, B.x1 - B.x0 + pad * 2, B.y1 - B.y0 + pad * 2];
+  svg.setAttribute('viewBox', vb.map((n) => n.toFixed(0)).join(' '));
+  el('rect', { x: vb[0], y: vb[1], width: vb[2], height: vb[3], fill: 'url(#fade)' }, mask);
+
+  // floor grid
+  for (let gx = -8; gx <= 22; gx++) {
+    const a = iso(gx, -4), b = iso(gx, 14);
+    el('line', { class: 'gridline', x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, layer.grid);
+  }
+  for (let gy = -4; gy <= 14; gy++) {
+    const a = iso(-8, gy), b = iso(22, gy);
+    el('line', { class: 'gridline', x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, layer.grid);
+  }
+  Object.values(linkEls).forEach((L) => (L.len = L.path.getTotalLength()));
+}
+
+function drawBox(g, e, grow) {
+  const [x, y] = e.at, [w, d, h] = e.size;
+  const P = iso;
+  [P(x, y, 0), P(x + w, y, 0), P(x + w, y + d, 0), P(x, y + d, 0), P(x, y, h)].forEach(grow);
+  const m = 0.32;
+  el('polygon', { class: 'focus-ring', points: pts([P(x - m, y - m), P(x + w + m, y - m), P(x + w + m, y + d + m), P(x - m, y + d + m)]) }, g);
+  el('polygon', { class: 'shadow', points: pts([P(x + 0.18, y + 0.3), P(x + w + 0.3, y + 0.3), P(x + w + 0.3, y + d + 0.35), P(x + 0.18, y + d + 0.35)]) }, g);
+  el('polygon', { class: 'face left', points: pts([P(x, y + d, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x, y + d, h)]) }, g);
+  el('polygon', { class: 'face right', points: pts([P(x + w, y, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x + w, y, h)]) }, g);
+  el('polygon', { class: 'face top', points: pts([P(x, y, h), P(x + w, y, h), P(x + w, y + d, h), P(x, y + d, h)]) }, g);
+  if (e.led) {
+    const a = P(x + 0.25, y + d, h * 0.55), b = P(x + w * 0.55, y + d, h * 0.55);
+    el('line', { class: 'led', x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, g);
+  }
+  if (e.cells) {
+    const [cols, rows] = e.cells, cw = w / cols, rh = d / rows, mm = 0.12;
+    e._cells = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x0 = x + c * cw + mm, x1 = x + (c + 1) * cw - mm, y0 = y + r * rh + mm, y1 = y + (r + 1) * rh - mm;
+      e._cells.push(el('polygon', { class: 'cell', points: pts([P(x0, y0, h), P(x1, y0, h), P(x1, y1, h), P(x0, y1, h)]) }, g));
+    }
+  }
+  if (e.segs) {
+    const sw = w / e.segs, mm = 0.09, my = 0.22;
+    e._segs = [];
+    for (let i = 0; i < e.segs; i++) {
+      const x0 = x + i * sw + mm, x1 = x + (i + 1) * sw - mm;
+      e._segs.push(el('polygon', { class: 'seg', points: pts([P(x0, y + my, h), P(x1, y + my, h), P(x1, y + d - my, h), P(x0, y + d - my, h)]) }, g));
+    }
+  }
+}
+
+function drawCyl(g, e, grow) {
+  const [cx, cy] = iso(...e.at), rx = 1.2247 * e.r * U, ry = 0.7071 * e.r * U, H = e.h * U;
+  [[cx - rx, cy], [cx + rx, cy + ry], [cx, cy - H - ry]].forEach(grow);
+  el('ellipse', { class: 'focus-ring', cx, cy, rx: rx + 14, ry: ry + 8 }, g);
+  el('ellipse', { class: 'shadow', cx: cx + 7, cy: cy + 5, rx, ry }, g);
+  el('path', { class: 'face left', d: `M${cx - rx},${cy - H} L${cx - rx},${cy} A${rx},${ry} 0 0 0 ${cx + rx},${cy} L${cx + rx},${cy - H} Z` }, g);
+  el('path', { class: 'face right', style: 'stroke:none', d: `M${cx},${cy - H + ry} L${cx},${cy + ry} A${rx},${ry} 0 0 0 ${cx + rx},${cy} L${cx + rx},${cy - H} A${rx},${ry} 0 0 1 ${cx},${cy - H + ry} Z` }, g);
+  el('path', { class: 'face left', style: 'fill:none', d: `M${cx - rx},${cy - H} L${cx - rx},${cy} A${rx},${ry} 0 0 0 ${cx + rx},${cy} L${cx + rx},${cy - H}` }, g);
+  [0.36, 0.68].forEach((f) => el('path', { class: 'ring-line', d: `M${cx - rx},${cy - H * f} A${rx},${ry} 0 0 0 ${cx + rx},${cy - H * f}` }, g));
+  el('ellipse', { class: 'face top', cx, cy: cy - H, rx, ry }, g);
+  el('ellipse', { class: 'ring-line', cx, cy: cy - H, rx: rx * 0.42, ry: ry * 0.42 }, g);
+}
+
+/* ---------- pills ---------- */
+function pill(parent, text, cls, x, y, anchor, style, delay) {
+  const g = el('g', { class: 'pill ' + cls }, parent);
+  if (style) g.setAttribute('style', style);
+  if (delay) g.style.animationDelay = delay + 'ms';
+  const r = el('rect', { rx: 10, height: 20, y: y - 10 }, g);
+  const hasDot = cls.includes('lbl');
+  const dot = hasDot ? el('circle', { class: 'pdot', r: 3.5, cy: y }, g) : null;
+  const t = el('text', { y }, g);
+  t.textContent = text;
+  const tw = t.getComputedTextLength();
+  const padL = hasDot ? 20 : 9, padR = 9, w = tw + padL + padR;
+  const x0 = anchor === 'middle' ? x - w / 2 : anchor === 'start' ? x : x - w;
+  r.setAttribute('x', x0.toFixed(1)); r.setAttribute('width', w.toFixed(1));
+  t.setAttribute('x', (x0 + padL).toFixed(1));
+  if (dot) dot.setAttribute('cx', (x0 + 11).toFixed(1));
+  return g;
+}
+
+/* ---------- apply a step ---------- */
+function applyScene(step, prevStep) {
+  const shown = new Set(step.show || []);
+  const dim = new Set(step.dim || []);
+  const focus = new Set(step.focus || []);
+  const prevShown = new Set(prevStep ? prevStep.show || [] : []);
+
+  for (const [id, g] of Object.entries(entEls)) {
+    const on = shown.has(id);
+    g.classList.toggle('off', !on);
+    g.classList.toggle('dim', on && dim.has(id));
+    g.classList.toggle('focus', on && focus.has(id));
+    g.classList.remove('enter');
+    if (on && !prevShown.has(id) && !reduceMotion.matches) { void g.getBBox(); g.classList.add('enter'); }
+  }
+  LESSON.zones.forEach((z) => zoneEls[z.id].classList.toggle('off', !z.members.some((m) => shown.has(m))));
+
+  // cells & segments
+  const bc = LESSON.entities.bc;
+  const cells = Object.assign({}, step.noBaseCells ? {} : LESSON.baseCells, step.cells || {});
+  bc._cells.forEach((c, i) => c.setAttribute('class', 'cell ' + (cells[i] || '')));
+  const segs = step.segs || [];
+  LESSON.entities.lb._segs.forEach((s, i) => s.setAttribute('class', 'seg ' + (segs[i] || '')));
+
+  // links
+  const flowLinks = new Map((step.flows || []).map((f) => [f.link, f.kind]));
+  for (const [id, L] of Object.entries(LESSON.links)) {
+    const both = shown.has(L.from) && shown.has(L.to);
+    const on = flowLinks.has(id) || (both && !L.onDemand);
+    const le = linkEls[id];
+    le.g.classList.toggle('off', !on);
+    le.g.classList.toggle('act', flowLinks.has(id));
+    le.g.setAttribute('class', le.g.getAttribute('class').replace(/\bk-\w+/g, '').trim() + (flowLinks.has(id) ? ' k-' + flowLinks.get(id) : ''));
+  }
+
+  // labels & tags
+  layer.labels.innerHTML = '';
+  for (const id of Object.keys(LESSON.entities)) {
+    if (!shown.has(id)) continue;
+    const e = LESSON.entities[id];
+    const a = labelAnchor(e);
+    const lg = pill(layer.labels, e.label, 'lbl', a.x, a.y, a.anchor, `--tone: var(${TONE[e.tone]})`);
+    if (dim.has(id)) lg.style.opacity = 0.4;
+    ((step.tags || {})[id] || []).forEach((t, k) => {
+      const dy = (e.tagDir === 'down' ? 24 : -24) * (k + 1);
+      pill(layer.labels, t.text, 'tag k-' + (t.tone || 'muted'), a.x, a.y + dy, a.anchor, null, 150 + k * 80);
+    });
+  }
+
+  // flows
+  layer.dots.innerHTML = ''; layer.arcdots.innerHTML = '';
+  S.flows = (step.flows || []).map((f) => {
+    const L = LESSON.links[f.link], le = linkEls[f.link];
+    const parent = L.arc ? layer.arcdots : layer.dots;
+    const n = f.n || 1;
+    const dots = [];
+    for (let i = 0; i < n; i++) {
+      const g = el('g', { class: 'k-' + f.kind }, parent);
+      const halo = el('circle', { class: 'flowhalo', r: 8 }, g);
+      const dot = el('circle', { class: 'flowdot', r: 4.2 }, g);
+      dots.push({ g, halo, dot });
+    }
+    return { ...f, n, path: le.path, len: le.len, dots };
+  });
+  S.t0 = performance.now();
+  drawFlows(S.t0);
+  scrollToFocus(step);
+}
+
+// 좁은 화면에서는 장면이 가로로 스크롤되므로, 이번 단계의 주인공이 보이도록 옮긴다.
+function scrollToFocus(step) {
+  const wrap = svg.parentElement;
+  if (wrap.scrollWidth <= wrap.clientWidth + 4) return;
+  const ids = (step.focus && step.focus.length ? step.focus : step.show) || [];
+  if (!ids.length) return;
+  const xs = ids.map((id) => labelAnchor(LESSON.entities[id]).x);
+  const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const vb = svg.viewBox.baseVal;
+  const px = ((mid - vb.x) / vb.width) * svg.clientWidth;
+  wrap.scrollTo({ left: px - wrap.clientWidth / 2, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+}
+
+function drawFlows(now) {
+  const t = (now - S.t0) / 1000;
+  for (const f of S.flows) {
+    const dur = Math.max(1.3, f.len / 150) / (f.rate || 1);
+    f.dots.forEach((d, i) => {
+      let s;
+      if (reduceMotion.matches) s = (i + 0.5) / f.n;
+      else {
+        const span = f.bounce ? 2 : 1;
+        const u = ((t / dur) + (i / f.n) * span) % span;
+        s = f.bounce ? (u < 1 ? u : 2 - u) : u;
+      }
+      if (f.rev) s = 1 - s;
+      const p = f.path.getPointAtLength(s * f.len);
+      d.g.setAttribute('transform', `translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`);
+      const edge = Math.min(1, s * 7, (1 - s) * 7);
+      d.g.style.opacity = reduceMotion.matches ? 1 : edge.toFixed(2);
+    });
+  }
+}
+
+function loop(now) {
+  if (!S.paused && !reduceMotion.matches) drawFlows(now);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- panel, metrics, console, stepper ---------- */
+function renderMetrics(step, prev) {
+  const box = $('#metrics');
+  if (!box.children.length) {
+    LESSON.metrics.forEach((m) => {
+      const d = document.createElement('div');
+      d.className = 'metric'; d.dataset.k = m.key;
+      d.innerHTML = `<div class="metric-k">${m.label}</div><div class="metric-v"></div>`;
+      box.appendChild(d);
+    });
+  }
+  LESSON.metrics.forEach((m) => {
+    const d = box.querySelector(`[data-k="${m.key}"]`);
+    const v = step.metrics[m.key];
+    const pv = prev ? prev.metrics[m.key] : undefined;
+    d.classList.toggle('empty', v == null);
+    d.querySelector('.metric-v').textContent = v == null ? '—' : v;
+    d.classList.remove('flash');
+    if (prev && v !== pv && v != null) { void d.offsetWidth; d.classList.add('flash'); }
+  });
+}
+
+function consoleFor(i) {
+  let title = 'SQL*Plus', lines = [];
+  for (let k = 0; k <= i; k++) {
+    const c = LESSON.steps[k].console || {};
+    if (c.title) title = c.title;
+    if (c.lines) lines = c.lines.slice();
+    if (c.add) lines = lines.concat(c.add);
+  }
+  return { title, lines };
+}
+function esc(s) { return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+function renderConsole(i, prevI) {
+  const { title, lines } = consoleFor(i);
+  const prev = prevI == null ? [] : consoleFor(prevI).lines;
+  $('#consoleTitle').textContent = title;
+  $('#consoleBody').innerHTML = lines.map((l, k) => {
+    const [txt, kind] = l.split('|');
+    let cls = kind || (txt.trim().startsWith('--') ? 'cmt' : '');
+    const isNew = prev[k] !== l;
+    const body = esc(txt).replace(/(--.*)$/, '<span class="cmt">$1</span>');
+    return `<span class="${cls}${isNew ? ' ln-new' : ''}">${body || ' '}</span>`;
+  }).join('\n');
+}
+
+function renderStepper() {
+  const ol = $('#steps');
+  ol.innerHTML = '';
+  LESSON.steps.forEach((s, i) => {
+    const li = document.createElement('li');
+    li.style.setProperty('--chap', CHAPTER[s.chapter].color);
+    li.innerHTML = `<button class="dot" type="button" aria-label="${i + 1}단계: ${s.title}">${i + 1}</button>`;
+    li.querySelector('button').addEventListener('click', () => go(i));
+    ol.appendChild(li);
+  });
+}
+function updateStepper() {
+  [...$('#steps').children].forEach((li, i) => {
+    const b = li.querySelector('.dot');
+    b.classList.toggle('now', i === S.i);
+    b.classList.toggle('seen', i <= S.maxSeen);
+    b.setAttribute('aria-current', i === S.i ? 'step' : 'false');
+    const old = li.querySelector('.step-short'); if (old) old.remove();
+    if (i === S.i) {
+      const sp = document.createElement('span');
+      sp.className = 'step-short'; sp.textContent = LESSON.steps[i].short;
+      li.appendChild(sp);
+    }
+  });
+  $('#stepperCount').textContent = `${LESSON.steps.length}단계 중 ${S.i + 1}단계`;
+}
+
+function renderPanel(step) {
+  const N = LESSON.steps.length, ch = CHAPTER[step.chapter];
+  const next = LESSON.steps[S.i + 1];
+  const co = step.callout ? CALLOUT[step.callout.kind] : null;
+  const chg = (step.changes || []).map((c) => {
+    const sym = c[0], text = c.slice(2);
+    const cls = sym === '+' ? 'chg-add' : sym === '×' ? 'chg-bad' : 'chg-mod';
+    return `<li class="${cls}"><b>${sym}</b><span>${text}</span></li>`;
+  }).join('');
+  const card = $('#stepCard');
+  card.style.setProperty('--chap', ch.color);
+  card.innerHTML = `
+    <div class="step-top"><span class="step-count">${S.i + 1} / ${N}단계</span><span class="chap">${ch.label}</span></div>
+    <h2 class="step-title">${step.title}</h2>
+    <div class="step-body">${step.body.map((p) => `<p>${p}</p>`).join('')}</div>
+    ${co ? `<div class="callout" style="--tone:${co.tone}">
+      <span class="callout-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${co.icon}</svg></span>
+      <div><span class="callout-k">${co.label}</span>${step.callout.text}</div></div>` : ''}
+    ${chg ? `<div class="changes"><span class="changes-k">달라진 점</span><ul>${chg}</ul></div>` : ''}
+    <div class="nav">
+      <button class="btn" id="prevBtn" type="button" ${S.i === 0 ? 'disabled' : ''} aria-label="이전 단계">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>뒤로</button>
+      <button class="btn btn-primary" id="nextBtn" type="button">
+        <span>${next ? '다음: ' + next.short : '처음부터 다시'}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="keys"><kbd>←</kbd><kbd>→</kbd> 단계 · <kbd>R</kbd> 다시 보기 · <kbd>Space</kbd> 일시정지</div>`;
+  $('#prevBtn').addEventListener('click', () => go(S.i - 1));
+  $('#nextBtn').addEventListener('click', () => go(next ? S.i + 1 : 0));
+}
+
+function renderGoals() {
+  const ul = $('#goals');
+  ul.innerHTML = LESSON.goals.map((g, k) => `
+    <li class="${S.maxSeen + 1 >= g.step ? 'done' : ''}"><button type="button" data-step="${g.step}">
+      <span class="chk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+      <span>${g.text}</span></button></li>`).join('');
+  ul.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => go(+b.dataset.step - 1)));
+}
+
+function renderOutline() {
+  $('#outline').innerHTML = LESSON.outline.map((p) => `
+    <div class="outline-part"><b>${p.part}</b><ul>
+      ${p.items.map((it, k) => `<li class="${p.current === k ? 'cur' : ''}"><span>${it}</span><em>${p.current === k ? '지금 보는 중' : '예정'}</em></li>`).join('')}
+    </ul></div>`).join('');
+}
+
+/* ---------- navigation ---------- */
+function go(i, opts = {}) {
+  const N = LESSON.steps.length;
+  i = Math.max(0, Math.min(N - 1, i));
+  const prevI = opts.initial ? null : S.i;
+  const prev = prevI == null ? null : LESSON.steps[prevI];
+  S.i = i;
+  S.maxSeen = Math.max(S.maxSeen, i);
+  store.set('maxSeen', S.maxSeen);
+  const step = LESSON.steps[i];
+  applyScene(step, prev);
+  renderMetrics(step, prev);
+  renderConsole(i, prevI);
+  renderPanel(step);
+  updateStepper();
+  renderGoals();
+  const h = '#step-' + (i + 1);
+  if (location.hash !== h) location.hash = h;
+}
+
+function setPaused(p) {
+  const now = performance.now();
+  if (p && !S.paused) S.pauseAt = now;
+  if (!p && S.paused) S.t0 += now - S.pauseAt;
+  S.paused = p;
+  $('#pauseIc').innerHTML = p
+    ? '<path d="M7 4.5v15l13-7.5z"/>'
+    : '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+  $('#pauseBtn').setAttribute('aria-label', p ? '애니메이션 재생' : '애니메이션 일시정지');
+}
+
+function stepFromHash() {
+  const m = /^#step-(\d+)$/.exec(location.hash);
+  return m ? +m[1] - 1 : null;
+}
+
+/* ---------- theme ---------- */
+function isDark() {
+  const t = document.documentElement.dataset.theme;
+  return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+}
+$('#themeBtn').addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  store.set('theme', next);
+});
+(() => { const t = store.get('theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; })();
+
+/* ---------- boot ---------- */
+$('#pauseBtn').addEventListener('click', () => setPaused(!S.paused));
+$('#replayBtn').addEventListener('click', () => { go(S.i); setPaused(false); });
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); go(S.i + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); go(S.i - 1); }
+  else if (e.key === ' ' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); setPaused(!S.paused); }
+  else if (e.key === 'r' || e.key === 'R') { go(S.i); }
+});
+window.addEventListener('hashchange', () => { const i = stepFromHash(); if (i != null && i !== S.i) go(i); });
+
+function renderSite() {
+  const isUrl = (u) => /^https:\/\//.test(u);
+  if (isUrl(SITE.github)) {
+    const a = $('#githubLink');
+    a.href = SITE.github; a.hidden = false;
+  }
+  const line = $('#authorLine');
+  const parts = [];
+  if (SITE.author) parts.push(document.createTextNode('만든 사람: ' + SITE.author));
+  [['GitHub 저장소', SITE.github], ['연락처', SITE.contact]].forEach(([label, url]) => {
+    if (!isUrl(url)) return;
+    if (parts.length) parts.push(document.createTextNode(' · '));
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label;
+    parts.push(a);
+  });
+  if (parts.length) { parts.forEach((p) => line.appendChild(p)); line.hidden = false; }
+}
+
+function boot() {
+  renderSite();
+  buildScene();
+  renderStepper();
+  renderOutline();
+  S.maxSeen = Math.max(0, Math.min(LESSON.steps.length - 1, store.get('maxSeen') || 0));
+  const start = stepFromHash();
+  go(start == null ? 0 : start, { initial: true });
+  requestAnimationFrame(loop);
+}
+boot();
+// 웹폰트가 늦게 오면 라벨 폭을 다시 잰다.
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => applyScene(LESSON.steps[S.i], LESSON.steps[S.i]));
+</script>
+
+</body>
+</html>
