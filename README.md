@@ -25,7 +25,9 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/lab/
 
-실무 경험이 없는 신입 DBA가 Oracle 19c를 운영하는 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 리눅스 기초를 익히는 실습 과정입니다. 전체 과정 가운데 1단계(리눅스 기초)이며, 2단계(오라클을 위한 리눅스 준비)로 이어지도록 짰습니다.
+실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 익히는 실습 과정입니다. 위쪽 단계 탭으로 1단계(리눅스 기초)와 2단계(오라클을 위한 리눅스 준비)를 오갑니다.
+
+### 1단계 · 리눅스 기초 (Oracle 19c가 이미 돌아가는 dbserver01, oracle 계정)
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -39,8 +41,25 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 | 8 | 환경 변수 설정 | `echo $ORACLE_HOME`, `vi ~/.bash_profile`, `source`, `which sqlplus` |
 | 9 | 졸업 미션: 아침 점검 | 배운 명령 종합 |
 
+### 2단계 · 오라클을 위한 리눅스 준비 (오라클이 없는 새 서버 dbserver02, root 계정)
+
+설치 가이드(Oracle Database Installation Guide for Linux 19c)의 순서를 따릅니다. 주소의 레슨 번호는 `#lesson-10`부터 `#lesson-18`입니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 설치 전 서버 점검(OS, 커널, 아키텍처, RAM·스왑, /tmp, 공간, 호스트 이름) | `uname -r`, `grep MemTotal /proc/meminfo`, `df -h`, `ping -c 1` |
+| 2 | preinstall RPM으로 설치 준비 | `rpm -q`, `dnf install oracle-database-preinstall-19c`, `id oracle` |
+| 3 | 커널 파라미터 확인 | `cat /etc/sysctl.d/...`, `sysctl kernel.sem`, `sysctl -a`, `sysctl --system` |
+| 4 | 자원 제한(limits) 확인 | `su - oracle`, `ulimit -Sn`, `ulimit -Hn` |
+| 5 | HugePages 설정과 THP 확인 | `grep Huge /proc/meminfo`, `vm.nr_hugepages`, `cat /sys/kernel/mm/transparent_hugepage/enabled` |
+| 6 | 디스크 I/O 스케줄러와 클럭 소스 | `lsblk`, `cat /sys/block/sdb/queue/scheduler` |
+| 7 | 직무 분리 그룹과 grid 사용자 | `groupadd -g`, `useradd -u -g -G`, `usermod`, `passwd` |
+| 8 | 설치 디렉터리와 경로 규칙(심볼릭 링크, oraInst.loc) | `ls -ld`, `mkdir -p`, `chown -R`, `chmod -R 775` |
+| 9 | 졸업 미션: 손으로 준비한 서버의 빠진 곳 5개 찾아 고치기 | 배운 명령 종합 |
+
 - 실제 리눅스가 아니라 JavaScript로 만든 가상 파일 시스템과 셸입니다. 서버 비용이 없고, 무엇을 지워도 "레슨 다시 시작"으로 되돌릴 수 있습니다.
 - 기준 값은 공식 자료에서 가져왔습니다. `/etc/os-release`는 `oraclelinux-release-8.10` 패키지, `.bash_profile`과 `.bashrc`는 `bash-4.4.20-6.el8_10` 패키지의 `/etc/skel`, oracle 사용자와 그룹 ID(54321 등)와 커널 파라미터는 `oracle-database-preinstall-19c-1.0-4.el8` 패키지에서 그대로 옮겼습니다. 디렉터리 구조는 Oracle 19c 설치 가이드의 OFA 예시, alert log 위치는 Administrator's Guide의 ADR 설명을 따릅니다. 레슨마다 화면에 출처 링크가 있습니다.
+- 2단계의 패키지 버전은 yum.oracle.com의 Oracle Linux 8 저장소 목록에서, preinstall RPM이 바꾸는 값(커널 파라미터, 자원 제한, 사용자·그룹, THP와 `numa=off` 부팅 옵션, 기록 파일 위치)은 `oracle-database-preinstall-19c-1.0-4.el8` 패키지를 풀어 그 안의 `.param` 파일과 verify 스크립트에서 확인했습니다. 설치 전 커널 기본값, 기본 자원 제한, 디스크 구성은 예시입니다. ORAchk와 설치 프로그램(runInstaller, fixup 스크립트)은 흉내 내지 않고 해설로만 다룹니다.
 - 열 간격, 날짜, 크기, PID, IP, 서버 이름 같은 값은 설명용 예시입니다.
 
 ## 구현

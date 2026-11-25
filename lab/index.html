@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>리눅스 실습실 · Oracle 해부도</title>
-<meta name="description" content="실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에서 접속, 파일, 로그, vi, 권한, 프로세스, 디스크, 환경 변수를 직접 입력하며 익히는 실습 과정.">
+<meta name="description" content="실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에서 리눅스 기초(1단계)와 오라클 설치 전 리눅스 준비(2단계: preinstall RPM, 커널 파라미터, 자원 제한, HugePages, 사용자와 그룹, 설치 디렉터리)를 직접 입력하며 익히는 실습 과정.">
 <meta name="theme-color" content="#e5e9ee">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/lab/">
@@ -13,7 +13,7 @@
 <meta property="og:locale" content="ko_KR">
 <meta property="og:site_name" content="Oracle 해부도">
 <meta property="og:title" content="리눅스 실습실 · Oracle 해부도">
-<meta property="og:description" content="Oracle 19c를 운영하는 Oracle Linux 8 서버를 브라우저 터미널로 흉내 내어, 신입 DBA가 리눅스 기초부터 직접 입력하며 익힙니다.">
+<meta property="og:description" content="Oracle 19c를 위한 Oracle Linux 8 서버를 브라우저 터미널로 흉내 내어, 신입 DBA가 리눅스 기초와 설치 전 준비를 직접 입력하며 익힙니다.">
 <script>
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
@@ -77,6 +77,10 @@ p code, li code, .md code { background: var(--panel-2); border: 1px solid var(--
 .tab.done .n { color: var(--ok); }
 .tab[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .tab[aria-current="true"] .n { color: inherit; }
+.stage-tabs { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.stage-tab { border: 1px solid var(--line); background: var(--panel-2); border-radius: 9px; padding: 4px 11px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.stage-tab[aria-pressed="true"] { background: var(--panel); color: var(--ink); border-color: var(--muted); }
+.stage-tab .cnt { font-family: var(--font-mono); font-weight: 400; font-size: 11.5px; margin-left: 5px; }
 
 /* grid */
 .wrap { max-width: 1400px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: 420px minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -161,7 +165,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 <body>
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="./"><span class="brand-name">리눅스 실습실</span><span class="brand-sub">1단계 · Oracle Linux 8 기초</span></a>
+    <a class="brand" href="./"><span class="brand-name">리눅스 실습실</span><span class="brand-sub" id="brandSub">1단계 · Oracle Linux 8 기초</span></a>
     <nav class="site-tabs" aria-label="사이트 전환"><a class="site-tab" href="../">Oracle 해부도</a><a class="site-tab" aria-current="page" href="./">리눅스 실습실</a></nav>
     <span class="top-spacer"></span>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
@@ -170,7 +174,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
   </div>
 </header>
 
-<nav class="tabs-wrap" aria-label="레슨 목록"><div class="tabs" id="tabs"></div></nav>
+<nav class="tabs-wrap" aria-label="레슨 목록"><div class="stage-tabs" id="stageTabs"></div><div class="tabs" id="tabs"></div></nav>
 
 <main class="wrap">
   <div class="side">
@@ -197,6 +201,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 </main>
 
 <footer class="foot">
+  <p>2단계의 패키지 버전은 Oracle Linux 8 공식 저장소(yum.oracle.com) 목록에서, preinstall RPM이 바꾸는 커널 파라미터·자원 제한·사용자·그룹·부팅 옵션은 oracle-database-preinstall-19c-1.0-4.el8 패키지를 풀어 그 안의 설정 파일과 스크립트에서 확인했습니다. 설치 전 커널 기본값, 기본 자원 제한, 디스크 구성, dnf 출력의 일부 줄은 설명용 예시이거나 줄인 것입니다.</p>
   <p>화면 출력은 Oracle Linux 8.10의 패키지(bash 4.4, coreutils 8.30, procps-ng 3.3.15, vim-minimal 8.0) 형식에 맞추려 했습니다. 오류 문구는 GNU coreutils와 bash에서 실제로 확인한 문장을 썼습니다. 열 간격, 날짜, 크기, PID, IP 같은 값과 서버 이름 dbserver01은 설명용 예시이고, 설정 파일 일부는 줄여서 보여 줍니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -213,7 +218,7 @@ const SRC = {
   env:     ['Oracle Database 19c 설치 가이드 · Configuring the Software Owner User Environments', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/configuring-software-owner-user-environments.html'],
   prerpm:  ['Oracle Database 19c 설치 가이드 · About the Oracle Database Preinstallation RPM', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/automatically-configuring-oracle-linux-with-oracle-database-preinstallation-rpm/about-the-oracle-database-preinstallation-rpm.html'],
   adr:     ['Oracle Database 19c Administrator\'s Guide · Diagnosing and Resolving Problems (ADR 구조)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/diagnosing-and-resolving-problems.html'],
-  prepkg:  ['Oracle Linux 8 공식 저장소 · oracle-database-preinstall-19c-1.0-4.el8 패키지(사용자·그룹 ID, 커널 파라미터 값)', 'https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/oracle-database-preinstall-19c-1.0-4.el8.x86_64.rpm'],
+  prepkg:  ['Oracle Linux 8 공식 저장소 · oracle-database-preinstall-19c-1.0-4.el8 패키지(안의 .param 설정 파일과 verify 스크립트: 사용자·그룹 ID, 커널 파라미터, 자원 제한, 부팅 옵션)', 'https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/oracle-database-preinstall-19c-1.0-4.el8.x86_64.rpm'],
   relpkg:  ['Oracle Linux 8 공식 저장소 · oraclelinux-release-8.10 패키지(/etc/os-release 원문)', 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/oraclelinux-release-8.10-1.0.7.el8.x86_64.rpm'],
   bashpkg: ['Oracle Linux 8 공식 저장소 · bash-4.4.20-6.el8_10 패키지(/etc/skel의 .bash_profile, .bashrc 원문)', 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/bash-4.4.20-6.el8_10.x86_64.rpm'],
   kernel:  ['Oracle Linux 8 공식 저장소 패키지 목록(kernel-4.18.0-553.16.1.el8_10 확인)', 'https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/index.html'],
@@ -225,6 +230,28 @@ const SRC = {
   unxenv:  ['Oracle Database 19c Administrator\'s Reference for Linux and UNIX · 1장 Administering Oracle Database (환경 변수 표)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database.html'],
   unxtune: ['Oracle Database 19c Administrator\'s Reference for Linux and UNIX · 8장 Tuning Oracle Database (vmstat, 스왑)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/tuning-oracle-database.html'],
   tgos:    ['Oracle Database 19c Performance Tuning Guide · Managing Operating System Resources (CPU 판정 기준)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/managing-operating-system-resources.html'],
+  pre19c:  ['Oracle Database 19c 설치 가이드 · Overview of Oracle Linux Configuration with Oracle Database Preinstallation RPM', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/overview-of-oracle-linux-configuration-with-oracle-rpms.html'],
+  minimal: ['Oracle Database 19c 설치 가이드 · Completing a Minimal or Default Linux Installation', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-operating-systems-for-oracle-database-on-linux/completing-a-minimal-or-default-linux-installation.html'],
+  cwprerpm: ['Oracle Grid Infrastructure 19c 설치 가이드(Linux) · About the Oracle Database Preinstallation RPM (oracle 계정에만 적용, numa=off)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/about-the-oracle-preinstallation-rpm.html'],
+  yumidx:  ['Oracle Linux 8 공식 저장소 · appstream 패키지 목록(패키지 버전 확인)', 'https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/index.html'],
+  storage: ['Oracle Database 19c 설치 가이드 · Storage Checklist (Enterprise Edition 7.2GB)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/storage-checklist-for-oracle-database-installation.html'],
+  kmin:    ['Oracle Grid Infrastructure 19c 설치 가이드 · Minimum Parameter Settings for Installation (Table B-1 커널 파라미터 최소값)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/minimum-parameter-settings-for-installation.html'],
+  kparam:  ['Oracle Database 19c 설치 가이드 · Configuring Kernel Parameters for Linux', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/completing-preinstallation-tasks-manually/configuring-kernel-parameters-for-linux.html'],
+  kchange: ['Oracle Database 19c 설치 가이드 · Changing Kernel Parameter Values (97-oracle-database-sysctl.conf, sysctl --system)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/changing-kernel-parameter-values.html'],
+  limits:  ['Oracle Grid Infrastructure 19c 설치 가이드 · Checking Resource Limits for Oracle Software Installation Users (Table 6-1)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/checking-resource-limits-for-oracle-software-installation-users.html'],
+  pamlim:  ['Linux man-pages · limits.conf(5) (사용자 줄이 그룹·* 줄보다 우선, * 줄은 root에 적용 안 됨)', 'https://man7.org/linux/man-pages/man5/limits.conf.5.html'],
+  huge:    ['Oracle Database 19c Administrator\'s Reference for Linux and UNIX · 부록 A Administering Oracle Database on Linux (HugePages, THP)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html'],
+  thp:     ['Oracle Database 19c 설치 가이드 · Setting and Disabling Transparent HugePages on UEK Kernels', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/setting-thp-uek.html'],
+  iosched: ['Oracle Grid Infrastructure 19c 설치 가이드 · Verifying the Disk I/O Scheduler on Linux 8 and Later Systems', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/setting-the-disk-io-scheduler-on-linux-8.html'],
+  clock:   ['Oracle Database 19c 설치 가이드 · Setting Clock Source for VMs on Linux x86-64', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/setting-clock-source-vm.html'],
+  groups:  ['Oracle Database 19c 설치 가이드 · Creating Operating System Privileges Groups', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/creating-operating-system-privileges-groups.html'],
+  users:   ['Oracle Database 19c 설치 가이드 · Creating Operating System Oracle Installation User Accounts (useradd, usermod 예시)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/creating-operating-system-oracle-installation-user-accounts.html'],
+  extgrp:  ['Oracle Database 19c 설치 가이드 · Extended Oracle Database Groups for Job Role Separation', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/extended-oracle-database-groups-for-job-role-separation.html'],
+  reqgrp:  ['Oracle Database 19c 설치 가이드 · Required Operating System Groups and Users (oraInst.loc)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/required-operating-system-groups-and-users.html'],
+  instsw:  ['Oracle Database 19c 설치 가이드 · Installing the Oracle Database Software (mkdir, chown, chmod, runInstaller)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/installing-oracle-database/installing-the-oracle-database-software.html'],
+  dbfdir:  ['Oracle Database 19c 설치 가이드 · Creating Directories for Oracle Database Files', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-storage-for-oracle-grid-infrastructure-for-a-standalone-server/creating-directories-for-oracle-database-files.html'],
+  planning: ['Oracle Database 19c 설치 가이드 · Installer Planning Checklist (ORAchk -profile preinstall)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/installer-planning-checklist-for-oracle-database-installation.html'],
+  fixup:   ['Oracle Database 19c 설치 가이드 · About Installation Fixup Scripts', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/about-installation-fixup-scripts.html'],
 };
 
 /* =====================================================================
@@ -239,11 +266,13 @@ function ago(days, h, m) { const d = new Date(NOW); d.setDate(d.getDate() - days
 function ymd(d, sep) { sep = sep == null ? '' : sep; return d.getFullYear() + sep + String(d.getMonth() + 1).padStart(2, '0') + sep + String(d.getDate()).padStart(2, '0'); }
 const THIS_YEAR = NOW.getFullYear(), LAST_YEAR = THIS_YEAR - 1;
 
-const USERS = {
+const USERS1 = {
   root:   { uid: 0, gid: 0, group: 'root', groups: ['root'], home: '/root', pass: 'root123' },
   oracle: { uid: 54321, gid: 54321, group: 'oinstall', groups: ['oinstall', 'dba', 'oper', 'backupdba', 'dgdba', 'kmdba', 'racdba'], home: '/home/oracle', pass: 'oracle123' },
 };
-const GIDS = { root: 0, oinstall: 54321, dba: 54322, oper: 54323, backupdba: 54324, dgdba: 54325, kmdba: 54326, racdba: 54330 };
+const GIDS1 = { root: 0, oinstall: 54321, dba: 54322, oper: 54323, backupdba: 54324, dgdba: 54325, kmdba: 54326, racdba: 54330 };
+let USERS = {}, GIDS = {};
+function setIds(u, g) { USERS = JSON.parse(JSON.stringify(u)); GIDS = Object.assign({}, g); }
 
 function D(o, g, m, c, x) { return Object.assign({ t: 'd', o, g, m, c: c || {}, mt: ago(30, 9, 0) }, x || {}); }
 function F(o, g, m, body, x) { const n = { t: 'f', o, g, m, mt: ago(30, 9, 0) }; if (typeof body === 'number') n.size = body; else n.txt = body; return Object.assign(n, x || {}); }
@@ -349,8 +378,7 @@ function alertLog() {
 function makeFS(lessonId) {
   const R = 'root', O = 'oracle', OI = 'oinstall';
   const exe = (n, s) => F(O, OI, 0o755, s, { bin: n });
-  const usrbin = {};
-  for (const c of Object.keys(CMDS)) if (!['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl'].includes(c) && (CMDS[c] || ['vi', 'vim', 'top', 'ssh', 'su', 'bash', 'sh'].includes(c))) usrbin[c] = F(R, R, 0o755, 120 * KB, { bin: c, mt: ago(200, 4, 2) });
+  const { usrbin, usrsbin } = binNodes();
   const al = alertLog();
   const fs = D(R, R, 0o555, {
     bin: L('usr/bin'), boot: D(R, R, 0o555), dev: D(R, R, 0o755), etc: D(R, R, 0o755, {
@@ -455,7 +483,7 @@ function makeFS(lessonId) {
         [`exp_full_${ymd(ago(5))}.log`]: F(O, OI, 0o640, 203 * KB, { mt: ago(5, 2, 1) }),
       }, { mt: ago(5, 2, 1) }),
     }),
-    usr: D(R, R, 0o755, { bin: D(R, R, 0o555, usrbin), lib: D(R, R, 0o555), lib64: D(R, R, 0o555), local: D(R, R, 0o755, { bin: D(R, R, 0o755) }), sbin: D(R, R, 0o555), share: D(R, R, 0o755) }),
+    usr: D(R, R, 0o755, { bin: D(R, R, 0o555, usrbin), lib: D(R, R, 0o555), lib64: D(R, R, 0o555), local: D(R, R, 0o755, { bin: D(R, R, 0o755) }), sbin: D(R, R, 0o555, usrsbin), share: D(R, R, 0o755) }),
     var: D(R, R, 0o755, { log: D(R, R, 0o755) }),
   });
   return { fs, alertSeq: al.seq };
@@ -478,6 +506,293 @@ function makeProcs(lessonId) {
   return P;
 }
 function stime(days) { const d = ago(days); return days === 0 ? '09:20' : d.toLocaleString('en-US', { month: 'short' }) + String(d.getDate()).padStart(2, '0'); }
+
+/* =====================================================================
+   2-1. 2단계 서버: 오라클을 아직 설치하지 않은 Oracle Linux 8.10 서버
+        패키지 버전은 yum.oracle.com OL8 저장소(baseos/latest, appstream) 목록,
+        preinstall 동작은 oracle-database-preinstall-19c-1.0-4.el8 RPM 안의
+        .param 파일과 verify 스크립트를 풀어 확인한 값이다.
+   ===================================================================== */
+const HOSTS = { 1: { hn: 'dbserver01', ip: '10.0.1.10' }, 2: { hn: 'dbserver02', ip: '10.0.1.11' }, 3: { hn: 'dbserver03', ip: '10.0.1.12' } };
+const MEM1 = { total: 16108544, used: 5335347, free: 627097, shared: 2396160, buff: 10146099, avail: 8031436, stotal: 8388604 };
+const MEM2 = { total: 32622588, used: 701484, free: 30512340, shared: 17608, buff: 1408764, avail: 31050112, stotal: 16777212 };
+const PKG = {
+  'bc': ['1.07.1-5.el8', 'x86_64', 'baseos'], 'binutils': ['2.30-128.0.1.el8_10', 'x86_64', 'baseos'], 'ksh': ['20120801-272.0.1.el8_10', 'x86_64', 'appstream'],
+  'libaio': ['0.3.112-1.el8', 'x86_64', 'baseos'], 'libaio-devel': ['0.3.112-1.el8', 'x86_64', 'baseos'], 'sysstat': ['11.7.3-13.0.3.el8_10', 'x86_64', 'appstream'],
+  'glibc': ['2.28-251.0.5.el8_10.53', 'x86_64', 'baseos'], 'glibc-devel': ['2.28-251.0.5.el8_10.53', 'x86_64', 'baseos'], 'make': ['4.2.1-11.el8', 'x86_64', 'baseos'],
+  'libnsl': ['2.28-251.0.5.el8_10.53', 'x86_64', 'baseos'], 'libstdc++': ['8.5.0-31.0.1.el8_10', 'x86_64', 'baseos'], 'libstdc++-devel': ['8.5.0-31.0.1.el8_10', 'x86_64', 'appstream'],
+  'smartmontools': ['7.1-4.0.1.el8_10', 'x86_64', 'baseos'], 'unzip': ['6.0-48.0.1.el8_10', 'x86_64', 'baseos'], 'compat-openssl10': ['1.0.2o-4.el8_10.4', 'x86_64', 'appstream'],
+  'bind-utils': ['9.11.36-18.el8_10', 'x86_64', 'appstream'], 'nfs-utils': ['2.3.3-69.0.1.el8_10', 'x86_64', 'baseos'], 'xorg-x11-utils': ['7.5-28.el8', 'x86_64', 'appstream'],
+  'xorg-x11-xauth': ['1.0.9-12.el8', 'x86_64', 'appstream'], 'psmisc': ['23.1-5.el8', 'x86_64', 'baseos'], 'net-tools': ['2.0-0.52.20160912git.el8', 'x86_64', 'baseos'],
+  'ethtool': ['5.13-2.el8', 'x86_64', 'baseos'], 'tar': ['1.30-13.el8_10', 'x86_64', 'baseos'], 'procps-ng': ['3.3.15-14.0.1.el8', 'x86_64', 'baseos'],
+  'util-linux': ['2.32.1-50.0.1.el8_10', 'x86_64', 'baseos'], 'kmod': ['25-20.0.1.el8', 'x86_64', 'baseos'], 'elfutils-libelf-devel': ['0.190-2.el8', 'x86_64', 'baseos'],
+  'oracle-database-preinstall-19c': ['1.0-4.el8', 'x86_64', 'appstream'], 'libgcc': ['8.5.0-31.0.1.el8_10', 'x86_64', 'baseos'], 'pam': ['1.3.1-40.0.1.el8_10', 'x86_64', 'baseos'],
+  'policycoreutils': ['2.9-26.0.1.el8_10', 'x86_64', 'baseos'], 'policycoreutils-python-utils': ['2.9-26.0.1.el8_10', 'noarch', 'baseos'], 'openssh-clients': ['8.0p1-35.0.1.el8_10', 'x86_64', 'baseos'],
+  'openssl-libs': ['1.1.1k-19.el8_10', 'x86_64', 'baseos'], 'initscripts': ['10.00.19-1.0.1.el8_10', 'x86_64', 'baseos'],
+};
+const REPO = { baseos: 'ol8_baseos_latest', appstream: 'ol8_appstream' };
+const pkgFull = (n) => `${n}-${PKG[n][0]}.${PKG[n][1]}`;
+// preinstall RPM 1.0-4.el8 의 Requires 를 실제 패키지 이름으로 적은 것
+// (module-init-tools, util-linux-ng, procps 는 각각 kmod, util-linux, procps-ng 가 제공하는 이름)
+const PRE_REQ = ['bc', 'bind-utils', 'binutils', 'ethtool', 'glibc', 'glibc-devel', 'initscripts', 'ksh', 'libaio', 'libaio-devel', 'libgcc', 'libnsl', 'libstdc++', 'libstdc++-devel', 'make', 'kmod', 'net-tools', 'nfs-utils', 'openssh-clients', 'openssl-libs', 'pam', 'policycoreutils', 'policycoreutils-python-utils', 'procps-ng', 'psmisc', 'smartmontools', 'sysstat', 'tar', 'unzip', 'util-linux', 'xorg-x11-utils', 'xorg-x11-xauth'];
+const BASE_PKGS = ['bc', 'binutils', 'ethtool', 'glibc', 'initscripts', 'libaio', 'libgcc', 'libnsl', 'libstdc++', 'make', 'kmod', 'net-tools', 'openssh-clients', 'openssl-libs', 'pam', 'policycoreutils', 'policycoreutils-python-utils', 'procps-ng', 'psmisc', 'tar', 'unzip', 'util-linux'];
+// 설치 전 커널 값(예시). preinstall 이 바꾸는 키와 HugePages 키만 흉내 낸다.
+const SYSCTL_DEF = { 'fs.aio-max-nr': '65536', 'fs.file-max': '3247917', 'kernel.panic_on_oops': '1', 'kernel.sem': '32000 1024000000 500 32000', 'kernel.shmall': '18446744073692774399', 'kernel.shmmax': '18446744073692774399', 'kernel.shmmni': '4096', 'net.core.rmem_default': '212992', 'net.core.rmem_max': '212992', 'net.core.wmem_default': '212992', 'net.core.wmem_max': '212992', 'net.ipv4.conf.all.rp_filter': '1', 'net.ipv4.conf.default.rp_filter': '1', 'net.ipv4.ip_local_port_range': '32768 60999', 'vm.hugetlb_shm_group': '0', 'vm.nr_hugepages': '0' };
+// .param 파일의 kernel: 줄 순서와 값, kernelcomment 문구
+const PRE_SYSCTL = [['fs.file-max', '6815744'], ['kernel.sem', '250 32000 100 128', "'250 32000 100 128'"], ['kernel.shmmni', '4096'], ['kernel.shmall', '1073741824', '1073741824 on x86_64'], ['kernel.shmmax', '4398046511104', '4398046511104 on x86_64'], ['kernel.panic_on_oops', '1', '1 per Orabug 19212317'], ['net.core.rmem_default', '262144'], ['net.core.rmem_max', '4194304'], ['net.core.wmem_default', '262144'], ['net.core.wmem_max', '1048576'], ['net.ipv4.conf.all.rp_filter', '2'], ['net.ipv4.conf.default.rp_filter', '2'], ['fs.aio-max-nr', '1048576'], ['net.ipv4.ip_local_port_range', '9000 65535'], ['vm.hugetlb_shm_group', '54321', "gid of primary group of 'oracle' user"]];
+const PRE_LIMITS = [['soft', 'nofile', '1024', 'nofile soft limit is 1024'], ['hard', 'nofile', '65536', 'nofile hard limit is 65536'], ['soft', 'nproc', '16384', 'nproc soft limit is 16384', 'refer orabug15971421 for more info.'], ['hard', 'nproc', '16384', 'nproc hard limit is 16384'], ['soft', 'stack', '10240', 'stack soft limit is 10240KB'], ['hard', 'stack', '32768', 'stack hard limit is 32768KB'], ['hard', 'memlock', '134217728', 'memlock hard limit is maximum of 128GB on x86_64 or 3GB on x86 OR 90 % of RAM'], ['soft', 'memlock', '134217728', 'memlock soft limit is maximum of 128GB on x86_64 or 3GB on x86 OR 90% of RAM'], ['soft', 'data', 'unlimited', "data soft limit is 'unlimited'"], ['hard', 'data', 'unlimited', "data hard limit is 'unlimited'"]];
+const SYSCTL_CONF_BASE = `# sysctl settings are defined through files in
+# /usr/lib/sysctl.d/, /run/sysctl.d/, and /etc/sysctl.d/.
+#
+# Vendors settings live in /usr/lib/sysctl.d/.
+# To override a whole file, create a new file with the same in
+# /etc/sysctl.d/ and put new settings there. To override
+# only specific settings, add a file with a lexically later
+# name in /etc/sysctl.d/ and put new settings there.
+#
+# For more information, see sysctl.conf(5) and sysctl.d(5).
+`;
+const LIMITS_CONF_BASE = `# /etc/security/limits.conf
+#
+#This file sets the resource limits for the users logged in via PAM.
+#It does not affect resource limits of the system services.
+#
+#<domain>        <type>  <item>  <value>
+#
+# (예시 주석 줄은 줄였습니다)
+
+# End of file
+`;
+const NPROC_CONF = `# Default limit for number of user's processes to prevent
+# accidental fork bombs.
+# See rhbz #432903 for reasoning.
+
+*          soft    nproc     4096
+root       soft    nproc     unlimited
+`;
+const GRUB_BASE = `GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
+GRUB_DEFAULT=saved
+GRUB_DISABLE_SUBMENU=true
+GRUB_TERMINAL_OUTPUT="console"
+GRUB_CMDLINE_LINUX="crashkernel=auto resume=/dev/mapper/ol-swap rd.lvm.lv=ol/root rd.lvm.lv=ol/swap rhgb quiet"
+GRUB_DISABLE_RECOVERY="true"
+GRUB_ENABLE_BLSCFG=true
+`;
+const KVER = '4.18.0-553.16.1.el8_10.x86_64';
+function preSysctlText() { return SYSCTL_CONF_BASE + PRE_SYSCTL.map(([k, v, c]) => `\n# oracle-database-preinstall-19c setting for ${k} is ${c || v}\n${k} = ${v}\n`).join(''); }
+function preLimitsText() { return PRE_LIMITS.map(([t, i, v, c, c2]) => `\n# oracle-database-preinstall-19c setting for ${c}\n${c2 ? '# ' + c2 + '\n' : ''}oracle   ${t}   ${i}    ${v}\n`).join(''); }
+function passwdText() { let t = 'root:x:0:0:root:/root:/bin/bash\nbin:x:1:1:bin:/bin:/sbin/nologin\ndaemon:x:2:2:daemon:/sbin:/sbin/nologin\nsshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin\n'; for (const n of Object.keys(USERS)) if (n !== 'root') t += `${n}:x:${USERS[n].uid}:${USERS[n].gid}::${USERS[n].home}:/bin/bash\n`; return t; }
+function groupText() {
+  let t = 'root:x:0:\nbin:x:1:\ndaemon:x:2:\nwheel:x:10:\n';
+  for (const [g, id] of Object.entries(GIDS).filter(([g]) => g !== 'root').sort((a, b) => a[1] - b[1])) t += `${g}:x:${id}:${Object.keys(USERS).filter(u => u !== 'root' && USERS[u].group !== g && USERS[u].groups.includes(g)).join(',')}\n`;
+  return t;
+}
+function meminfo2() {
+  const K = S.mem, hp = parseInt(S.sysctl['vm.nr_hugepages'], 10) || 0, hk = hp * 2048;
+  const row = (k, v, unit) => (k + ':').padEnd(16) + String(v).padStart(8) + (unit === false ? '' : ' kB') + '\n';
+  return row('MemTotal', K.total) + row('MemFree', K.free - hk) + row('MemAvailable', K.avail - hk) + row('Buffers', 2104) + row('Cached', K.buff - 2104) + row('SwapCached', 0) + row('Active', 402120) + row('Inactive', 1120344) + row('SwapTotal', K.stotal) + row('SwapFree', K.stotal) + row('Dirty', 96) + row('Shmem', K.shared) + row('PageTables', 8236)
+    + row('HugePages_Total', hp, false) + row('HugePages_Free', hp, false) + row('HugePages_Rsvd', 0, false) + row('HugePages_Surp', 0, false) + row('Hugepagesize', 2048) + row('Hugetlb', hk);
+}
+function sel(list, curv) { return list.map(x => x === curv ? '[' + x + ']' : x).join(' ') + '\n'; }
+function binNodes() {
+  const R = 'root'; const usrbin = {}, usrsbin = {};
+  const SBIN = ['groupadd', 'useradd', 'usermod', 'sysctl'];
+  for (const c of Object.keys(CMDS)) {
+    if (['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl', 'ulimit'].includes(c)) continue;
+    if (!(CMDS[c] || ['vi', 'vim', 'top', 'ssh', 'su', 'bash', 'sh', 'dnf', 'yum', 'passwd'].includes(c))) continue;
+    (SBIN.includes(c) ? usrsbin : usrbin)[c] = F(R, R, c === 'passwd' ? 0o4755 : 0o755, 120 * KB, { bin: c, mt: ago(200, 4, 2) });
+  }
+  return { usrbin, usrsbin };
+}
+function makeFS2(lessonId) {
+  const R = 'root';
+  const host = lessonId === 18 ? HOSTS[3] : HOSTS[2];
+  const { usrbin, usrsbin } = binNodes();
+  const sysf = (gen, w, extra) => F(R, R, w ? 0o644 : 0o444, 0, Object.assign({ gen, proc: true, mt: new Date() }, extra || {}));
+  const blk = (sched, rota) => D(R, R, 0o755, { queue: D(R, R, 0o755, { scheduler: sysf(() => sched, true), rotational: sysf(() => rota + '\n') }) });
+  const fs = D(R, R, 0o555, {
+    bin: L('usr/bin'), boot: D(R, R, 0o555), dev: D(R, R, 0o755), data: L('/u01'),
+    etc: D(R, R, 0o755, {
+      'os-release': F(R, R, 0o644, OS_RELEASE, { mt: ago(120, 11, 20) }),
+      'oracle-release': F(R, R, 0o644, 'Oracle Linux Server release 8.10\n', { mt: ago(120, 11, 20) }),
+      'redhat-release': F(R, R, 0o644, 'Red Hat Enterprise Linux release 8.10 (Ootpa)\n', { mt: ago(120, 11, 20) }),
+      hostname: F(R, R, 0o644, host.hn + '\n'),
+      hosts: F(R, R, 0o644, `127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4\n::1         localhost localhost.localdomain localhost6 localhost6.localdomain6\n${host.ip}   ${host.hn}.example.com ${host.hn}\n`),
+      passwd: F(R, R, 0o644, 0, { gen: passwdText }), group: F(R, R, 0o644, 0, { gen: groupText }), shadow: F(R, R, 0o000, '(비공개)\n'),
+      'sysctl.conf': F(R, R, 0o644, SYSCTL_CONF_BASE, { mt: ago(3, 10, 0) }),
+      'sysctl.d': D(R, R, 0o755, { '99-sysctl.conf': L('../sysctl.conf') }),
+      security: D(R, R, 0o755, { 'limits.conf': F(R, R, 0o644, LIMITS_CONF_BASE, { mt: ago(3, 10, 0) }), 'limits.d': D(R, R, 0o755, { '20-nproc.conf': F(R, R, 0o644, NPROC_CONF, { mt: ago(3, 10, 0) }) }) }),
+      default: D(R, R, 0o755, { grub: F(R, R, 0o644, GRUB_BASE, { mt: ago(3, 10, 0) }) }),
+      skel: D(R, R, 0o755, { '.bash_profile': F(R, R, 0o644, BASH_PROFILE), '.bashrc': F(R, R, 0o644, BASHRC), '.bash_logout': F(R, R, 0o644, '# ~/.bash_logout\n\n') }),
+    }),
+    home: D(R, R, 0o755, {}),
+    lib: L('usr/lib'), lib64: L('usr/lib64'), media: D(R, R, 0o755), mnt: D(R, R, 0o755), opt: D(R, R, 0o755),
+    proc: D(R, R, 0o555, { meminfo: sysf(meminfo2), cmdline: sysf(() => `BOOT_IMAGE=(hd0,msdos1)/vmlinuz-${KVER} root=/dev/mapper/ol-root ro crashkernel=auto resume=/dev/mapper/ol-swap rd.lvm.lv=ol/root rd.lvm.lv=ol/swap rhgb quiet\n`) }),
+    root: D(R, R, 0o550, { 'anaconda-ks.cfg': F(R, R, 0o600, '# kickstart\n') }),
+    run: D(R, R, 0o755), sbin: L('usr/sbin'), srv: D(R, R, 0o755),
+    sys: D(R, R, 0o555, {
+      block: D(R, R, 0o755, { sda: blk('mq-deadline kyber bfq none'.replace('mq-deadline', '[mq-deadline]') + '\n', 1), sdb: blk('none [mq-deadline] kyber bfq\n', 1), nvme0n1: blk('[none] mq-deadline kyber bfq\n', 0) }),
+      kernel: D(R, R, 0o755, { mm: D(R, R, 0o755, { transparent_hugepage: D(R, R, 0o755, {
+        enabled: sysf(() => sel(['always', 'madvise', 'never'], S.thp), true, { onWrite: v => { v = v.trim(); if (['always', 'madvise', 'never'].includes(v)) S.thp = v; } }),
+        defrag: sysf(() => sel(['always', 'defer', 'defer+madvise', 'madvise', 'never'], S.thpDefrag), true, { onWrite: v => { v = v.trim(); if (['always', 'defer', 'defer+madvise', 'madvise', 'never'].includes(v)) S.thpDefrag = v; } }),
+      }) }) }),
+      devices: D(R, R, 0o755, { system: D(R, R, 0o755, { clocksource: D(R, R, 0o755, { clocksource0: D(R, R, 0o755, {
+        current_clocksource: sysf(() => S.clock + '\n', true, { onWrite: v => { v = v.trim(); if (['kvm-clock', 'tsc', 'acpi_pm'].includes(v)) S.clock = v; } }),
+        available_clocksource: sysf(() => 'kvm-clock tsc acpi_pm \n'),
+      }) }) }) }),
+    }),
+    tmp: D(R, R, 0o1777),
+    u01: D(R, R, 0o755, {}, { mt: ago(3, 10, 30) }), u02: D(R, R, 0o755, {}, { mt: ago(3, 10, 30) }),
+    usr: D(R, R, 0o755, { bin: D(R, R, 0o555, usrbin), lib: D(R, R, 0o555), lib64: D(R, R, 0o555), local: D(R, R, 0o755, { bin: D(R, R, 0o755) }), sbin: D(R, R, 0o555, usrsbin), share: D(R, R, 0o755) }),
+    var: D(R, R, 0o755, { log: D(R, R, 0o755), tmp: D(R, R, 0o1777) }),
+  });
+  return { fs, host };
+}
+/* 2단계 세계 상태를 만든다. 앞 레슨에서 한 일은 미리 해 둔 상태로 시작한다. */
+function makeWorld2(lessonId) {
+  setIds({ root: { uid: 0, gid: 0, group: 'root', groups: ['root'], home: '/root', pass: 'root123' } }, { root: 0 });
+  const w = makeFS2(lessonId);
+  S.fs = w.fs; S.hn = w.host.hn; S.ip = w.host.ip; S.mem = MEM2; S.procs = makeProcs2();
+  S.pkgs = new Set(BASE_PKGS); S.sysctl = Object.assign({}, SYSCTL_DEF); S.thp = 'always'; S.thpDefrag = 'madvise'; S.clock = 'kvm-clock';
+  if (lessonId === 18) { buildBroken3(); return; }
+  if (lessonId >= 12) applyPreinstall();
+  if (lessonId >= 15) { lookup('/etc/sysctl.d').node.c['97-oracle-database-sysctl.conf'] = F('root', 'root', 0o644, 'vm.nr_hugepages = 4096\n'); sysctlSystem(); }
+  if (lessonId >= 17) {
+    for (const [g, id] of [['asmdba', 54327], ['asmoper', 54328], ['asmadmin', 54329]]) GIDS[g] = id;
+    addUser('grid', 54331, 'oinstall', ['asmadmin', 'asmdba', 'racdba']);
+    USERS.oracle.groups.push('asmdba'); USERS.oracle.pass = 'oracle123'; USERS.grid.pass = 'grid123';
+  }
+  if (lessonId === 17) lookup('/root').node.c['memo_from_sysadmin.txt'] = F('root', 'root', 0o600, `[시스템 관리자 메모] dbserver02 디스크 안내
+
+- /u01 : 200G (sdb, vg_u01). 오라클 프로그램용
+- /u02 : 500G (nvme0n1). 데이터 파일용
+- 편하게 쓰시라고 /data 라는 이름도 만들어 두었습니다.
+  오라클은 /data/app/oracle 에 설치하시면 됩니다.
+`, { mt: ago(1, 17, 20) });
+}
+function makeProcs2() {
+  const P = []; const boot = stime(3);
+  const add = (user, pid, ppid, tm, cmd) => P.push({ user, pid, ppid, stime: boot, tty: '?', time: tm, cmd, cpu: 0, mem: 0 });
+  add('root', 1, 0, '00:00:09', '/usr/lib/systemd/systemd --switched-root --system --deserialize 17');
+  add('root', 2, 0, '00:00:00', '[kthreadd]'); add('root', 702, 1, '00:00:02', '/usr/lib/systemd/systemd-journald');
+  add('root', 1102, 1, '00:00:00', '/usr/sbin/sshd -D'); add('root', 1117, 1, '00:00:00', '/usr/sbin/crond -n'); add('root', 1130, 1, '00:00:01', '/usr/sbin/chronyd');
+  return P;
+}
+function addUser(name, uid, prim, sec) {
+  USERS[name] = { uid, gid: GIDS[prim], group: prim, groups: [prim].concat(sec.filter(g => g !== prim)), home: '/home/' + name, pass: null };
+  const h = lookup('/home').node; const sk = (t) => F(name, prim, 0o644, t, { mt: new Date() });
+  h.c[name] = D(name, prim, 0o700, { '.bash_profile': sk(BASH_PROFILE), '.bashrc': sk(BASHRC), '.bash_logout': sk('# ~/.bash_logout\n\n') }, { mt: new Date() });
+}
+function applyPreinstall() {
+  const R = 'root';
+  for (const [g, id] of [['oinstall', 54321], ['dba', 54322], ['oper', 54323], ['backupdba', 54324], ['dgdba', 54325], ['kmdba', 54326], ['racdba', 54330]]) if (GIDS[g] == null) GIDS[g] = id;
+  if (!USERS.oracle) addUser('oracle', 54321, 'oinstall', ['dba', 'oper', 'backupdba', 'dgdba', 'kmdba', 'racdba']);
+  const etc = lookup('/etc').node, sd = etc.c['sysctl.d'];
+  const sc = preSysctlText();
+  sd.c['99-initial-sysctl.conf'] = F(R, R, 0o644, etc.c['sysctl.conf'].txt, { mt: new Date() });
+  etc.c['sysctl.conf'].txt = sc; etc.c['sysctl.conf'].mt = new Date();
+  sd.c['99-oracle-database-preinstall-19c-sysctl.conf'] = F(R, R, 0o644, sc, { mt: new Date() });
+  etc.c.security.c['limits.d'].c['oracle-database-preinstall-19c.conf'] = F(R, R, 0o644, preLimitsText(), { mt: new Date() });
+  const g = etc.c.default.c.grub; g.txt = g.txt.replace(/^(GRUB_CMDLINE_LINUX=".*)"$/m, '$1 numa=off transparent_hugepage=never"'); g.mt = new Date();
+  S.thp = 'never'; S.thpDefrag = 'never';
+  for (const p of PRE_REQ) S.pkgs.add(p); S.pkgs.add('oracle-database-preinstall-19c');
+  const log = `(일부)
+Verifying  kernel parameters as per Oracle recommendations...
+${PRE_SYSCTL.map(([k, v]) => `Adding ${k} = ${v} `).join('\n')}
+Setting kernel parameters as per oracle recommendations...
+Altered file /etc/sysctl.conf
+Saved a copy of the current file in /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf
+Check /etc/sysctl.d for backups
+Setting user limits using /etc/security/limits.d/oracle-database-preinstall-19c.conf
+Altered file /etc/security/limits.d/oracle-database-preinstall-19c.conf
+Setting /sys/kernel/mm/transparent_hugepage/enabled to never
+
+Setting /sys/kernel/mm/transparent_hugepage/defrag to never
+
+INFO: Executing grubby --update-kernel=ALL args=numa=off
+INFO: Executing grubby --update-kernel=ALL args=transparent_hugepage=never
+`;
+  lookup('/var/log').node.c['oracle-database-preinstall-19c'] = D(R, R, 0o755, { results: D(R, R, 0o755, { 'orakernel.log': F(R, R, 0o644, log, { mt: new Date() }) }), backup: D(R, R, 0o700) });
+  sysctlSystem();
+}
+/* 졸업 미션용 dbserver03: preinstall RPM 없이 손으로 준비하다 빠뜨린 것이 있는 서버 */
+function buildBroken3() {
+  const R = 'root';
+  for (const [g, id] of [['oinstall', 54321], ['dba', 54322], ['oper', 54323], ['backupdba', 54324], ['dgdba', 54325], ['kmdba', 54326], ['racdba', 54330]]) GIDS[g] = id;
+  addUser('oracle', 54321, 'dba', ['oinstall', 'oper', 'backupdba', 'dgdba', 'kmdba', 'racdba']); USERS.oracle.pass = 'oracle123';
+  for (const p of PRE_REQ) if (p !== 'ksh') S.pkgs.add(p);
+  const sd = lookup('/etc/sysctl.d').node;
+  sd.c['97-oracle-database-sysctl.conf'] = F(R, R, 0o644, `# 오라클 커널 파라미터 (손으로 설정: 이대리)
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+kernel.shmall = 1073741824
+kernel.shmmax = 4398046511104
+kernel.shmmni = 4096
+kernel.sem = 250 32000 32 128
+kernel.panic_on_oops = 1
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+`, { mt: ago(2, 15, 10) });
+  lookup('/etc/security/limits.d').node.c['oracle.conf'] = F(R, R, 0o644, `# oracle 자원 제한 (손으로 설정: 이대리)
+oracle   soft   nofile    1024
+oracle   hard   nofile    4096
+oracle   soft   nproc     16384
+oracle   hard   nproc     16384
+oracle   soft   stack     10240
+oracle   hard   stack     32768
+`, { mt: ago(2, 15, 12) });
+  const u = lookup('/u01').node; u.c.app = D(R, R, 0o755, { oracle: D(R, R, 0o755, {}, { mt: ago(2, 15, 30) }), oraInventory: D(R, R, 0o755, {}, { mt: ago(2, 15, 30) }) }, { mt: ago(2, 15, 30) });
+  S.thp = 'never'; S.thpDefrag = 'never';
+  lookup('/root').node.c['handover_dbserver03.txt'] = F(R, R, 0o600, `[인수인계] dbserver03 오라클 설치 준비 (이대리 → 신입)
+
+preinstall RPM을 쓰지 않고 설치 가이드를 보며 손으로 준비했습니다.
+- 패키지 설치, 커널 파라미터(/etc/sysctl.d/97-oracle-database-sysctl.conf)
+- 자원 제한(/etc/security/limits.d/oracle.conf)
+- oracle 사용자와 그룹, /u01/app 디렉터리
+급하게 하느라 빠진 게 있을지도 몰라요. 설치 전에 한 번 점검해 주세요.
+`, { mt: ago(2, 18, 0) });
+  sysctlSystem();
+}
+/* sysctl --system: /etc/sysctl.d/*.conf 를 이름 순서로, 그다음 /etc/sysctl.conf 를 읽어 적용 */
+function sysctlSystem() {
+  const sd = lookup('/etc/sysctl.d').node; let out = '';
+  const files = sortNames(Object.keys(sd.c).filter(n => n.endsWith('.conf'))).map(n => '/etc/sysctl.d/' + n).concat(['/etc/sysctl.conf']);
+  for (const f of files) { const r = lookup(f); if (!r || !r.node || r.node.txt == null) continue; out += `* Applying ${f} ...\n` + sysctlApply(r.node.txt); }
+  return out;
+}
+function sysctlApply(txt) {
+  let out = '';
+  for (const raw of txt.split('\n')) {
+    const ln = raw.trim(); if (!ln || ln[0] === '#' || ln[0] === ';') continue;
+    const m = /^([A-Za-z0-9_.\-]+)\s*=\s*(.*)$/.exec(ln); if (!m) continue;
+    const k = m[1], v = m[2].trim().split(/\s+/).join(' ');
+    if (!(k in S.sysctl)) { out += `sysctl: cannot stat /proc/sys/${k.replace(/\./g, '/')}: No such file or directory\n`; continue; }
+    S.sysctl[k] = v; out += `${k} = ${v}\n`;
+  }
+  return out;
+}
+function sysctlShow(k) { return `${k} = ${S.sysctl[k].split(' ').join(/^(kernel\.sem|net\.ipv4\.ip_local_port_range)$/.test(k) ? '\t' : ' ')}\n`; }
+/* pam_limits 흉내: 사용자 이름 줄 > @그룹 줄 > * 줄. * 줄은 root에 적용하지 않는다. 같은 등급이면 나중에 읽은 줄이 이긴다. */
+const LIM_DEF = { nofile: ['1024', '262144'], nproc: ['127412', '127412'], stack: ['8192', 'unlimited'], memlock: ['64', '64'], data: ['unlimited', 'unlimited'] };
+function computeLimits(user) {
+  const lim = JSON.parse(JSON.stringify(LIM_DEF)), rank = {};
+  const u = USERS[user]; const files = ['/etc/security/limits.conf'];
+  const ld = lookup('/etc/security/limits.d'); if (ld && ld.node) for (const n of sortNames(Object.keys(ld.node.c).filter(n => n.endsWith('.conf')))) files.push('/etc/security/limits.d/' + n);
+  for (const f of files) {
+    const r = lookup(f); if (!r || !r.node || r.node.txt == null) continue;
+    for (const raw of r.node.txt.split('\n')) {
+      const p = raw.trim().split(/\s+/); if (p.length < 4 || p[0][0] === '#') continue;
+      const [dom, type, item, val] = p; if (!lim[item]) continue;
+      const rk = dom === user ? 3 : dom[0] === '@' && u.groups.includes(dom.slice(1)) ? 2 : dom === '*' && user !== 'root' ? 1 : 0; if (!rk) continue;
+      for (const i of type === 'soft' ? [0] : type === 'hard' ? [1] : type === '-' ? [0, 1] : []) { const key = item + i; if (rk >= (rank[key] || 0)) { lim[item][i] = val; rank[key] = rk; } }
+    }
+  }
+  return lim;
+}
 
 /* =====================================================================
    3. 파일 시스템 도우미
@@ -521,7 +836,7 @@ function dirChain(abs) { // 상위 디렉터리들을 지나갈 수 있는지(x 
   for (let i = 0; i < parts.length - 1; i++) { p += '/' + parts[i]; const r = lookup(p); if (r && r.node && r.node.t === 'd' && !can(r.node, 1)) return false; }
   return true;
 }
-function sizeOf(n) { if (n.t === 'd') return 4096; if (n.t === 'l') return n.target.length; return n.txt != null ? new Blob([n.txt]).size : n.size; }
+function sizeOf(n) { if (n.t === 'd') return 4096; if (n.t === 'l') return n.target.length; if (n.gen) return n.proc ? 0 : new Blob([n.gen()]).size; return n.txt != null ? new Blob([n.txt]).size : n.size; }
 function duOf(n) {
   if (n.t === 'f') return Math.ceil(sizeOf(n) / 4096) * 4096;
   if (n.t === 'l') return 0;
@@ -563,7 +878,7 @@ function colorName(n, name, tty) {
 function mkfile(abs, txt) {
   const r = lookup(abs);
   if (!r || !r.parent && abs !== '/') return { err: 'nodir' };
-  if (r.node) { if (r.node.t === 'd') return { err: 'isdir' }; if (!can(r.node, 2)) return { err: 'perm' }; r.node.txt = txt; delete r.node.size; r.node.mt = new Date(); return { node: r.node }; }
+  if (r.node) { if (r.node.t === 'd') return { err: 'isdir' }; if (!can(r.node, 2)) return { err: 'perm' }; if (r.node.onWrite) { r.node.onWrite(txt); return { node: r.node }; } if (r.node.gen) return { err: 'perm' }; r.node.txt = txt; delete r.node.size; r.node.mt = new Date(); return { node: r.node }; }
   if (!can(r.parent, 2) || !can(r.parent, 1)) return { err: 'perm' };
   const u = USERS[S.user];
   const n = F(S.user, u.group, 0o644 & ~S.umask, txt, { mt: new Date() });
@@ -673,18 +988,19 @@ function readFile(name, cmd) {
   if (r.node.t === 'd') return { e: `${cmd}: ${name}: Is a directory` };
   if (!can(r.node, 4)) return { e: `${cmd}: ${name}: Permission denied` };
   S.ev.read.add(r.path);
-  if (r.node.txt == null) return { bin: true, txt: '', abs: r.path };
-  return { txt: r.node.txt, abs: r.path };
+  const txt = r.node.gen ? r.node.gen() : r.node.txt;
+  if (txt == null) return { bin: true, txt: '', abs: r.path };
+  return { txt, abs: r.path };
 }
 const linesOf = (t) => { if (!t) return []; const a = t.split('\n'); if (a[a.length - 1] === '') a.pop(); return a; };
 
 const CMDS = {
-  help() { return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon  echo export env printenv which source umask\n  history clear  sqlplus lsnrctl(일부)')); },
+  help() { return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear  sqlplus lsnrctl(일부)\n  (2단계) rpm -q  dnf install  sysctl  ulimit  groupadd useradd usermod passwd')); },
   whoami() { return ok(S.user + '\n'); },
-  hostname() { return ok('dbserver01\n'); },
+  hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
     const { f } = opts(argv);
-    if (f.a) return ok('Linux dbserver01 4.18.0-553.16.1.el8_10.x86_64 #1 SMP Thu Aug 1 04:16:12 PDT 2024 x86_64 x86_64 x86_64 GNU/Linux\n');
+    if (f.a) return ok('Linux ' + S.hn + ' 4.18.0-553.16.1.el8_10.x86_64 #1 SMP Thu Aug 1 04:16:12 PDT 2024 x86_64 x86_64 x86_64 GNU/Linux\n');
     if (f.r) return ok('4.18.0-553.16.1.el8_10.x86_64\n');
     if (f.m || f.p || f.i) return ok('x86_64\n');
     return ok('Linux\n');
@@ -799,7 +1115,7 @@ const CMDS = {
       const target = intoDir ? dabs + '/' + sr.name : dabs; const tr = lookup(target);
       if (!tr || !tr.parent) { err += `cp: cannot create regular file '${dst}': No such file or directory\n`; continue; }
       if (!can(tr.parent, 2)) { err += `cp: cannot create regular file '${target}': Permission denied\n`; continue; }
-      const u = USERS[S.user]; const cl = JSON.parse(JSON.stringify(sr.node), (k, v) => (k === 'mt' ? new Date(v) : v));
+      const u = USERS[S.user]; const cl = JSON.parse(JSON.stringify(sr.node), (k, v) => (k === 'mt' ? new Date(v) : v)); if (sr.node.gen) { cl.txt = sr.node.gen(); delete cl.proc; }
       cl.o = S.user; cl.g = u.group; cl.mt = new Date(); tr.parent.c[tr.name] = cl;
     }
     return { out: '', err, code: err ? 1 : 0 };
@@ -889,13 +1205,13 @@ const CMDS = {
     return { out, err, code: err ? 1 : 0 };
   },
   chmod(argv) {
-    const { rest } = opts(argv); const mode = rest.shift(); let err = '';
+    const { f, rest } = opts(argv); const mode = rest.shift(); let err = '';
     if (!mode || !rest.length) return fail(`chmod: missing operand${mode ? ` after ‘${mode}’` : ''}\nTry 'chmod --help' for more information.\n`);
     for (const t of rest) {
       const abs = normPath(t, S.cwd); const r = lookup(abs);
       if (!r || !r.node) { err += `chmod: cannot access '${t}': No such file or directory\n`; continue; }
       if (S.user !== 'root' && r.node.o !== S.user) { err += `chmod: changing permissions of '${t}': Operation not permitted\n`; continue; }
-      if (/^[0-7]{3,4}$/.test(mode)) { r.node.m = parseInt(mode, 8); continue; }
+      if (/^[0-7]{3,4}$/.test(mode)) { const v = parseInt(mode, 8); const ap = (n) => { if (n.t === 'l') return; n.m = n.t === 'f' && (n.m & 0o6000) && mode.length === 3 ? (n.m & 0o7000) | v : v; if ((f.R || f.r) && n.t === 'd') Object.values(n.c).forEach(ap); }; ap(r.node); continue; }
       const m = /^([ugoa]*)([+\-=])([rwx]+)$/.exec(mode);
       if (!m) { err += `chmod: invalid mode: ‘${mode}’\nTry 'chmod --help' for more information.\n`; break; }
       const who = m[1] || 'a'; let bits = 0;
@@ -949,10 +1265,11 @@ const CMDS = {
     const { f, rest } = opts(argv, { c: 'arg' });
     const host = rest[0];
     if (!host) return fail('Usage: ping [-c count] destination\n', 2);
-    const ip = /^(dbserver01|dbserver01\.example\.com|10\.0\.1\.10)$/.test(host) ? '10.0.1.10' : /^(localhost|127\.0\.0\.1)$/.test(host) ? '127.0.0.1' : null;
+    const me = [S.hn, S.hn + '.example.com', S.ip];
+    const ip = me.includes(host) ? S.ip : /^(localhost|127\.0\.0\.1)$/.test(host) ? '127.0.0.1' : null;
     if (!ip) return fail(`ping: ${host}: Name or service not known\n`, 2);
     if (f.c == null || f.c === true) return ok(note('실제 ping은 Ctrl+C를 누를 때까지 계속 보냅니다. 실습에서는 ping -c 1 처럼 횟수를 정해 주세요.'));
-    const n = Math.max(1, Math.min(5, parseInt(f.c, 10) || 1)); const nm = ip === '10.0.1.10' ? 'dbserver01' : 'localhost';
+    const n = Math.max(1, Math.min(5, parseInt(f.c, 10) || 1)); const nm = ip === S.ip ? S.hn : 'localhost';
     let o = `PING ${host} (${ip}) 56(84) bytes of data.\n`;
     for (let i = 1; i <= n; i++) o += `64 bytes from ${nm} (${ip}): icmp_seq=${i} ttl=64 time=0.0${30 + i} ms\n`;
     o += `\n--- ${host} ping statistics ---\n${n} packets transmitted, ${n} received, 0% packet loss, time ${(n - 1) * 1000}ms\nrtt min/avg/max/mdev = 0.031/0.03${n}/0.03${n}/0.001 ms\n`;
@@ -962,7 +1279,7 @@ const CMDS = {
     const lsnr = S.procs.some(p => p.cmd.includes('tnslsnr'));
     let o = 'State   Recv-Q  Send-Q     Local Address:Port      Peer Address:Port  Process\n';
     o += 'LISTEN  0       128              0.0.0.0:22             0.0.0.0:*\n';
-    if (lsnr) o += 'LISTEN  0       128            10.0.1.10:1521           0.0.0.0:*\n';
+    if (lsnr) o += 'LISTEN  0       128' + (S.ip + ':1521').padStart(26) + '           0.0.0.0:*\n';
     o += 'LISTEN  0       128                 [::]:22                [::]:*\n';
     return ok(o);
   },
@@ -978,7 +1295,7 @@ const CMDS = {
     let o = 'procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st\n';
     for (let i = 0; i < Math.min(count, 5); i++) {
       const first = i === 0; const us = hot ? (first ? 12 : 25) : (first ? 2 : 1), id = 100 - us - 1;
-      o += `${String(hot && !first ? 1 : 0).padStart(2)}  0      0 ${String(627097 - i * 120).padStart(6)}   3412 10142687    0    0 ${String(first ? 14 : 0).padStart(5)} ${String(first ? 86 : 52 + i).padStart(5)} ${String(first ? 410 : 388 + i).padStart(4)} ${String(first ? 820 : 760 + i * 3).padStart(4)} ${String(us).padStart(2)}  1 ${String(id).padStart(2)}  0  0\n`;
+      o += `${String(hot && !first ? 1 : 0).padStart(2)}  0      0 ${String(S.mem.free - i * 120).padStart(6)}   3412 ${S.mem.buff - 3412}    0    0 ${String(first ? 14 : 0).padStart(5)} ${String(first ? 86 : 52 + i).padStart(5)} ${String(first ? 410 : 388 + i).padStart(4)} ${String(first ? 820 : 760 + i * 3).padStart(4)} ${String(us).padStart(2)}  1 ${String(id).padStart(2)}  0  0\n`;
     }
     S.ev.vmstat = true;
     if (nums[0] && count > 1) o += note('실제 vmstat 5 3은 5초 간격으로 한 줄씩 3번 찍습니다. 첫 줄은 부팅 뒤 평균이라 보통 빼고 읽습니다.');
@@ -986,13 +1303,14 @@ const CMDS = {
   },
   df(argv) {
     const { f, rest } = opts(argv);
-    const u01Size = 200 * GB, u01Used = fsUsedU01();
+    const u01Size = 200 * GB, u01Used = S.dfRows ? 0 : fsUsedU01();
     let rows = [
       ['devtmpfs', 7.7 * GB, 0, '/dev'], ['tmpfs', 7.7 * GB, 0, '/dev/shm'], ['tmpfs', 7.7 * GB, 8.6 * MB, '/run'], ['tmpfs', 7.7 * GB, 0, '/sys/fs/cgroup'],
       ['/dev/mapper/ol-root', 50 * GB, 9.8 * GB, '/'], ['/dev/sda1', 1014 * MB, 301 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', u01Size, u01Used, '/u01'], ['tmpfs', 1.6 * GB, 0, '/run/user/54321'],
     ];
+    if (S.dfRows) rows = S.dfRows();
     if (rest.length) {
-      rows = rest.map(t => { const abs = normPath(t, S.cwd); const m = rows.filter(r => r[3] !== '/' && (abs === r[3] || abs.startsWith(r[3] + '/'))).sort((a, b) => b[3].length - a[3].length)[0]; return m || rows[4]; });
+      rows = rest.map(t => { const ra = lookup(normPath(t, S.cwd)); const abs = ra && ra.node ? ra.path : normPath(t, S.cwd); const m = rows.filter(r => r[3] !== '/' && (abs === r[3] || abs.startsWith(r[3] + '/'))).sort((a, b) => b[3].length - a[3].length)[0]; return m || rows.find(r => r[3] === '/'); });
     }
     S.ev.dfU01 = rows.some(r => r[3] === '/u01');
     const fmtN = (b) => f.h ? (b === 0 ? '0' : human(Math.round(b))) : String(Math.round(b / 1024));
@@ -1013,7 +1331,7 @@ const CMDS = {
   },
   free(argv) {
     const { f } = opts(argv);
-    const K = { total: 16108544, used: 5335347, free: 627097, shared: 2396160, buff: 10146099, avail: 8031436, stotal: 8388604 };
+    const K = S.mem;
     const cv = (k) => f.m ? Math.round(k / 1024) : f.g ? Math.round(k / 1048576) : f.h ? hum(k) : k;
     function hum(k) { const v = k * 1024; if (v >= GB) return (v / GB).toFixed(v / GB >= 10 ? 0 : 1) + 'Gi'; if (v >= MB) return Math.round(v / MB) + 'Mi'; return Math.round(v / KB) + 'Ki'; }
     const c = (x) => String(cv(x)).padStart(11);
@@ -1057,7 +1375,85 @@ const CMDS = {
     return ok(note('SQL*Plus로 DB에 접속하는 실습은 3단계(Oracle 19c 운영)에서 합니다. 지금은 sqlplus -V 로 버전만 확인해 보세요.'));
   },
   lsnrctl(argv) { return ok(note('lsnrctl status 같은 리스너 명령은 3단계에서 실습합니다.')); },
-  vi: null, vim: null, top: null, ssh: null, su: null, exit: null, logout: null, '.': null, bash: null, sh: null,
+  rpm(argv) {
+    const { f, rest } = opts(argv);
+    if (f.q && f.a) return ok(sortNames([...(S.pkgs || [])]).map(pkgFull).join('\n') + '\n');
+    if (!f.q) return fail(note('실습에서는 rpm -q 패키지이름(설치 여부 확인)과 rpm -qa(전체 목록)만 쓸 수 있습니다.'));
+    if (!rest.length) return fail('rpm: no arguments given for query\n');
+    let out = '', code = 0;
+    for (const n of rest) { if (S.pkgs && S.pkgs.has(n)) out += pkgFull(n) + '\n'; else { out += `package ${n} is not installed\n`; code = 1; } }
+    S.ev.rpmq = rest; return { out, err: '', code };
+  },
+  sysctl(argv) {
+    if (!S.sysctl) return ok(note('이 서버(1단계)에서는 cat /etc/sysctl.d/... 로 파일만 확인해 보세요. sysctl 실습은 2단계에서 합니다.'));
+    const root = S.user === 'root'; const a = argv.slice(1);
+    if (a[0] === '--system') { if (!root) return fail(`sysctl: permission denied on key '${PRE_SYSCTL[0][0]}'\n`); S.ev.sysctlSystem = true; return ok(sysctlSystem()); }
+    if (a[0] === '-p') { if (!root) return fail('sysctl: permission denied\n'); const file = a[1] || '/etc/sysctl.conf'; const r = readFile(file, 'sysctl'); if (r.e) return fail(`sysctl: cannot open "${file}": No such file or directory\n`); S.ev.sysctlSystem = true; return ok(sysctlApply(r.txt)); }
+    if (a[0] === '-a') { S.ev.sysctlKeys = Object.keys(S.sysctl); return ok(Object.keys(S.sysctl).sort().map(sysctlShow).join('')); }
+    if (a[0] === '-w') { const m = /^([^=]+)=(.*)$/.exec(a[1] || ''); if (!m) return fail('sysctl: "-w" 뒤에 키=값 을 적어 주세요.\n'); if (!root) return fail(`sysctl: permission denied on key '${m[1]}'\n`); return ok(sysctlApply(m[1] + ' = ' + m[2]) + note('sysctl -w 는 지금 실행 중인 커널만 바꿉니다. 재부팅해도 남기려면 /etc/sysctl.d/ 의 파일에 적어야 합니다.')); }
+    if (!a.length) return fail('Usage:\n sysctl [options] [variable[=value] ...]\n');
+    let out = '', err = '';
+    for (const k of a) { if (k in S.sysctl) out += sysctlShow(k); else err += `sysctl: cannot stat /proc/sys/${k.replace(/\./g, '/')}: No such file or directory\n`; }
+    S.ev.sysctlKeys = a; return { out, err, code: err ? 255 : 0 };
+  },
+  ulimit(argv) {
+    const lim = S.lim || LIM_DEF; let hard = false, item = 'nofile', all = false;
+    const map = { n: 'nofile', u: 'nproc', s: 'stack', l: 'memlock', d: 'data' };
+    for (const a of argv.slice(1)) { if (/^-[a-zA-Z]+$/.test(a)) { for (const c of a.slice(1)) { if (c === 'H') hard = true; else if (c === 'S') hard = false; else if (c === 'a') all = true; else if (map[c]) item = map[c]; } } else return ok(note('실습에서는 ulimit 값 바꾸기는 지원하지 않습니다. 값은 /etc/security/limits.conf 와 limits.d 의 파일로 정하고, 다시 로그인하면 적용됩니다.')); }
+    const i = hard ? 1 : 0;
+    S.ev.ulimit = S.ev.ulimit || []; S.ev.ulimit.push({ item, hard, all, user: S.user }); (S.limSeen = S.limSeen || new Set()).add(item + (hard ? 'H' : 'S') + ':' + S.user);
+    if (all) return ok(`data seg size           (kbytes, -d) ${lim.data[i]}\nmax locked memory       (kbytes, -l) ${lim.memlock[i]}\nopen files                      (-n) ${lim.nofile[i]}\nstack size              (kbytes, -s) ${lim.stack[i]}\nmax user processes              (-u) ${lim.nproc[i]}\n` + note('실제 ulimit -a 는 항목이 더 많습니다. 오라클 설치에 쓰는 항목만 보여 줍니다.'));
+    return ok(lim[item][i] + '\n');
+  },
+  lsblk(argv) {
+    if (!S.sysctl) return ok('NAME                 MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT\nsda                    8:0    0  260G  0 disk \n' + note('1단계 서버의 디스크 상세는 생략합니다.'));
+    if (argv.some(a => /ROTA/i.test(a))) return ok('NAME    ROTA\nsda        1\nsdb        1\nnvme0n1    0\n');
+    return ok(`NAME              MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                 8:0    0  100G  0 disk
+├─sda1              8:1    0    1G  0 part /boot
+└─sda2              8:2    0   99G  0 part
+  ├─ol-root       252:0    0   50G  0 lvm  /
+  └─ol-swap       252:1    0   16G  0 lvm  [SWAP]
+sdb                 8:16   0  200G  0 disk
+└─vg_u01-lv_u01   252:2    0  200G  0 lvm  /u01
+nvme0n1           259:0    0  500G  0 disk
+└─nvme0n1p1       259:1    0  500G  0 part /u02
+`);
+  },
+  groupadd(argv) {
+    const { f, rest } = opts(argv, { g: 'arg' }); const name = rest[0];
+    if (S.user !== 'root') return fail('groupadd: Permission denied.\ngroupadd: cannot lock /etc/group; try again later.\n', 10);
+    if (!name) return fail('Usage: groupadd [options] GROUP\n', 2);
+    if (GIDS[name] != null) return fail(`groupadd: group '${name}' already exists\n`, 9);
+    const gid = f.g != null && f.g !== true ? parseInt(f.g, 10) : Math.max(1000, ...Object.values(GIDS).filter(x => x < 54000)) + 1;
+    if (Object.values(GIDS).includes(gid)) return fail(`groupadd: GID '${gid}' already exists\n`, 4);
+    GIDS[name] = gid; S.ev.groupadd = name; return ok();
+  },
+  useradd(argv) {
+    const { f, rest } = opts(argv, { u: 'arg', g: 'arg', G: 'arg', d: 'arg', s: 'arg', c: 'arg' }); const name = rest[0];
+    if (S.user !== 'root') return fail('useradd: Permission denied.\nuseradd: cannot lock /etc/passwd; try again later.\n', 1);
+    if (!name) return fail('Usage: useradd [options] LOGIN\n', 2);
+    if (USERS[name]) return fail(`useradd: user '${name}' already exists\n`, 9);
+    const prim = typeof f.g === 'string' ? f.g : null; const sec = typeof f.G === 'string' ? f.G.split(',').filter(Boolean) : [];
+    if (!prim) return fail(note('실습에서는 설치 가이드처럼 -g 로 주 그룹을 꼭 정해 주세요. 예: useradd -u 54331 -g oinstall -G asmadmin,asmdba,racdba grid'));
+    for (const g of [prim].concat(sec)) if (GIDS[g] == null) return fail(`useradd: group '${g}' does not exist\n`, 6);
+    const uid = typeof f.u === 'string' ? parseInt(f.u, 10) : 1000 + Object.keys(USERS).length;
+    if (Object.values(USERS).some(u => u.uid === uid)) return fail(`useradd: UID ${uid} is not unique\n`, 4);
+    addUser(name, uid, prim, sec); S.ev.useradd = name; return ok();
+  },
+  usermod(argv) {
+    const { f, rest } = opts(argv, { g: 'arg', G: 'arg' }); const name = rest[0];
+    if (S.user !== 'root') return fail('usermod: Permission denied.\nusermod: cannot lock /etc/passwd; try again later.\n', 1);
+    if (!name || !USERS[name]) return fail(name ? `usermod: user '${name}' does not exist\n` : 'Usage: usermod [options] LOGIN\n', name ? 6 : 2);
+    const u = USERS[name]; const prim = typeof f.g === 'string' ? f.g : null; const sec = typeof f.G === 'string' ? f.G.split(',').filter(Boolean) : null;
+    for (const g of (prim ? [prim] : []).concat(sec || [])) if (GIDS[g] == null) return fail(`usermod: group '${g}' does not exist\n`, 6);
+    let others = u.groups.slice(1);
+    if (sec) others = f.a ? others.concat(sec.filter(g => !others.includes(g))) : sec.slice();
+    if (prim) { u.group = prim; u.gid = GIDS[prim]; }
+    u.groups = [u.group].concat(others.filter(g => g !== u.group));
+    S.ev.usermod = name; return ok();
+  },
+  vi: null, vim: null, top: null, ssh: null, su: null, exit: null, logout: null, '.': null, bash: null, sh: null, dnf: null, yum: null, passwd: null,
 };
 CMDS['.'] = CMDS.source;
 function binNoise() { return '\u0000\u0002\u0000\u0000\u0000\u0013\u0001\u0002\u0001 ELF ... (이진 파일)\n'; }
@@ -1105,7 +1501,7 @@ let inputEl = null, psEl = null;
 function prompt() {
   if (S.host === 'laptop') return '[sinip@laptop ~]$ ';
   const home = USERS[S.user].home; let w = S.cwd === home ? '~' : S.cwd === '/' ? '/' : S.cwd.split('/').pop();
-  return `[${S.user}@dbserver01 ${w}]${S.user === 'root' ? '#' : '$'} `;
+  return `[${S.user}@${S.hn} ${w}]${S.user === 'root' ? '#' : '$'} `;
 }
 function print(text, cls, html) {
   if (!text) return;
@@ -1232,7 +1628,7 @@ function execOne(argv, io) {
   if (INTERACTIVE[name]) return fail(note(`${name}은(는) 파이프 없이 혼자 실행해 주세요.`));
   return fail(`-bash: ${name}: command not found\n`, 127);
 }
-const BUILTIN = new Set(['cd', 'export', 'echo', 'pwd', 'source', '.', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', 'll']);
+const BUILTIN = new Set(['cd', 'export', 'echo', 'pwd', 'source', '.', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', 'll', 'ulimit']);
 function runScript(sc, done) {
   const lines = sc.txt.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
   if (sc.path.endsWith('old_monitor.sh')) { print(note('이 스크립트는 끝없이 도는 반복문이라 실습에서는 실행하지 않습니다.')); S.lastCode = 0; done(); return; }
@@ -1245,19 +1641,19 @@ function finish() { checkLesson(S.ev); setPrompt(prompt()); }
 /* ---------- 대화형 명령: ssh, su, exit, tail -f, top, vi ---------- */
 const INTERACTIVE = {
   ssh(argv, done) {
-    if (S.host === 'db') { print(note('이미 dbserver01에 접속해 있습니다.')); done(); return; }
+    if (S.host === 'db') { print(note(`이미 ${S.hn}에 접속해 있습니다.`)); done(); return; }
   },
   su(argv, done) {
     const target = argv.filter(a => a !== '-' && a !== '-l')[1] || 'root';
     if (!USERS[target]) { print(`su: user ${target} does not exist\n`); S.lastCode = 1; done(); return; }
-    const become = () => { S.stack.push({ user: S.user, cwd: S.cwd, env: Object.assign({}, S.env), umask: S.umask }); S.user = target; loginEnv(target); S.cwd = USERS[target].home; S.ev.type = 'su'; S.lastCode = 0; done(); };
+    const become = () => { S.stack.push({ user: S.user, cwd: S.cwd, env: Object.assign({}, S.env), umask: S.umask, lim: S.lim }); S.user = target; loginEnv(target); S.cwd = USERS[target].home; S.ev.type = 'su'; S.lastCode = 0; done(); };
     if (S.user === 'root') { become(); return; }
     mode = { type: 'password', onSubmit(v) { if (v === USERS[target].pass) become(); else { setTimeout(() => { print('su: Authentication failure\n'); S.lastCode = 1; done(); }, 600); } }, cancel() { done(); } };
     setPrompt('Password: ', true);
   },
   exit(argv, done) {
-    if (S.stack.length) { const p = S.stack.pop(); print('logout\n'); S.user = p.user; S.cwd = p.cwd; S.env = p.env; S.umask = p.umask; S.ev.type = 'su-exit'; done(); return; }
-    print('logout\nConnection to dbserver01 closed.\n'); S.host = 'laptop'; S.ev.type = 'logout'; done();
+    if (S.stack.length) { const p = S.stack.pop(); print('logout\n'); S.user = p.user; S.cwd = p.cwd; S.env = p.env; S.umask = p.umask; S.lim = p.lim; S.ev.type = 'su-exit'; done(); return; }
+    print(`logout\nConnection to ${S.hn} closed.\n`); S.host = 'laptop'; S.ev.type = 'logout'; done();
   },
   logout(argv, done) { INTERACTIVE.exit(argv, done); },
   top(argv, done) {
@@ -1269,7 +1665,8 @@ const INTERACTIVE = {
       let o = `top - ${hh} up 15 days,  3:02,  1 user,  load average: ${hot.length ? '1.04, 1.02, 1.01' : '0.21, 0.18, 0.15'}\n`;
       o += `Tasks: 241 total,   ${hot.length ? 2 : 1} running, ${hot.length ? 239 : 240} sleeping,   0 stopped,   0 zombie\n`;
       o += `%Cpu(s): ${us.toFixed(1).padStart(4)} us,  0.6 sy,  0.0 ni, ${id.toFixed(1)} id,  0.1 wa,  0.1 hi,  0.1 si,  0.0 st\n`;
-      o += 'MiB Mem :  15731.0 total,    612.4 free,   5210.3 used,   9908.3 buff/cache\nMiB Swap:   8192.0 total,   8192.0 free,      0.0 used.   7843.2 avail Mem \n\n';
+      const K = S.mem, mb = (k) => (k / 1024).toFixed(1).padStart(8);
+      o += `MiB Mem : ${mb(K.total)} total, ${mb(K.free)} free, ${mb(K.used)} used, ${mb(K.buff)} buff/cache\nMiB Swap: ${mb(K.stotal)} total, ${mb(K.stotal)} free, ${mb(0)} used. ${mb(K.avail)} avail Mem \n\n`;
       o += '    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND\n';
       for (const p of procs) {
         const nm = p.cmd.startsWith('/') ? p.cmd.split(' ')[0].split('/').pop() : p.cmd;
@@ -1287,12 +1684,69 @@ const INTERACTIVE = {
   },
   vi(argv, done) { openVi(argv[1], done); },
   vim(argv, done) { openVi(argv[1], done); },
+  dnf(argv, done) { dnfRun(argv, done); },
+  yum(argv, done) { dnfRun(argv, done); },
+  passwd(argv, done) {
+    const target = argv[1] || S.user;
+    if (argv[1] && S.user !== 'root') { print('passwd: Only root can specify a user name.\n'); S.lastCode = 1; done(); return; }
+    if (!USERS[target]) { print(`passwd: Unknown user name '${target}'.\n`); S.lastCode = 1; done(); return; }
+    print(`Changing password for user ${target}.\n`);
+    const bad = (m) => { print(m + 'passwd: Authentication token manipulation error\n'); S.lastCode = 1; done(); };
+    mode = { type: 'password', onSubmit(p1) {
+      if (!p1) { bad('No password supplied\n'); return; }
+      mode = { type: 'password', onSubmit(p2) {
+        if (p1 !== p2) { bad('Sorry, passwords do not match.\n'); return; }
+        USERS[target].pass = p1; S.ev.passwdSet = target; print('passwd: all authentication tokens updated successfully.\n'); S.lastCode = 0; done();
+      }, cancel() { done(); } };
+      setPrompt('Retype new password: ', true);
+    }, cancel() { done(); } };
+    setPrompt('New password: ', true);
+  },
 };
+/* ---------- dnf install 흉내 (Oracle Linux 8 의 dnf 4 출력 형식을 줄여서) ---------- */
+function dnfRun(argv, done) {
+  const name = argv[0]; const a = argv.slice(1); const yes = a.some(x => x === '-y' || x === '--assumeyes'); const words = a.filter(x => !x.startsWith('-'));
+  const end = (code) => { S.lastCode = code; done(); };
+  if (!S.pkgs) { print(note('1단계 서버에서는 패키지 설치 실습을 하지 않습니다. 2단계에서 해 보세요.')); end(0); return; }
+  if (words[0] !== 'install') { print(note(`실습에서는 ${name} install 패키지이름 만 쓸 수 있습니다.`)); end(1); return; }
+  if (S.user !== 'root') { print('Error: This command has to be run with superuser privileges (under the root user on most systems).\n'); end(1); return; }
+  const want = words.slice(1);
+  if (!want.length) { print('Error: Need to pass a list of pkgs to install\n'); end(1); return; }
+  const d = new Date(NOW.getTime() - 41 * 60000);
+  const hh = d.getHours() % 12 || 12, ap = d.getHours() < 12 ? 'AM' : 'PM';
+  let o = `Last metadata expiration check: 0:41:12 ago on ${d.toLocaleString('en-US', { weekday: 'short' })} ${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()} ${String(hh).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')} ${ap} KST.\n`;
+  const bad = want.filter(n => !PKG[n]);
+  if (bad.length) { print(o + bad.map(n => `No match for argument: ${n}\n`).join('') + `Error: Unable to find a match: ${bad.join(' ')}\n`); end(1); return; }
+  const inst = []; let deps = [];
+  for (const n of want) { if (S.pkgs.has(n)) o += `Package ${pkgFull(n)} is already installed.\n`; else inst.push(n); }
+  if (inst.includes('oracle-database-preinstall-19c')) deps = PRE_REQ.filter(p => !S.pkgs.has(p) && !inst.includes(p));
+  if (!inst.length) { print(o + 'Dependencies resolved.\nNothing to do.\nComplete!\n'); S.ev.dnf = want; end(0); return; }
+  const line = '='.repeat(80) + '\n';
+  const row = (n) => ` ${n.padEnd(34)} ${PKG[n][1].padEnd(7)} ${PKG[n][0].padEnd(26)} ${REPO[PKG[n][2]]}\n`;
+  o += 'Dependencies resolved.\n' + line + ` ${'Package'.padEnd(34)} ${'Arch'.padEnd(7)} ${'Version'.padEnd(26)} Repository\n` + line + 'Installing:\n' + inst.map(row).join('') + (deps.length ? 'Installing dependencies:\n' + deps.map(row).join('') : '');
+  o += `\nTransaction Summary\n${line}Install  ${inst.length + deps.length} Package${inst.length + deps.length > 1 ? 's' : ''}\n\n`;
+  print(o);
+  const go = () => {
+    const all = inst.concat(deps);
+    let r = 'Downloading Packages:\nRunning transaction check\nTransaction check succeeded.\nRunning transaction test\nTransaction test succeeded.\nRunning transaction\n';
+    r += all.map(n => `  Installing       : ${pkgFull(n)}\n`).join('');
+    for (const n of all) S.pkgs.add(n);
+    if (inst.includes('oracle-database-preinstall-19c')) { r += `  Running scriptlet: ${pkgFull('oracle-database-preinstall-19c')}\n`; applyPreinstall(); }
+    r += '\nInstalled:\n' + all.map(n => '  ' + pkgFull(n) + '\n').join('') + '\nComplete!\n';
+    print(r + note('실제 출력에는 패키지 크기, 내려받기 진행률, 확인(Verifying) 줄이 더 나옵니다. 의존 패키지 목록은 서버 상태에 따라 달라집니다.'));
+    S.ev.dnf = want; end(0);
+  };
+  if (yes) { go(); return; }
+  mode = { type: 'line', onSubmit(v) { if (/^y(es)?$/i.test(v.trim())) go(); else { print('Operation aborted.\n'); end(1); } }, cancel() { end(1); } };
+  setPrompt('Is this ok [y/N]: ');
+}
+
 function loginEnv(user) {
   const u = USERS[user];
-  S.env = { HOME: u.home, USER: user, LOGNAME: user, SHELL: '/bin/bash', HOSTNAME: 'dbserver01', LANG: 'en_US.UTF-8', TERM: 'xterm-256color', PWD: u.home,
+  S.env = { HOME: u.home, USER: user, LOGNAME: user, SHELL: '/bin/bash', HOSTNAME: S.hn, LANG: 'en_US.UTF-8', TERM: 'xterm-256color', PWD: u.home,
     PATH: user === 'root' ? '/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin' : `/home/${user}/.local/bin:/home/${user}/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin` };
   S.umask = user === 'root' ? 0o022 : 0o022;
+  S.lim = computeLimits(user);
   if (user === 'oracle') { const r = lookup('/home/oracle/.bash_profile'); if (r && r.node && r.node.txt) runProfile(r.node.txt, S.env); }
 }
 function runLaptop(line) {
@@ -1304,10 +1758,10 @@ function runLaptop(line) {
     const m = /^(?:([^@]+)@)?(.+)$/.exec(tgt);
     if (!tgt) { print('usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface]\n           [-b bind_address] [-c cipher_spec] [-D [bind_address:]port]\n           ...  destination [command]\n'); back(); return; }
     const user = m[1] || 'sinip', host = m[2];
-    if (!/^(dbserver01|10\.0\.1\.10)$/.test(host)) { print(`ssh: Could not resolve hostname ${host}: Name or service not known\n`); back(); return; }
+    if (host !== S.hn && host !== S.ip) { print(`ssh: Could not resolve hostname ${host}: Name or service not known\n`); back(); return; }
     const askPw = (tries) => {
       mode = { type: 'password', onSubmit(v) {
-        if (USERS[user] && user !== 'root' && v === USERS[user].pass) {
+        if (USERS[user] && (user !== 'root' || S.stage === 2) && v === USERS[user].pass) {
           S.host = 'db'; S.user = user; S.stack = []; loginEnv(user); S.cwd = USERS[user].home;
           print(`Last login: ${lastLogin()} from 10.0.1.25\n`); S.ev.type = 'login'; back();
         } else if (tries < 2) { setTimeout(() => { print('Permission denied, please try again.\n'); askPw(tries + 1); }, 500); }
@@ -1316,9 +1770,9 @@ function runLaptop(line) {
       setPrompt(`${user}@${host}'s password: `, true);
     };
     if (!S.known) {
-      print(`The authenticity of host '${host} (10.0.1.10)' can't be established.\nECDSA key fingerprint is SHA256:Qm4b1Tz0yXg7c8kF2Wn5vR9sL3pJ6hD1aE0uY4iO7tM.\n`);
+      print(`The authenticity of host '${host} (${S.ip})' can't be established.\nECDSA key fingerprint is SHA256:Qm4b1Tz0yXg7c8kF2Wn5vR9sL3pJ6hD1aE0uY4iO7tM.\n`);
       mode = { type: 'line', onSubmit(v) {
-        if (/^yes$/i.test(v.trim())) { S.known = true; print(`Warning: Permanently added '${host},10.0.1.10' (ECDSA) to the list of known hosts.\n`); askPw(0); }
+        if (/^yes$/i.test(v.trim())) { S.known = true; print(`Warning: Permanently added '${host},${S.ip}' (ECDSA) to the list of known hosts.\n`); askPw(0); }
         else { print('Host key verification failed.\n'); back(); }
       }, cancel() { back(); } };
       setPrompt('Are you sure you want to continue connecting (yes/no/[fingerprint])? ');
@@ -1329,8 +1783,8 @@ function runLaptop(line) {
   if (name === 'whoami') print('sinip\n');
   else if (name === 'hostname') print('laptop\n');
   else if (name === 'clear') clearTerm();
-  else if (name === 'help') print(note('지금은 내 노트북입니다. ssh oracle@dbserver01 로 DB 서버에 접속하세요.'));
-  else print(note('지금은 내 노트북 터미널입니다. 먼저 ssh oracle@dbserver01 로 DB 서버에 접속하세요.'));
+  else if (name === 'help') print(note(`지금은 내 노트북입니다. ssh ${S.stage === 2 ? 'root' : 'oracle'}@${S.hn} 로 DB 서버에 접속하세요.`));
+  else print(note(`지금은 내 노트북 터미널입니다. 먼저 ssh ${S.stage === 2 ? 'root' : 'oracle'}@${S.hn} 로 DB 서버에 접속하세요.`));
   back();
 }
 function lastLogin() { const d = ago(1, 18, 2); return d.toDateString().replace(/^(\w+) (\w+) (\d+) (\d+)$/, (m, w, mo, dd, y) => `${w} ${mo} ${dd.padStart(2, ' ')} 18:02:11 ${y}`); }
@@ -1361,7 +1815,7 @@ function openVi(name, done) {
   if (r && r.node && r.node.t === 'd') { print(note(`${name}은(는) 디렉터리입니다.`)); done(); return; }
   if (!r || !r.parent) { print(note('그 경로의 디렉터리가 없습니다.')); done(); return; }
   if (r.node && !can(r.node, 4)) { print(note('읽기 권한이 없는 파일입니다.')); done(); return; }
-  const isNew = !r.node; const txt = isNew ? '' : (r.node.txt != null ? r.node.txt : '(이진 파일)');
+  const isNew = !r.node; const txt = isNew ? '' : r.node.gen ? r.node.gen() : (r.node.txt != null ? r.node.txt : '(이진 파일)');
   const lines = txt === '' ? [''] : linesOf(txt);
   V = { name, abs, lines, y: 0, x: 0, mode: 'normal', cmd: '', msg: isNew ? `"${name}" [New File]` : `"${name}" ${lines.length}L, ${new Blob([txt]).size}C`, dirty: false, isNew, pending: '', done, saved: false, ro: r.node ? !can(r.node, 2) : !can(r.parent, 2) };
   if (r.node && !can(r.node, 2)) V.msg += ' [readonly]';
@@ -1447,7 +1901,7 @@ function viExec(c) {
   };
   const quit = (forced) => {
     const d = V.done, saved = V.saved, abs = V.abs; V = null;
-    viEl.hidden = true; termEl.hidden = false; document.getElementById('termTitle').textContent = 'dbserver01 — ssh';
+    viEl.hidden = true; termEl.hidden = false; document.getElementById('termTitle').textContent = `${S.hn} — ssh`;
     S.ev = newEv('vi'); S.ev.type = 'vi-exit'; S.ev.viPath = abs; S.ev.viSaved = saved; S.ev.viForced = forced; S.lastCode = 0;
     d(); inputEl.focus({ preventScroll: true });
   };
@@ -1679,7 +2133,7 @@ const LESSONS = [
       { text: '이제 sqlplus가 어디서 실행되는지 확인하기', hint: 'which sqlplus', done: ev => has(ev, 'which') && !!findInPath('sqlplus'),
         why: '<code>/u01/app/oracle/product/19.0.0/dbhome_1/bin/sqlplus</code>가 나옵니다. PATH가 제대로 잡혔습니다.' },
       { text: 'sqlplus 버전 확인하기', hint: 'sqlplus -V', done: ev => has(ev, 'sqlplus') && argOf(ev, 'sqlplus').some(a => /^-[vV]$/.test(a)) && !/not found/.test(ev.err),
-        why: '<code>SQL*Plus: Release 19.0.0.0.0 - Production</code>이 나옵니다. 리눅스 준비가 끝났습니다. 다음은 2단계 "오라클을 위한 리눅스 준비"입니다.' },
+        why: '<code>SQL*Plus: Release 19.0.0.0.0 - Production</code>이 나옵니다. 환경 변수 준비가 끝났습니다. 다음 레슨은 1단계 졸업 미션입니다.' },
     ],
     field: 'DBA가 가장 자주 만나는 초보 실수 가운데 하나가 환경 변수입니다. <code>ORACLE_SID</code>를 잘못 잡은 채 작업하면 엉뚱한 DB에 접속할 수 있으니, 작업 전에 <code>echo $ORACLE_SID</code>로 확인하는 습관을 들이세요. 오라클이 제공하는 <code>oraenv</code> 스크립트로 SID를 바꾸는 방법도 있지만, 입력을 묻는 스크립트라서 Administrator\'s Reference는 시작 파일에서 부르지 말라고 합니다.',
     sources: ['env', 'unxenv', 'bashpkg', 'ofa'] },
@@ -1697,8 +2151,205 @@ const LESSONS = [
       { text: 'alert log에서 ORA- 오류 확인하기', hint: 'grep ORA- $ORACLE_BASE/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT) },
       { text: '점검 결과를 ~/check_report.txt에 저장하기 (vi 또는 echo >)', hint: 'vi ~/check_report.txt\n(또는 echo "pmon 정상, 리스너 1521 정상, /u01 96%, 스왑 8GB(기준보다 작음), ORA-1653 2건" > ~/check_report.txt)', done: () => /\S/.test((node('/home/oracle/check_report.txt') || {}).txt || '') },
     ],
-    field: '수고했습니다. 1단계를 마쳤습니다. 다음 2단계에서는 오라클을 설치하기 전에 리눅스를 준비하는 일(사용자와 그룹, 커널 파라미터, 자원 제한, 환경 변수)을 실습합니다. 미리 보고 싶다면 <code>cat /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf</code>를 실행해 보세요.',
+    field: '수고했습니다. 1단계를 마쳤습니다. 다음 2단계에서는 오라클이 아직 없는 새 서버에서, 설치하기 전에 리눅스를 준비하는 일(preinstall RPM, 커널 파라미터, 자원 제한, HugePages, 사용자와 그룹, 설치 디렉터리)을 root로 실습합니다. 이 서버의 <code>cat /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf</code>가 바로 그 준비의 결과물입니다.',
     sources: ['prerpm', 'prepkg'] },
+
+  /* ============================ 2단계: 오라클을 위한 리눅스 준비 ============================ */
+  { id: 10, stage: 2, title: '새 서버 받기: 설치 전 서버 점검', short: '서버 점검', start: 'root',
+    who: '박팀장 (DB팀장)',
+    situation: 'DB를 새로 올릴 서버 dbserver02를 받았어요. 시스템 관리자가 root로 접속한 창을 넘겨줬어요. 오라클을 설치하기 전에 이 서버가 설치 가이드의 기준에 맞는지부터 점검해 봐요. 2단계는 root로 하는 일이 많으니 명령 하나하나 신중하게요.',
+    tasks: [
+      { text: '운영체제 종류와 버전 확인하기', hint: 'cat /etc/os-release', done: ev => readAny(ev, '/etc/os-release', '/etc/oracle-release', '/etc/redhat-release'),
+        why: '<code>Oracle Linux Server 8.10</code>입니다. 설치 가이드의 지원 OS 목록에 Oracle Linux 8이 있습니다. 1단계 서버와 같은 OS지만, 이번에는 오라클이 아직 하나도 설치되지 않은 새 서버입니다.' },
+      { text: '커널 버전 확인하기', hint: 'uname -r', done: ev => has(ev, 'uname') && (flag(argOf(ev, 'uname'), 'r') || flag(argOf(ev, 'uname'), 'a')),
+        why: '<code>4.18.0-553.16.1.el8_10.x86_64</code>은 Red Hat 호환 커널(RHCK)입니다. 설치 가이드의 Oracle Linux 8 최소 커널은 RHCK <code>4.18.0-80.el8</code>, UEK는 <code>5.4.17-2011.0.7.el8uek</code>이고, 19.21부터는 Oracle Linux 8.8의 UEK 7 <code>5.15.0-202.135.2.el8uek</code> 이상도 지원합니다. 커널이 RHCK인지 UEK인지는 5번 레슨(THP)에서 다시 씁니다.' },
+      { text: 'CPU 아키텍처 확인하기', hint: 'uname -m', done: ev => has(ev, 'uname') && (flag(argOf(ev, 'uname'), 'm') || flag(argOf(ev, 'uname'), 'a')),
+        why: '<code>x86_64</code>입니다. 설치 가이드의 하드웨어 점검 절차는 <code>uname -m</code> 결과가 x86_64인지 확인하게 합니다. 설치 파일도 이 아키텍처용을 받아야 합니다.' },
+      { text: 'RAM과 스왑 크기를 읽고 설치 가이드 기준과 비교하기', hint: "grep -E 'MemTotal|SwapTotal' /proc/meminfo", done: ev => ev.read.has('/proc/meminfo') || has(ev, 'swapon'),
+        why: '<code>MemTotal 32622588 kB</code>는 32622588 ÷ 1024 ÷ 1024 ≈ 31.1GB, <code>SwapTotal 16777212 kB</code>는 16GB입니다. 서버 구성 체크리스트의 스왑 기준은 RAM 1~2GB면 1.5배, 2~16GB면 RAM과 같게, <b>16GB를 넘으면 16GB</b>입니다. 이 서버는 RAM이 16GB를 넘으므로 16GB면 기준에 맞습니다. 같은 체크리스트는 HugePages를 쓰면 HugePages에 준 메모리를 RAM에서 빼고 계산하라고 합니다(5번 레슨 HugePages에서 다시 계산합니다).' },
+      { text: '/tmp와 설치할 파일 시스템의 여유 공간 확인하기', hint: 'df -h /tmp /u01 /u02', done: ev => has(ev, 'df') && ev.dfU01,
+        why: '서버 구성 체크리스트는 <code>/tmp</code>에 1GB 이상의 여유를 요구합니다. 이 서버의 /tmp는 / 파일 시스템에 있고 여유가 약 46G입니다. 저장소 체크리스트에 따르면 Enterprise Edition 소프트웨어에는 7.2GB 이상이 필요합니다. 프로그램을 둘 <code>/u01</code>(200G)과 데이터 파일을 둘 <code>/u02</code>(500G)는 아직 거의 비어 있습니다.' },
+      { text: '서버 이름이 IP 주소로 풀리는지 확인하기', hint: 'cat /etc/hosts\nping -c 1 dbserver02', done: ev => ev.pinged === S.hn,
+        why: '<code>/etc/hosts</code>의 <code>10.0.1.11 dbserver02</code>로 이름이 풀리고 ping이 응답합니다. 설치 가이드는 설치 전에 호스트 이름이 풀리는지 확인하라고 합니다.' },
+    ],
+    field: '설치 가이드는 실제 설치 전에 체크리스트(서버 하드웨어, 운영체제, 서버 구성, 네트워크, 저장소)부터 확인하게 되어 있습니다. 2단계는 이 순서를 따라 갑니다. 점검 결과는 숫자와 함께 적어 두세요. "스왑 16GB(RAM 31.1GB, 기준 16GB) 적합"처럼 기준과 실제 값을 나란히 쓰면 다른 사람이 다시 확인하기 쉽습니다.',
+    sources: ['ol8', 'hw', 'srvcfg', 'storage', 'hostres', 'kernel'] },
+
+  { id: 11, stage: 2, title: 'preinstall RPM으로 설치 준비 한 번에 하기', short: 'preinstall RPM', start: 'root',
+    who: '박팀장',
+    situation: '오라클에 필요한 패키지와 OS 설정을 손으로 하나씩 할 수도 있지만, Oracle Linux에는 이것을 한 번에 해 주는 oracle-database-preinstall-19c 패키지가 있어요. 설치하기 전과 후를 비교해 봐요.',
+    tasks: [
+      { text: '오라클에 필요한 패키지 몇 개가 설치되어 있는지 확인하기', hint: 'rpm -q ksh libaio libaio-devel sysstat', done: ev => has(ev, 'rpm') && (ev.rpmq || []).length > 0,
+        why: '<code>package ksh is not installed</code>처럼 빠진 패키지가 보입니다. 설치 가이드는 Oracle Linux 8에 필요한 패키지(bc, binutils, compat-openssl10, ksh, libaio, libaio-devel, sysstat 등 31개)를 표로 정해 두었고, 최소 설치(minimal)로 깐 리눅스에는 필요한 RPM이 많이 빠져 있다고 적고 있습니다.' },
+      { text: 'oracle 사용자가 아직 없는지 확인하기', hint: 'id oracle', done: ev => has(ev, 'id') && argOf(ev, 'id').includes('oracle') && !USERS.oracle,
+        why: '<code>no such user</code>가 나옵니다. 새 서버에는 오라클 소프트웨어 소유자 계정이 아직 없습니다.' },
+      { text: 'preinstall RPM 설치하기', hint: 'dnf install oracle-database-preinstall-19c\n(Is this ok [y/N]: 에 y 입력)', done: () => S.pkgs.has('oracle-database-preinstall-19c'),
+        why: 'dnf가 preinstall RPM과 함께 빠져 있던 의존 패키지(ksh, libaio-devel, sysstat 등)를 같이 설치했습니다. 설치 가이드에 따르면 이 RPM은 필요한 패키지를 설치하고, oracle 사용자와 oinstall, dba 그룹을 만들고, 커널 파라미터와 자원 제한을 설정합니다. 이 실습의 값은 Oracle Linux 8 공식 저장소의 <code>oracle-database-preinstall-19c-1.0-4.el8</code> 패키지를 풀어서 그 안의 설정 파일(.param)과 스크립트에서 확인한 것입니다.' },
+      { text: '아까 빠져 있던 패키지가 설치됐는지 다시 확인하기', hint: 'rpm -q ksh libaio libaio-devel sysstat', done: ev => has(ev, 'rpm') && (ev.rpmq || []).length > 0 && S.pkgs.has('ksh'),
+        why: '이제 모두 <code>ksh-20120801-272.0.1.el8_10.x86_64</code>처럼 버전과 함께 나옵니다. 무언가를 설치했으면 꼭 다시 확인합니다.' },
+      { text: '설치 가이드 목록에는 있지만 RPM이 함께 깔지 않는 패키지 확인하기', hint: 'rpm -q compat-openssl10 elfutils-libelf-devel', done: ev => (ev.rpmq || []).some(n => n === 'compat-openssl10' || n === 'elfutils-libelf-devel'),
+        why: '<code>is not installed</code>가 나옵니다. 설치 가이드의 Oracle Linux 8 패키지 표에는 compat-openssl10과 elfutils-libelf-devel이 있지만, preinstall RPM 1.0-4.el8의 의존 목록(Requires)에는 이 둘이 없습니다. 그래서 서버 상태에 따라 이 실습 서버처럼 빠져 있을 수 있습니다. preinstall RPM을 썼더라도 설치 가이드의 패키지 표로 한 번 더 확인하는 이유입니다.' },
+      { text: '빠진 두 패키지 설치하기', hint: 'dnf install -y compat-openssl10 elfutils-libelf-devel', done: () => S.pkgs.has('compat-openssl10') && S.pkgs.has('elfutils-libelf-devel'),
+        why: '<code>-y</code>는 "Is this ok?" 질문에 미리 yes로 답합니다. 운영 서버에서는 무엇이 설치될지 먼저 보고 답하는 편이 안전하니, 처음에는 -y 없이 실행해 보는 습관을 들이세요.' },
+      { text: 'preinstall RPM이 만든 oracle 사용자 확인하기', hint: 'id oracle', done: ev => has(ev, 'id') && argOf(ev, 'id').includes('oracle') && !!USERS.oracle,
+        why: '<code>uid=54321(oracle) gid=54321(oinstall)</code>과 dba(54322), oper(54323), backupdba(54324), dgdba(54325), kmdba(54326), racdba(54330) 그룹이 보입니다. RPM 안의 설정 파일에 적힌 번호 그대로입니다. 1단계 서버의 <code>id</code> 결과와 같은 이유가 이것입니다. ASM용 그룹과 grid 사용자는 이 RPM이 만들지 않아서 7번 레슨(그룹과 사용자)에서 직접 만듭니다.' },
+      { text: 'preinstall RPM이 남긴 작업 기록 읽기', hint: 'cat /var/log/oracle-database-preinstall-19c/results/orakernel.log', done: ev => ev.read.has('/var/log/oracle-database-preinstall-19c/results/orakernel.log'),
+        why: 'RPM 안의 스크립트는 바꾼 내용을 이 파일에 남깁니다. 커널 파라미터를 추가하고, <code>/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf</code>에 사본을 저장하고, 자원 제한 파일을 쓰고, THP와 부팅 옵션(<code>numa=off</code>, <code>transparent_hugepage=never</code>)을 바꾼 기록이 있습니다. 바꾸기 전 원래 파일은 <code>/var/log/oracle-database-preinstall-19c/backup</code>과 <code>/etc/sysctl.d/99-initial-sysctl.conf</code>에 남습니다. 무엇이 바뀌었는지 모르는 채 넘어가지 않는 것이 DBA의 습관입니다.' },
+    ],
+    field: 'preinstall RPM은 편하지만 만능은 아닙니다. 설치 가이드(Grid Infrastructure 쪽)는 이 RPM의 커널·자원 설정이 <b>oracle 계정에만</b> 적용되므로 grid 같은 다른 설치 소유자는 직접 설정해야 한다고 적고 있습니다. RPM이 무엇을 바꾸는지 알고 쓰면, 나중에 손으로 준비한 서버를 점검할 때도 같은 기준을 쓸 수 있습니다(2단계 졸업 미션).',
+    sources: ['pre19c', 'ol8', 'minimal', 'cwprerpm', 'prepkg', 'yumidx'] },
+
+  { id: 12, stage: 2, title: '커널 파라미터 확인하기', short: '커널 파라미터', start: 'root',
+    who: '박팀장',
+    situation: 'preinstall RPM이 커널 파라미터를 바꿔 놓았어요. 어느 파일에 무엇이 적혔는지, 지금 커널에 실제로 적용됐는지, 설치 가이드의 최소값을 넘는지 직접 확인해 봐요.',
+    tasks: [
+      { text: '커널 파라미터 설정 파일이 있는 디렉터리 보기', hint: 'ls -l /etc/sysctl.d', done: ev => listedL(ev, '/etc/sysctl.d'),
+        why: '<code>99-oracle-database-preinstall-19c-sysctl.conf</code>(RPM이 만든 파일), <code>99-initial-sysctl.conf</code>(바꾸기 전 원본), <code>99-sysctl.conf -&gt; ../sysctl.conf</code>(링크)가 있습니다. 설치 가이드는 손으로 설정할 때 <code>/etc/sysctl.d/97-oracle-database-sysctl.conf</code> 같은 파일을 쓰라고 하고, <code>/etc/sysctl.conf</code>는 deprecated(앞으로 쓰지 않을 방식)로 적고 있습니다. preinstall RPM 1.0-4.el8의 스크립트는 /etc/sysctl.conf에도 값을 적고 그 사본을 sysctl.d에 둡니다.' },
+      { text: 'preinstall RPM이 넣은 값 읽기', hint: 'cat /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf', done: ev => ev.read.has('/etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf'),
+        why: '설치 가이드의 최소값 표와 비교해 보세요. 세마포어 <code>kernel.sem</code>은 semmsl 250, semmns 32000, semopm 100, semmni 128 네 값을 이 순서로 <b>모두</b> 적어야 합니다. <code>fs.file-max</code> 최소 6815744, <code>fs.aio-max-nr</code> 1048576, <code>kernel.shmmni</code> 4096, <code>net.core.rmem_max</code> 4194304, <code>net.core.wmem_max</code> 1048576입니다. 파일의 값이 모두 최소값 이상입니다.' },
+      { text: '지금 커널에 실제로 적용된 세마포어 값 확인하기', hint: 'sysctl kernel.sem', done: ev => has(ev, 'sysctl') && (ev.sysctlKeys || []).includes('kernel.sem'),
+        why: '<code>kernel.sem = 250 32000 100 128</code>입니다. 파일은 "부팅할 때와 적용 명령을 실행할 때 쓸 값"이고, <code>sysctl 이름</code>은 "지금 커널이 쓰고 있는 값"입니다. 파일만 고치고 적용하지 않으면 둘이 다를 수 있으니 둘 다 봅니다. RPM은 파일을 쓴 뒤 <code>sysctl --system</code>까지 실행해서 이미 적용해 두었습니다.' },
+      { text: '공유 메모리 최대 크기가 기준을 넘는지 계산하기', hint: 'sysctl kernel.shmmax kernel.shmall', done: ev => (ev.sysctlKeys || []).includes('kernel.shmmax'),
+        why: '설치 가이드의 <code>kernel.shmmax</code> 최소값은 <b>물리 메모리의 절반(바이트)</b>입니다. RAM 32622588 kB × 1024 = 33,405,530,112바이트, 절반은 16,702,765,056바이트입니다. RPM 값 4,398,046,511,104(4TB)는 이보다 훨씬 크므로 기준에 맞습니다. <code>kernel.shmall</code>은 페이지(4096바이트) 단위라 1,073,741,824 × 4096 = 4,398,046,511,104바이트로 shmmax와 같은 크기입니다.' },
+      { text: '접속에 쓰는 임시 포트 범위 찾기', hint: 'sysctl -a | grep ip_local_port_range', done: ev => has(ev, 'sysctl') && ev.stages.some(a => a[0] === 'grep' && a.slice(1).some(x => x.includes('port_range'))),
+        why: '<code>9000 65535</code>입니다. 설치 가이드의 최소값 표는 9000~65500인데, RPM 1.0-4.el8의 설정 파일은 9000~65535로 적고 65500 줄은 주석으로 남겨 두었습니다. 위쪽 끝이 더 넓을 뿐 9000부터 시작한다는 기준은 같습니다. 이렇게 문서와 도구의 값이 조금 다를 때는 둘 다 기록해 두는 것이 정확합니다.' },
+      { text: '설정 파일 전체를 다시 적용하는 명령 실행해 보기', hint: 'sysctl --system', done: ev => ev.sysctlSystem,
+        why: '<code>* Applying /etc/sysctl.d/... ...</code> 줄과 함께 파일마다 적용한 값이 나옵니다. 설치 가이드는 커널 파라미터를 바꾼 뒤 <code>/sbin/sysctl --system</code>으로 적용하고 <code>/sbin/sysctl -a</code>로 확인하라고 합니다. 이름 순서대로 읽기 때문에 같은 키가 여러 파일에 있으면 나중에 읽은 값이 이깁니다.' },
+    ],
+    field: '커널 파라미터는 <b>파일(영구) → 적용(sysctl --system) → 확인(sysctl 이름)</b> 세 단계로 다룹니다. 공유 메모리와 세마포어가 부족하면 인스턴스가 뜨지 않을 수 있어서, 인수인계 점검표에 거의 늘 들어가는 항목입니다.',
+    sources: ['kmin', 'kparam', 'kchange', 'prepkg'] },
+
+  { id: 13, stage: 2, title: '자원 제한(limits) 확인하기', short: '자원 제한', start: 'root',
+    who: '박팀장',
+    situation: 'oracle 계정이 동시에 열 수 있는 파일 수, 만들 수 있는 프로세스 수 같은 한도를 확인해 봐요. 이 값이 작으면 DB가 커질 때 파일을 더 열지 못하거나 프로세스를 만들지 못하는 문제가 생겨요.',
+    tasks: [
+      { text: 'preinstall RPM이 만든 자원 제한 파일 읽기', hint: 'cat /etc/security/limits.d/oracle-database-preinstall-19c.conf', done: ev => ev.read.has('/etc/security/limits.d/oracle-database-preinstall-19c.conf'),
+        why: '한 줄은 <code>사용자 종류 항목 값</code> 순서입니다. soft는 평소 적용되는 값, hard는 사용자가 올릴 수 있는 최대값입니다. 설치 가이드의 기준은 열린 파일 수(nofile) soft 1024 이상·hard 65536 이상, 프로세스 수(nproc) soft 2047 이상·hard 16384 이상, 스택(stack) soft 10240KB 이상·hard 10240~32768KB입니다. HugePages를 쓰면 memlock은 현재 RAM의 90% 이상이어야 합니다.' },
+      { text: '다른 자원 제한 파일도 있는지 보기', hint: 'ls -l /etc/security/limits.d', done: ev => listedL(ev, '/etc/security/limits.d'),
+        why: '<code>20-nproc.conf</code>에는 <code>* soft nproc 4096</code>(모든 사용자)이 있습니다. limits.conf 매뉴얼에 따르면 사용자 이름을 적은 줄이 그룹이나 <code>*</code> 줄보다 우선하므로, oracle은 RPM 파일의 16384를 받습니다. 그리고 <code>*</code> 줄은 root에는 적용되지 않습니다.' },
+      { text: 'oracle 사용자로 로그인하기', hint: 'su - oracle', done: () => S.user === 'oracle',
+        why: '자원 제한은 로그인할 때 PAM이 정합니다. root 셸에서 <code>ulimit</code>를 치면 root의 한도가 나올 뿐이라, oracle의 값을 보려면 oracle로 로그인해야 합니다. root에서 su 할 때는 비밀번호를 묻지 않습니다.' },
+      { text: '열린 파일 수 한도의 soft와 hard 확인하기', hint: 'ulimit -Sn\nulimit -Hn', done: () => S.limSeen && S.limSeen.has('nofileS:oracle') && S.limSeen.has('nofileH:oracle'),
+        why: '<code>1024</code>와 <code>65536</code>입니다. 설치 가이드가 확인 명령으로 드는 것이 바로 <code>ulimit -Sn</code>, <code>ulimit -Hn</code>입니다. 대문자 S는 soft, H는 hard, n은 열린 파일 수입니다.' },
+      { text: '프로세스 수와 스택 크기 한도 확인하기', hint: 'ulimit -Su; ulimit -Hu; ulimit -Ss; ulimit -Hs', done: () => S.limSeen && ['nprocS', 'nprocH', 'stackS', 'stackH'].every(k => S.limSeen.has(k + ':oracle')),
+        why: '프로세스 수(u)는 16384/16384, 스택(s)은 10240/32768KB입니다. 모두 설치 가이드 기준 안에 있습니다. 한 줄에 <code>;</code>로 여러 명령을 이어 쓸 수 있습니다.' },
+      { text: 'exit로 root로 돌아오기', hint: 'exit', done: ev => ev.type === 'su-exit' && S.user === 'root',
+        why: '자원 제한 파일을 고쳐도 <b>이미 로그인해 있는 셸에는 바뀌지 않습니다</b>. 설치 가이드도 값을 바꾼 뒤 다시 로그인해서 확인하라고 합니다. 졸업 미션에서 이 점을 직접 겪어 봅니다.' },
+    ],
+    field: '열린 파일 수가 모자라거나, 세션이 늘 때 프로세스를 만들지 못하는 문제는 이 한도에서 시작하는 경우가 많습니다. 운영 중인 DB라면 <code>cat /proc/PID/limits</code>로 그 프로세스가 실제로 받은 한도를 볼 수도 있습니다(이 실습 터미널에는 없습니다).',
+    sources: ['limits', 'prepkg', 'pamlim'] },
+
+  { id: 14, stage: 2, title: 'HugePages 설정하고 THP 확인하기', short: 'HugePages·THP', start: 'root',
+    who: '박팀장',
+    situation: '이 서버에 만들 DB는 SGA를 8GB(SGA_TARGET=8G)로 잡을 계획이에요. 큰 SGA는 HugePages에 올리는 것이 좋다고 하니, 필요한 페이지 수를 계산해서 설정해 봐요. Transparent HugePages(THP)도 확인해요.',
+    tasks: [
+      { text: '지금 HugePages 상태와 페이지 크기 확인하기', hint: 'grep Huge /proc/meminfo', done: ev => ev.read.has('/proc/meminfo') && has(ev, 'grep'),
+        why: '<code>HugePages_Total: 0</code>, <code>Hugepagesize: 2048 kB</code>입니다. Administrator\'s Reference에 따르면 HugePages는 페이지 테이블 부담을 줄이고, 메모리에 고정되어 스왑되지 않습니다. 필요한 수는 <b>SGA ÷ 큰 페이지 크기</b>(올림)입니다. 8GB = 8192MB, 8192 ÷ 2 = <b>4096</b>페이지입니다(문서 예: 1.6GB ÷ 2MB → 820).' },
+      { text: '4096페이지를 커널 파라미터 파일에 적기', hint: "echo 'vm.nr_hugepages = 4096' > /etc/sysctl.d/97-oracle-database-sysctl.conf\n(또는 vi 로 같은 줄을 적어 저장)", done: () => { const n = node('/etc/sysctl.d/97-oracle-database-sysctl.conf'); return !!n && /^\s*vm\.nr_hugepages\s*=\s*4096\s*$/m.test(n.txt || ''); },
+        why: '설치 가이드가 손으로 커널 파라미터를 넣을 때 예로 드는 파일 이름이 <code>/etc/sysctl.d/97-oracle-database-sysctl.conf</code>입니다. 파일에 적어야 재부팅 뒤에도 남습니다. <code>sysctl -w</code>는 지금 커널만 바꿉니다.' },
+      { text: '설정을 적용하기', hint: 'sysctl --system', done: () => S.sysctl['vm.nr_hugepages'] === '4096',
+        why: '출력에 <code>vm.nr_hugepages = 4096</code>이 보이면 적용된 것입니다.' },
+      { text: 'HugePages가 잡혔는지 다시 확인하기', hint: 'grep Huge /proc/meminfo', done: ev => ev.read.has('/proc/meminfo') && S.sysctl['vm.nr_hugepages'] === '4096',
+        why: '<code>HugePages_Total: 4096</code>, <code>HugePages_Free: 4096</code>입니다. 4096 × 2048kB = 8,388,608kB(8GB)가 일반 메모리에서 빠져 HugePages로 갔습니다. 아직 DB가 없어서 모두 Free이고, 인스턴스가 뜨면 SGA가 이것을 씁니다. 주의할 점이 두 가지 있습니다. 첫째, Administrator\'s Reference는 "AMM(Automatic Memory Management)과 HugePages는 함께 쓸 수 없다"고 하므로 DB에는 <code>MEMORY_TARGET</code> 대신 <code>SGA_TARGET</code>을 씁니다. 둘째, HugePages를 쓰면 memlock이 RAM의 90% 이상이어야 하는데, RPM 값 134217728KB(128GB)는 32622588 × 0.9 ≈ 29,360,329KB보다 큽니다. 스왑도 다시 계산하면 31.1GB − 8GB ≈ 23.1GB로 여전히 16GB 초과라 16GB 기준 그대로입니다.' },
+      { text: 'Transparent HugePages(THP) 상태 확인하기', hint: 'cat /sys/kernel/mm/transparent_hugepage/enabled', done: ev => ev.read.has('/sys/kernel/mm/transparent_hugepage/enabled'),
+        why: '<code>always madvise [never]</code>에서 대괄호가 지금 값입니다. preinstall RPM이 never로 바꿔 두었습니다. THP는 위의 HugePages와 이름이 비슷하지만 커널이 알아서 큰 페이지를 쓰는 다른 기능이고, 문서는 실행 중 메모리 할당 지연을 일으킬 수 있다고 설명합니다. 설치 가이드의 UEK 커널용 안내는 <b>커널 버전에 따라 다릅니다</b>. UEK 7보다 앞선 UEK는 끄고(never), UEK 7 이상은 <code>madvise</code>로 두라고 합니다. Administrator\'s Reference 부록은 설치 전에 THP를 끄라고 적고 있어, 이 서버처럼 RHCK 4.18이면 never가 두 문서와 preinstall RPM 값에 모두 맞습니다. 그래서 1번 레슨(서버 점검)에서 커널 종류를 먼저 확인한 것입니다.' },
+      { text: '재부팅 뒤에도 남도록 부팅 옵션에 들어갔는지 확인하기', hint: 'grep CMDLINE /etc/default/grub\ncat /proc/cmdline', done: ev => ev.read.has('/etc/default/grub'),
+        why: '<code>GRUB_CMDLINE_LINUX</code> 끝에 <code>numa=off transparent_hugepage=never</code>가 붙었습니다. preinstall RPM이 x86_64에서 넣는 부팅 옵션입니다. 지금 부팅에 쓰인 옵션을 보여 주는 <code>/proc/cmdline</code>에는 아직 없습니다. 부팅 옵션은 다음 재부팅부터 적용되고, 지금 실행 중인 값은 RPM이 <code>/sys/kernel/mm/transparent_hugepage/enabled</code>에 바로 써서 바꿨습니다.' },
+    ],
+    field: 'HugePages 수는 SGA 크기를 바꿀 때마다 다시 계산합니다. 설정이 SGA보다 작으면 SGA 일부가 일반 페이지로 잡히고, 초기화 파라미터 <code>USE_LARGE_PAGES=ONLY</code>로 두었다면 Administrator\'s Reference 설명대로 인스턴스가 뜨지 않을 수도 있습니다. 장애 대응 단계에서 다시 만납니다.',
+    sources: ['huge', 'thp', 'kchange', 'srvcfg', 'limits', 'cwprerpm', 'prepkg'] },
+
+  { id: 15, stage: 2, title: '디스크 I/O 스케줄러와 시계 확인하기', short: 'I/O 스케줄러', start: 'root',
+    who: '박팀장',
+    situation: '오라클 프로그램을 둘 /u01은 sdb, 데이터 파일을 둘 /u02는 nvme0n1에 있어요. 디스크 종류에 맞는 I/O 스케줄러를 쓰는지, 가상 서버의 시계 설정은 어떤지 확인해 봐요.',
+    tasks: [
+      { text: '디스크와 파일 시스템 구성 보기', hint: 'lsblk', done: ev => has(ev, 'lsblk'),
+        why: '<code>sdb → vg_u01-lv_u01 → /u01</code>, <code>nvme0n1 → nvme0n1p1 → /u02</code>처럼 어느 디스크 위에 어느 파일 시스템이 있는지 나무 모양으로 보여 줍니다.' },
+      { text: '회전하는 디스크(HDD)인지 SSD인지 확인하기', hint: 'lsblk -d -o NAME,ROTA\n(또는 cat /sys/block/sdb/queue/rotational)', done: ev => (has(ev, 'lsblk') && ev.stages.some(a => a.some(x => /ROTA/i.test(x)))) || [...ev.read].some(p => p.endsWith('/queue/rotational')),
+        why: '<code>ROTA</code>가 1이면 회전 디스크, 0이면 SSD나 NVMe 같은 비회전 장치입니다. 이 서버는 sda, sdb가 1, nvme0n1이 0입니다.' },
+      { text: 'sdb의 I/O 스케줄러 확인하기', hint: 'cat /sys/block/sdb/queue/scheduler', done: ev => ev.read.has('/sys/block/sdb/queue/scheduler'),
+        why: '<code>none [mq-deadline] kyber bfq</code>에서 대괄호가 지금 쓰는 스케줄러입니다. 설치 가이드는 Oracle Linux 8 이상에서 <b>회전 디스크(HDD)는 mq-deadline</b>, SSD·NVMe 같은 비회전 장치는 none을 권장합니다. sdb는 기준에 맞습니다. 문서에 나오는 예시 출력도 이것과 같은 모양입니다.' },
+      { text: 'nvme0n1의 I/O 스케줄러 확인하기', hint: 'cat /sys/block/nvme0n1/queue/scheduler', done: ev => ev.read.has('/sys/block/nvme0n1/queue/scheduler'),
+        why: '<code>[none] mq-deadline kyber bfq</code>로 none이 선택되어 있어 비회전 장치 기준에 맞습니다. 같은 문서는 ASM 디스크의 스케줄러는 스토리지 업체와 상의하라고도 덧붙입니다.' },
+      { text: '가상 서버의 클럭 소스 확인하기', hint: 'cat /sys/devices/system/clocksource/clocksource0/current_clocksource\ncat /sys/devices/system/clocksource/clocksource0/available_clocksource', done: ev => ev.read.has('/sys/devices/system/clocksource/clocksource0/current_clocksource'),
+        why: '지금은 <code>kvm-clock</code>이고, 쓸 수 있는 것은 <code>kvm-clock tsc acpi_pm</code>입니다. 설치 가이드는 Linux x86-64 가상 머신에서 클럭 소스를 <code>tsc</code>로 두라고 권장하고, 영구 설정은 부팅 옵션에 <code>clocksource=tsc</code>를 넣는 방식으로 안내합니다. 부팅 설정과 재부팅이 필요한 일이라 바로 바꾸지 말고, 점검 결과에 적어 시스템 관리자와 일정을 잡습니다.' },
+    ],
+    field: 'I/O 스케줄러와 클럭 소스는 "바꾸는 명령"보다 "지금 값을 읽는 법"이 먼저입니다. /sys 아래 파일은 커널이 지금 상태를 보여 주는 창이라, <code>cat</code>으로 읽으면 대괄호나 숫자로 현재 값을 알려 줍니다.',
+    sources: ['iosched', 'clock'] },
+
+  { id: 16, stage: 2, title: '직무 분리 그룹과 grid 사용자 만들기', short: '그룹과 사용자', start: 'root',
+    who: '박팀장',
+    situation: '나중에 ASM(오라클의 디스크 관리 기능)을 쓸 계획이라, 설치 가이드 예시대로 ASM용 그룹과 grid 사용자도 미리 만들어 둬요. preinstall RPM은 oracle 사용자와 그 그룹만 만들거든요. 마지막으로 두 계정의 비밀번호도 정해요.',
+    tasks: [
+      { text: '지금 있는 오라클 그룹과 번호 확인하기', hint: 'grep 543 /etc/group', done: ev => ev.read.has('/etc/group'),
+        why: 'oinstall 54321부터 racdba 54330까지 있고, 54327~54329가 비어 있습니다. 설치 가이드의 그룹 예시는 oinstall 54321, dba 54322, oper 54323, backupdba 54324, dgdba 54325, kmdba 54326, asmdba 54327, asmoper 54328, asmadmin 54329, racdba 54330입니다. 그룹은 DB의 관리 권한과 이어집니다. dba는 SYSDBA, oper는 SYSOPER, backupdba는 SYSBACKUP, dgdba는 SYSDG, kmdba는 SYSKM, racdba는 SYSRAC입니다. 백업 담당과 DBA를 나누는 것처럼 일을 나눌 때 씁니다.' },
+      { text: 'ASM용 그룹 asmdba(54327) 만들기', hint: 'groupadd -g 54327 asmdba', done: () => GIDS.asmdba === 54327,
+        why: '<code>-g</code>로 그룹 번호를 정합니다. 번호를 정하지 않으면 시스템이 아무 번호나 줍니다. 여러 서버(특히 클러스터)에서 그룹 이름과 번호가 같아야 하므로, 설치 가이드처럼 번호를 정해서 만듭니다.' },
+      { text: 'asmoper(54328)와 asmadmin(54329) 그룹도 만들기', hint: 'groupadd -g 54328 asmoper\ngroupadd -g 54329 asmadmin', done: () => GIDS.asmoper === 54328 && GIDS.asmadmin === 54329,
+        why: 'asmadmin은 ASM을 관리하는 OSASM 그룹(SYSASM 권한)입니다. asmdba는 ASM에 접근하는 DB 쪽 그룹, asmoper는 ASM의 운영자용 그룹입니다.' },
+      { text: '설치 가이드 예시대로 grid 사용자 만들기', hint: 'useradd -u 54331 -g oinstall -G asmadmin,asmdba,racdba grid', done: () => USERS.grid && USERS.grid.uid === 54331 && USERS.grid.group === 'oinstall' && ['asmadmin', 'asmdba', 'racdba'].every(g => USERS.grid.groups.includes(g)),
+        why: '설치 가이드의 명령 그대로입니다. <code>-u</code>는 사용자 번호, <code>-g</code>는 주 그룹, <code>-G</code>는 보조 그룹입니다. 서버 구성 체크리스트는 "OINSTALL 그룹은 서버의 모든 오라클 설치 소유자의 주 그룹이어야 한다"고 합니다. 그래서 grid도 주 그룹이 oinstall입니다.' },
+      { text: 'oracle 사용자를 asmdba 그룹에 넣기', hint: 'usermod -g oinstall -G dba,asmdba,backupdba,dgdba,kmdba,racdba,oper oracle', done: () => USERS.oracle && USERS.oracle.group === 'oinstall' && ['dba', 'asmdba', 'oper', 'backupdba', 'dgdba', 'kmdba', 'racdba'].every(g => USERS.oracle.groups.includes(g)),
+        why: '설치 가이드의 usermod 예시입니다. <code>-G</code>는 보조 그룹 목록을 <b>통째로 바꾸므로</b> 원래 있던 그룹까지 모두 적어야 합니다. 빠뜨리면 그 그룹에서 빠집니다(기존 목록에 더하기만 하려면 <code>-a -G</code>). 같은 문서는 "이미 쓰고 있는 오라클 소프트웨어 소유자의 주 그룹을 바꾸지 말라, 중앙 인벤토리가 손상될 수 있다"고 경고합니다. 여기서는 주 그룹을 원래대로 oinstall로 둡니다.' },
+      { text: '두 사용자의 번호와 그룹 확인하기', hint: 'id oracle\nid grid', done: ev => has(ev, 'id') && argOf(ev, 'id').includes('grid') && !!USERS.grid,
+        why: '<code>uid=54331(grid) gid=54321(oinstall) groups=54321(oinstall),54329(asmadmin),54327(asmdba),54330(racdba)</code>처럼 나옵니다. 사람이 읽는 이름보다 <b>번호</b>가 파일 소유권을 정하므로, 서버를 여러 대 맞출 때는 번호를 비교합니다.' },
+      { text: 'oracle 계정 비밀번호 정하기', hint: 'passwd oracle\n(실습용 oracle123 을 두 번 입력, 화면에 보이지 않습니다)', done: () => USERS.oracle && !!USERS.oracle.pass,
+        why: '<code>passwd: all authentication tokens updated successfully.</code>가 나오면 됩니다. root는 다른 사용자의 비밀번호를 바꿀 수 있고, 일반 사용자는 자기 것만 바꿀 수 있습니다.' },
+      { text: 'grid 계정 비밀번호도 정하기', hint: 'passwd grid\n(실습용 grid123 을 두 번 입력)', done: () => USERS.grid && !!USERS.grid.pass,
+        why: '이제 두 계정으로 로그인할 수 있습니다. 실제 운영에서는 회사의 비밀번호 규칙을 따르고, 비밀번호를 문서나 스크립트에 적어 두지 않습니다.' },
+    ],
+    field: '이 실습은 설치 가이드의 그룹 예시를 그대로 따랐지만, 문서는 그룹 이름을 바꿔도 되고 권한마다 다른 그룹을 두는 것을 권장한다고 적고 있습니다. 중요한 것은 이름보다 <b>모든 서버에서 같은 번호</b>와 <b>모든 설치 소유자의 주 그룹이 oinstall</b>이라는 두 가지입니다.',
+    sources: ['groups', 'users', 'extgrp', 'srvcfg', 'prepkg'] },
+
+  { id: 17, stage: 2, title: '설치 디렉터리 만들기와 경로 규칙', short: '설치 디렉터리', start: 'root',
+    who: '박팀장',
+    situation: '이제 오라클을 설치할 디렉터리를 만들 차례예요. 시스템 관리자가 남긴 메모(/root/memo_from_sysadmin.txt)부터 읽고, 설치 가이드의 규칙에 맞는지 따져 본 다음 만들어요.',
+    tasks: [
+      { text: '시스템 관리자의 메모 읽기', hint: 'cat /root/memo_from_sysadmin.txt', done: ev => ev.read.has('/root/memo_from_sysadmin.txt'),
+        why: '/data/app/oracle에 설치하라고 되어 있습니다. 그런데 /data는 원래 있던 디렉터리가 아니라 "만들어 둔 이름"이라고 합니다. 확인해 봅시다.' },
+      { text: '/data가 무엇인지 확인하기', hint: 'ls -ld /data', done: ev => has(ev, 'ls') && argOf(ev, 'ls').some(a => /^\/data\/?$/.test(a)),
+        why: '<code>lrwxrwxrwx. ... /data -&gt; /u01</code>로, 맨 앞이 <code>l</code>인 <b>심볼릭 링크</b>입니다. 설치 가이드는 "Oracle home이나 Oracle base는 심볼릭 링크일 수 없고, 그 상위 디렉터리도 루트까지 모두 심볼릭 링크이면 안 된다"고 합니다. /data/app/oracle은 이 규칙에 어긋나므로 실제 경로인 /u01/app/oracle을 씁니다. 메모와 다르게 한 이유는 관리자에게 알려 줍니다.' },
+      { text: 'Oracle base와 oraInventory 디렉터리 만들기', hint: 'mkdir -p /u01/app/oracle\nmkdir -p /u01/app/oraInventory', done: () => { const a = node('/u01/app/oracle'), b = node('/u01/app/oraInventory'); return a && a.t === 'd' && b && b.t === 'd'; },
+        why: '<code>-p</code>는 중간 디렉터리(/u01/app)까지 한 번에 만듭니다. 설치 가이드의 명령 그대로입니다. 서버 구성 체크리스트에 따르면 oraInventory(중앙 인벤토리)는 <b>Oracle base보다 한 단계 위</b>에 둡니다. 그래서 /u01/app/oracle 안이 아니라 /u01/app 아래에 나란히 만듭니다.' },
+      { text: '두 디렉터리의 소유자를 oracle:oinstall로 바꾸기', hint: 'chown -R oracle:oinstall /u01/app/oracle\nchown -R oracle:oinstall /u01/app/oraInventory', done: () => ['/u01/app/oracle', '/u01/app/oraInventory'].every(p => { const n = node(p); return n && n.o === 'oracle' && n.g === 'oinstall'; }),
+        why: 'root로 만든 디렉터리는 root 소유라서 oracle이 그 안에 쓸 수 없습니다. <code>-R</code>은 안쪽 파일과 디렉터리까지 모두 바꿉니다.' },
+      { text: '/u01/app 아래 권한을 775로 맞추기', hint: 'chmod -R 775 /u01/app', done: () => ['/u01/app', '/u01/app/oracle', '/u01/app/oraInventory'].every(p => { const n = node(p); return n && (n.m & 0o777) === 0o775; }),
+        why: '775는 소유자와 그룹은 읽기·쓰기·들어가기가 되고, 그 밖의 사용자는 읽기·들어가기만 됩니다. oinstall 그룹의 다른 설치 소유자(grid)도 인벤토리에 쓸 수 있어야 하기 때문입니다. 체크리스트도 OINSTALL 그룹은 모든 오라클 설치 소유자가 쓸 수 있어야 한다고 합니다.' },
+      { text: '결과 확인하기', hint: 'ls -l /u01/app', done: ev => listedL(ev, '/u01/app', 'l'),
+        why: '<code>drwxrwxr-x. ... oracle oinstall ... oracle</code>, <code>... oraInventory</code>가 보이면 됩니다. /u01/app 자체는 root 소유로 남아 있지만 775라 oinstall 그룹이 쓸 수 있습니다.' },
+      { text: '이 서버에 오라클이 설치된 적이 있는지 oraInst.loc로 확인하기', hint: 'ls -l /etc/oraInst.loc', done: ev => (has(ev, 'ls') || has(ev, 'cat')) && ev.stages.some(a => a.includes('/etc/oraInst.loc')) && !node('/etc/oraInst.loc'),
+        why: '<code>No such file or directory</code>입니다. <code>/etc/oraInst.loc</code>는 중앙 인벤토리 위치(<code>inventory_loc</code>)와 인벤토리 그룹(<code>inst_group</code>)을 적은 파일이라, 없으면 이 서버의 첫 오라클 설치라는 뜻입니다. 첫 설치가 끝날 때 root로 실행하는 <code>orainstRoot.sh</code>가 이 파일을 만듭니다. 1단계 서버에서는 <code>inventory_loc=/u01/app/oraInventory</code>, <code>inst_group=oinstall</code>이 들어 있었습니다.' },
+      { text: 'oracle로 바꿔 Oracle home 디렉터리 만들기', hint: 'su - oracle\nmkdir -p /u01/app/oracle/product/19.0.0/dbhome_1', done: () => { const n = node(OH); return n && n.t === 'd' && n.o === 'oracle'; },
+        why: '설치 가이드는 Oracle home을 <b>oracle 사용자로</b> 만들고, 그 안에서 설치 이미지를 <code>unzip -q</code>로 푼 뒤, 그 디렉터리의 <code>./runInstaller</code>로 설치하라고 합니다. 다른 위치의 runInstaller를 쓰지 말라는 주의도 있습니다. 앞에서 소유자와 권한을 맞추지 않았다면 여기서 <code>Permission denied</code>가 났을 것입니다.' },
+      { text: 'oracle의 umask와 ORACLE_HOME 변수 확인하기', hint: 'umask\necho $ORACLE_HOME', done: ev => S.user === 'oracle' && (has(ev, 'umask') || (has(ev, 'echo') && /ORACLE_HOME/.test(ev.line))),
+        why: 'umask는 <code>0022</code>, ORACLE_HOME은 비어 있습니다. 설치 가이드는 설치 사용자의 umask를 022로 두라고 하고, <b>설치 전에는</b> 시작 파일에 ORACLE_HOME 같은 오라클 환경 변수를 넣지 말라고 합니다(1단계 8번 레슨은 설치가 끝난 서버라는 상황이었습니다).' },
+    ],
+    field: 'OFA 규칙으로 정리하면 Oracle base는 <code>/u01/app/oracle</code>, Oracle home은 <code>/u01/app/oracle/product/19.0.0/dbhome_1</code>, 인벤토리는 <code>/u01/app/oraInventory</code>입니다. 데이터 파일은 다른 디스크의 <code>/u02/app/oracle/oradata</code>처럼 두는 것이 OFA 예시이고, 설치 가이드는 데이터 파일 디렉터리에 1.5GB 이상, 복구 영역에 2GB 이상을 요구합니다. 경로, 사용자 이름, 그룹 이름에는 ASCII 문자만 씁니다.',
+    sources: ['instsw', 'srvcfg', 'reqgrp', 'ofa', 'dbfdir', 'env'] },
+
+  { id: 18, stage: 2, title: '졸업 미션: 남이 준비한 서버 점검하고 고치기', short: '졸업 미션', start: 'root',
+    who: '박팀장',
+    situation: '이대리가 preinstall RPM 없이 손으로 준비한 dbserver03이에요. 인수인계 메모(/root/handover_dbserver03.txt)를 읽고, 2단계에서 배운 기준으로 점검해서 틀린 곳을 고쳐 줘요. 문제는 다섯 군데쯤 있을 거예요. 결과는 /root/precheck_report.txt로 남겨 주세요.',
+    tasks: [
+      { text: '인수인계 메모 읽기', hint: 'cat /root/handover_dbserver03.txt', done: ev => ev.read.has('/root/handover_dbserver03.txt') },
+      { text: '필수 패키지를 확인하고 빠진 것 설치하기', hint: 'rpm -q bc binutils ksh libaio libaio-devel sysstat glibc-devel\ndnf install -y ksh', done: () => S.pkgs.has('ksh'),
+        why: 'ksh가 빠져 있었습니다. 패키지는 설치 가이드의 Oracle Linux 8 표와 비교합니다.' },
+      { text: '세마포어 값을 점검하고 최소값 이상으로 고쳐 적용하기', hint: 'sysctl kernel.sem\nvi /etc/sysctl.d/97-oracle-database-sysctl.conf   (kernel.sem = 250 32000 100 128)\nsysctl --system', done: () => { const v = (S.sysctl['kernel.sem'] || '').split(' ').map(Number); const n = node('/etc/sysctl.d/97-oracle-database-sysctl.conf'); return v[0] >= 250 && v[1] >= 32000 && v[2] >= 100 && v[3] >= 128 && !!n && /kernel\.sem\s*=\s*\d+\s+\d+\s+(\d{3,})\s+\d+/.test(n.txt || ''); },
+        why: '세 번째 값 semopm이 32로, 최소값 100보다 작았습니다. kernel.sem은 네 값을 순서대로 모두 적어야 해서 숫자 하나만 틀려도 눈에 잘 띄지 않습니다. 파일을 고친 뒤 <code>sysctl --system</code>으로 적용하고 <code>sysctl kernel.sem</code>으로 다시 확인합니다.' },
+      { text: 'oracle의 주 그룹을 확인하고 oinstall로 바로잡기', hint: 'id oracle\nusermod -g oinstall -G dba,oper,backupdba,dgdba,kmdba,racdba oracle', done: () => USERS.oracle.group === 'oinstall' && USERS.oracle.groups.includes('dba'),
+        why: '<code>gid=54322(dba)</code>로 주 그룹이 dba였습니다. 체크리스트는 OINSTALL이 모든 설치 소유자의 주 그룹이어야 한다고 합니다. 설치 가이드는 이미 쓰는 소유자의 주 그룹을 바꾸면 중앙 인벤토리가 손상될 수 있다고 경고하지만, 이 서버는 아직 아무것도 설치하지 않았으므로(oraInst.loc 없음) 지금 바로잡아야 합니다. 설치 뒤에 발견했다면 훨씬 큰 일이 됩니다.' },
+      { text: '열린 파일 수 hard 한도를 기준 이상으로 고치기', hint: 'cat /etc/security/limits.d/oracle.conf\nvi /etc/security/limits.d/oracle.conf   (oracle   hard   nofile    65536)', done: () => +computeLimits('oracle').nofile[1] >= 65536,
+        why: 'hard nofile이 4096으로, 설치 가이드 기준 65536보다 작았습니다.' },
+      { text: 'oracle로 다시 로그인해서 고친 값이 적용됐는지 확인하기', hint: 'su - oracle\nid\nulimit -Hn', done: () => S.user === 'oracle' && S.limSeen && S.limSeen.has('nofileH:oracle') && +S.lim.nofile[1] >= 65536,
+        why: '<code>65536</code>이 나옵니다. 파일을 고치기 전에 이미 oracle로 로그인해 있던 창이 있었다면 그 창에서는 여전히 4096이 나옵니다. 그래서 "고친 뒤 새로 로그인해서 확인"이 순서입니다.' },
+      { text: 'exit로 root로 돌아오기', hint: 'exit', done: ev => ev.type === 'su-exit' && S.user === 'root' },
+      { text: '설치 디렉터리의 소유자와 권한 바로잡기', hint: 'ls -l /u01/app\nchown -R oracle:oinstall /u01/app/oracle\nchown -R oracle:oinstall /u01/app/oraInventory\nchmod -R 775 /u01/app', done: () => ['/u01/app/oracle', '/u01/app/oraInventory'].every(p => { const n = node(p); return n && n.o === 'oracle' && n.g === 'oinstall' && (n.m & 0o777) === 0o775; }) && (node('/u01/app').m & 0o777) === 0o775,
+        why: '/u01/app 아래가 root:root, 755였습니다. 이대로면 oracle이 Oracle home을 만들 때 Permission denied가 납니다.' },
+      { text: '점검 결과를 /root/precheck_report.txt에 남기기', hint: 'vi /root/precheck_report.txt\n(또는 echo "ksh 설치, kernel.sem semopm 32→100, oracle 주 그룹 dba→oinstall, nofile hard 4096→65536, /u01/app 소유자 root→oracle:oinstall·775" > /root/precheck_report.txt)', done: () => /\S/.test((node('/root/precheck_report.txt') || {}).txt || ''),
+        why: '무엇을, 어떤 기준으로, 무엇에서 무엇으로 바꿨는지 적어 두면 다음 사람이 그대로 다시 확인할 수 있습니다.' },
+    ],
+    field: '수고했습니다. 2단계를 마쳤습니다. 현장에서는 이런 점검을 도구로도 합니다. 설치 가이드의 Installer Planning Checklist는 설치 전에 ORAchk를 <code>./orachk -profile preinstall</code>로 실행해 보라고 하고, 설치 프로그램도 사전 점검에서 고칠 수 있는 항목을 찾으면 root로 실행할 fixup 스크립트(<code>runfixup.sh</code>)를 만들어 줍니다. 다만 설치 가이드는 fixup 스크립트가 모든 요구 사항을 맞춰 준다고 보장하지 않는다고 적고 있습니다. 오늘처럼 기준을 알고 직접 확인할 줄 알아야 도구의 결과도 제대로 읽을 수 있습니다. (이 실습 터미널은 ORAchk와 설치 프로그램은 흉내 내지 않습니다.)',
+    sources: ['planning', 'fixup', 'srvcfg', 'users', 'kmin', 'limits', 'instsw'] },
 ];
 
 /* =====================================================================
@@ -1711,18 +2362,19 @@ function saveProg() { try { localStorage.setItem('ohb:lab:done', JSON.stringify(
 function startLesson(id) {
   const L = LESSONS.find(l => l.id === id) || LESSONS[0];
   cur = { L, idx: 0, hints: {}, done: false };
-  const w = makeFS(L.id);
-  S = { fs: w.fs, alertSeq: w.alertSeq, procs: makeProcs(L.id), host: L.start === 'laptop' ? 'laptop' : 'db', user: L.start === 'laptop' ? null : 'oracle', cwd: '/home/oracle', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
-  if (S.user) loginEnv('oracle'); else S.cwd = '/';
+  S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
+  if (S.stage === 2) { makeWorld2(L.id); S.dfRows = () => [['devtmpfs', 15.5 * GB, 0, '/dev'], ['tmpfs', 15.6 * GB, 0, '/dev/shm'], ['tmpfs', 15.6 * GB, 8.5 * MB, '/run'], ['tmpfs', 15.6 * GB, 0, '/sys/fs/cgroup'], ['/dev/mapper/ol-root', 50 * GB, 4.1 * GB, '/'], ['/dev/sda1', 1014 * MB, 233 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', 200 * GB, 1.5 * GB + duOf(lookup('/u01').node), '/u01'], ['/dev/nvme0n1p1', 500 * GB, 3.6 * GB + duOf(lookup('/u02').node), '/u02'], ['tmpfs', 3.2 * GB, 0, '/run/user/0']]; S.user = 'root'; loginEnv('root'); S.cwd = '/root'; }
+  else { setIds(USERS1, GIDS1); const w = makeFS(L.id); Object.assign(S, { fs: w.fs, alertSeq: w.alertSeq, procs: makeProcs(L.id), hn: HOSTS[1].hn, ip: HOSTS[1].ip, mem: MEM1 }); if (L.start !== 'laptop') { S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; } }
   if (V) { V = null; viEl.hidden = true; termEl.hidden = false; }
   mode = null;
   termEl.innerHTML = ''; buildInput();
-  document.getElementById('termTitle').textContent = S.host === 'laptop' ? 'laptop — 내 노트북' : 'dbserver01 — ssh oracle@dbserver01';
+  document.getElementById('termTitle').textContent = S.host === 'laptop' ? 'laptop — 내 노트북' : `${S.hn} — ssh ${S.user}@${S.hn}`;
+  document.getElementById('brandSub').textContent = STAGES[S.stage].sub;
   if (S.host === 'db') print(`Last login: ${lastLogin()} from 10.0.1.25\n`);
-  print(note(`레슨 ${L.id}. ${L.title}\n할 일 목록을 위에서부터 차례로 해 보세요. 모르면 "힌트"를 누르세요. help 를 치면 쓸 수 있는 명령이 나옵니다.`));
+  print(note(`${S.stage}단계 레슨 ${lessonNo(L)}. ${L.title}\n할 일 목록을 위에서부터 차례로 해 보세요. 모르면 "힌트"를 누르세요. help 를 치면 쓸 수 있는 명령이 나옵니다.`));
   setPrompt(prompt());
   renderTabs(); renderMission(); renderNotes();
-  document.title = `${L.id}. ${L.title} · 리눅스 실습실`;
+  document.title = `${S.stage}-${lessonNo(L)}. ${L.title} · 리눅스 실습실`;
   if (location.hash !== '#lesson-' + L.id) history.replaceState(null, '', '#lesson-' + L.id);
   if (matchMedia('(min-width: 961px)').matches) inputEl.focus({ preventScroll: true });
 }
@@ -1741,9 +2393,17 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
+const STAGES = { 1: { name: '1단계 · 리눅스 기초', sub: '1단계 · Oracle Linux 8 기초' }, 2: { name: '2단계 · 오라클을 위한 리눅스 준비', sub: '2단계 · 오라클 설치 전 리눅스 준비' } };
+const stageOf = (l) => l.stage || 1;
+const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
+const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
 function renderTabs() {
+  const st = stageOf(cur.L);
+  const sEl = document.getElementById('stageTabs');
+  sEl.innerHTML = Object.keys(STAGES).map(k => { const ls = stageLessons(+k); const d = ls.filter(l => prog[l.id]).length; return `<button class="stage-tab" type="button" data-stage="${k}" aria-pressed="${+k === st}">${STAGES[k].name}<span class="cnt">${d}/${ls.length}</span></button>`; }).join('');
+  sEl.querySelectorAll('.stage-tab').forEach(b => b.addEventListener('click', () => { const ls = stageLessons(+b.dataset.stage); if (+b.dataset.stage === st) return; startLesson((ls.find(l => !prog[l.id]) || ls[0]).id); }));
   const el = document.getElementById('tabs');
-  el.innerHTML = LESSONS.map(l => `<button class="tab${prog[l.id] ? ' done' : ''}" type="button" data-id="${l.id}" aria-current="${cur && cur.L.id === l.id}"><span class="n">${prog[l.id] ? '✓' : l.id}</span>${l.short}</button>`).join('');
+  el.innerHTML = stageLessons(st).map((l, i) => `<button class="tab${prog[l.id] ? ' done' : ''}" type="button" data-id="${l.id}" aria-current="${cur && cur.L.id === l.id}"><span class="n">${prog[l.id] ? '✓' : i + 1}</span>${l.short}</button>`).join('');
   el.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => startLesson(+b.dataset.id)));
   const a = el.querySelector('[aria-current="true"]'); if (a) a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
@@ -1754,14 +2414,15 @@ function renderMission() {
     return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${esc(t.hint)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
   }).join('');
   const next = LESSONS.find(l => l.id === L.id + 1);
-  el.innerHTML = `<div class="eyebrow"><b>1단계 · 리눅스 기초</b> / 레슨 ${L.id} / ${LESSONS.length}</div>
+  const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
+  el.innerHTML = `<div class="eyebrow"><b>${STAGES[st].name}</b> / 레슨 ${lessonNo(L)} / ${cnt}</div>
     <h1>${L.title}</h1>
     <p class="situation"><span class="who">${L.who}</span>${L.situation}</p>
     <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
-    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${next ? `다음은 "${next.title}"입니다.` : '1단계를 모두 마쳤습니다.'}</div>` : ''}
-    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">다음 레슨 →</button>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
+    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
+    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
-  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${L.id}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
+  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));
