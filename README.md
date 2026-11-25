@@ -21,6 +21,28 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 단계마다 오른쪽 설명, 왼쪽 다이어그램, 위쪽 지표(SCN, dirty 블록, Redo 버퍼, 대기 시간), 아래쪽 SQL*Plus·alert.log 화면이 함께 바뀝니다.
 
+## 리눅스 실습실 (`lab/`)
+
+**주소:** https://batiappa.github.io/oracle-anatomy/lab/
+
+실무 경험이 없는 신입 DBA가 Oracle 19c를 운영하는 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 리눅스 기초를 익히는 실습 과정입니다. 전체 과정 가운데 1단계(리눅스 기초)이며, 2단계(오라클을 위한 리눅스 준비)로 이어지도록 짰습니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | DB 서버에 처음 접속하기 | `ssh`, `whoami`, `hostname`, `cat /etc/os-release`, `uname -r` |
+| 2 | 오라클이 사는 디렉터리 둘러보기(OFA) | `pwd`, `ls -la`, `cd`, `mkdir`, `cp` |
+| 3 | alert log에서 오류 찾기(ADR) | `tail -n`, `grep -n`, `tail -f`, Ctrl+C |
+| 4 | vi로 작업 일지 쓰기 | `vi`, `i`, `o`, `Esc`, `:wq`, `:q!` |
+| 5 | oracle 계정과 권한 | `id`, `chmod`, `su -`, `chown`, `exit` |
+| 6 | 프로세스로 DB 상태 확인 | `ps -ef \| grep pmon`, `top`, `kill` |
+| 7 | 디스크가 찼다는 연락 대응 | `df -h`, `du -sh`, `ls -lh`, `rm`, `free -m` |
+| 8 | 환경 변수 설정 | `echo $ORACLE_HOME`, `vi ~/.bash_profile`, `source`, `which sqlplus` |
+| 9 | 졸업 미션: 아침 점검 | 배운 명령 종합 |
+
+- 실제 리눅스가 아니라 JavaScript로 만든 가상 파일 시스템과 셸입니다. 서버 비용이 없고, 무엇을 지워도 "레슨 다시 시작"으로 되돌릴 수 있습니다.
+- 기준 값은 공식 자료에서 가져왔습니다. `/etc/os-release`는 `oraclelinux-release-8.10` 패키지, `.bash_profile`과 `.bashrc`는 `bash-4.4.20-6.el8_10` 패키지의 `/etc/skel`, oracle 사용자와 그룹 ID(54321 등)와 커널 파라미터는 `oracle-database-preinstall-19c-1.0-4.el8` 패키지에서 그대로 옮겼습니다. 디렉터리 구조는 Oracle 19c 설치 가이드의 OFA 예시, alert log 위치는 Administrator's Guide의 ADR 설명을 따릅니다. 레슨마다 화면에 출처 링크가 있습니다.
+- 열 간격, 날짜, 크기, PID, IP, 서버 이름 같은 값은 설명용 예시입니다.
+
 ## 구현
 
 - **외부 라이브러리 없이** HTML, CSS, JavaScript 파일 하나로 동작합니다.
