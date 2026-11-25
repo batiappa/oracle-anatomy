@@ -1644,7 +1644,7 @@ function checkLesson(ev) {
     let okk = false; try { okk = !!cur.L.tasks[cur.idx].done(ev); } catch (e) { okk = false; }
     if (!okk) break;
     cur.idx++; moved = true;
-    ev = { stages: [], read: new Set(), listed: [], removed: [], touched: [], chowned: [], killed: [], line: '', type: 'none', err: '' }; // 한 명령이 여러 단계를 한꺼번에 넘기지 않도록 상태 기반 판정만 이어서 확인
+    // 한 명령이 다음 할 일까지 충족하면(예: grep -n ORA-) 함께 체크한다.
   }
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
