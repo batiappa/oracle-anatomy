@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DBA 실습 · Oracle 해부도</title>
-<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익힙니다.">
+<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익히고, 4단계에서 데이터 파일·컨트롤 파일 손실, FRA 가득 참, 지운 테이블 같은 장애를 RMAN과 Flashback Drop으로 복구합니다.">
 <meta name="theme-color" content="#e5e9ee">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/dba/">
@@ -202,7 +202,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 
 <footer class="foot">
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), "Connected to an idle instance."와 "ORACLE instance started." 및 SGA 줄 이름, lsnrctl status·start·stop·services의 형식, rman 접속 문구, SHOW ALL과 CROSSCHECK의 형식, ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA- 오류 문구. <b>확인하지 못한 출력</b>: "Database mounted/opened/closed/dismounted", "ORACLE instance shut down", DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 모양, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN BACKUP 진행 줄과 LIST BACKUP SUMMARY·REPORT의 표, 리스너가 없을 때 lsnrctl의 TNS 오류 줄, orapwd의 암호 질문 문구, 레슨에 인용하지 않은 일부 ORA-·SP2- 오류 문구. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), "Connected to an idle instance."와 "ORACLE instance started." 및 SGA 줄 이름, lsnrctl status·start·stop·services의 형식, rman 접속 문구, SHOW ALL과 CROSSCHECK의 형식, ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA- 오류 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. <b>확인하지 못한 출력</b>: "Database mounted/opened/closed/dismounted", "ORACLE instance shut down", DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN BACKUP 진행 줄과 LIST BACKUP SUMMARY·REPORT의 표, 리스너가 없을 때 lsnrctl의 TNS 오류 줄, orapwd의 암호 질문 문구, 레슨에 인용하지 않은 일부 ORA-·SP2- 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, DELETE OBSOLETE 목록, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094 문구. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -2309,7 +2309,7 @@ function getView(name, pos) {
   if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
   const v = VIEWS[full];
   if (v) {
-    if (!me.priv && full !== 'DUAL' && !userHas(me.user, 'SELECT ANY DICTIONARY')) throw new SqlErr('ORA-00942: table or view does not exist', pos);
+    if (!me.priv && !v.pub && !userHas(me.user, 'SELECT ANY DICTIONARY')) throw new SqlErr('ORA-00942: table or view does not exist', pos);
     if (db.state === 'STARTED' && v.cf) throw new SqlErr('ORA-01507: database not mounted', 0);
     if (db.state !== 'OPEN' && !v.fixed) throw new SqlErr('ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only', pos);
     if (db.state === 'STARTED' && !v.fixed) throw new SqlErr('ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only', pos);
@@ -2319,8 +2319,9 @@ function getView(name, pos) {
     if (db.state !== 'OPEN') throw new SqlErr('ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only', pos);
     const [o, t] = full.split('.');
     if (!me.priv && me.user !== o && !userHas(me.user, 'SELECT ANY TABLE') && !db.users[me.user].obj.some(x => x[0] === o && x[1] === t && x[2] === 'SELECT')) throw new SqlErr('ORA-00942: table or view does not exist', pos);
+    tbsAccess('USERS');
     const tb = db.tables[full]; const cols = APP_TABLES[full];
-    const sample = full === 'APP.ORDER_HIST' ? [[90184412, 10233, ago(0, 8, 12), 129000, 'PAID'], [90184413, 48211, ago(0, 8, 13), 35800, 'PAID'], [90184414, 10233, ago(0, 8, 15), 9900, 'CANCEL'], [90184415, 77102, ago(0, 8, 21), 412000, 'READY'], [90184416, 5120, ago(0, 8, 22), 18500, 'PAID']] : [[10233, '김하늘', 'GOLD'], [48211, '이도윤', 'SILVER'], [77102, '박서준', 'GOLD']];
+    const sample = TABLE_SAMPLES[full] ? TABLE_SAMPLES[full]() : full === 'APP.ORDER_HIST' ? [[90184412, 10233, ago(0, 8, 12), 129000, 'PAID'], [90184413, 48211, ago(0, 8, 13), 35800, 'PAID'], [90184414, 10233, ago(0, 8, 15), 9900, 'CANCEL'], [90184415, 77102, ago(0, 8, 21), 412000, 'READY'], [90184416, 5120, ago(0, 8, 22), 18500, 'PAID']] : [[10233, '김하늘', 'GOLD'], [48211, '이도윤', 'SILVER'], [77102, '박서준', 'GOLD']];
     return { cols, rows: sample.map(r => Object.fromEntries(cols.map((c, i) => [c[0], r[i]]))), count: tb.count };
   }
   throw new SqlErr('ORA-00942: table or view does not exist', pos);
@@ -2536,6 +2537,7 @@ function tryConnect(c) {
   if (c.os) return 'ORA-01017: invalid username/password; logon denied';
   if (db.state === 'DOWN') return 'ORA-01034: ORACLE not available\nORA-27101: shared memory realm does not exist\nLinux-x86_64 Error: 2: No such file or directory';
   if (db.state !== 'OPEN') return 'ORA-01033: ORACLE initialization or shutdown in progress';
+  if (fraStuck()) return 'ORA-00257: Archiver error. Connect AS SYSDBA only until resolved.';
   const u = (c.user || '').toUpperCase(); const x = db.users[u];
   if (!x || x.auth !== 'PASSWORD' || x.pass !== c.pass) return 'ORA-01017: invalid username/password; logon denied';
   if (/LOCKED/.test(x.status)) return 'ORA-28000: The account is locked.';
@@ -2666,6 +2668,7 @@ function needDba() { const me = S.sql; if (me.priv === 'SYSDBA' || userHas(me.us
 function execSql(sql, raw) {
   const me = S.sql, db = S.db, ev = S.ev; const U = sql.toUpperCase();
   let m;
+  { const x = sql4(sql, raw); if (x !== undefined) return x; }
   if (/^SELECT\b/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     const res = runSelect(raw);
@@ -2721,7 +2724,7 @@ function execSql(sql, raw) {
   if (/^ALTER SYSTEM REGISTER$/i.test(sql)) { needDba(); if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0); if (db.lsnr.up) db.lsnr.reg = true; ev.ddl = { kind: 'register' }; return '\nSystem altered.\n\n'; }
   if (/^ALTER SYSTEM (SWITCH LOGFILE|ARCHIVE LOG CURRENT)$/i.test(sql)) { needDba(); needOpen(); logSwitch(); return '\nSystem altered.\n\n'; }
   if (/^ALTER SYSTEM CHECKPOINT$/i.test(sql)) { needDba(); needOpen(); return '\nSystem altered.\n\n'; }
-  if ((m = /^ALTER SYSTEM SET (\w+)\s*=\s*('?[^']*'?|\S+)(?: SCOPE\s*=\s*(SPFILE|MEMORY|BOTH))?$/i.exec(sql))) {
+  if ((m = /^ALTER SYSTEM SET (\w+)\s*=\s*('[^']*'|\S+)(?:\s+SCOPE\s*=\s*(SPFILE|MEMORY|BOTH))?$/i.exec(sql))) {
     needDba(); const k = m[1].toLowerCase(); const p = db.params[k];
     if (!p) throw new SqlErr('ORA-02065: illegal option for ALTER SYSTEM', raw.toLowerCase().indexOf(k));
     if (k === 'remote_login_passwordfile' && (m[3] || 'BOTH').toUpperCase() !== 'SPFILE') throw new SqlErr('ORA-02095: specified initialization parameter cannot be modified', raw.toLowerCase().indexOf(k));
@@ -2774,6 +2777,7 @@ function alterDatabase(U, sql) {
   if (/^ALTER DATABASE MOUNT$/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     if (db.state !== 'STARTED') throw new SqlErr('ORA-01100: database already mounted', 0);
+    { const cf = cfProblem(); if (cf) { cfAlert(cf); throw new SqlErr('ORA-00205: error in identifying control file, check alert log for more info', 0); } }
     db.state = 'MOUNTED'; alertAdd('ALTER DATABASE   MOUNT', 'Completed: ALTER DATABASE   MOUNT'); ev.dbState = 'MOUNTED'; lsnrRegisterAfterStart();
     return '\nDatabase altered.\n\n';
   }
@@ -2782,6 +2786,7 @@ function alterDatabase(U, sql) {
     if (db.state === 'STARTED') throw new SqlErr('ORA-01507: database not mounted', 0);
     if (db.state === 'OPEN') throw new SqlErr('ORA-01531: a database already open by the instance', 0);
     if (/READ ONLY/.test(U)) return note('실습에서는 READ ONLY로 열지 않습니다. ALTER DATABASE OPEN; 으로 여세요.');
+    { const op = openProblem(); if (op) { const [a1, ...rest] = op.split('\n'); alertAdd('ALTER DATABASE OPEN', ...op.split('\n')); throw new SqlErr(a1, 0, rest.join('\n')); } }
     openDb(); alertAdd('ALTER DATABASE OPEN', 'Completed: ALTER DATABASE OPEN'); ev.dbState = 'OPEN';
     return '\nDatabase altered.\n\n';
   }
@@ -2895,6 +2900,7 @@ function plusCmd(t) {
   if (/^(DISC|DISCONNECT)$/.test(c0)) { if (me.conn) print(`Disconnected from ${RDBMS_BANNER}\nVersion ${SQLVER}\n`); sqlDisconnect(); return; }
   if (/^(SHO|SHOW)$/.test(c0)) {
     const what = (w[1] || '').toUpperCase();
+    if (/^RECYC/.test(what)) { showRecyclebin(); return; }
     if (what === 'USER') { print(me.conn ? `USER is "${me.shownUser === 'SYS' && me.priv ? 'SYS' : me.shownUser}"\n` : 'USER is ""\n'); return; }
     if (/^(PARAMETER|PARAMETERS|PARAM|PARA|PARAMETE)$/.test(what)) {
       if (!needConn()) return;
@@ -2906,7 +2912,7 @@ function plusCmd(t) {
       if (!keys.length) { print('\n'); return; }
       let o = '\nNAME                                 TYPE        VALUE\n------------------------------------ ----------- ------------------------------\n';
       for (const k of keys) { const [ty, val] = db.params[k]; const vparts = []; let v = val || ''; while (v.length > 30) { vparts.push(v.slice(0, 30)); v = v.slice(30); } vparts.push(v); o += `${k.padEnd(36)} ${ty.padEnd(11)} ${vparts[0]}\n` + vparts.slice(1).map(x => ' '.repeat(49) + x + '\n').join(''); }
-      print(o + '\n'); unverified('showparam', 'SHOW PARAMETER의 열 모양(NAME, TYPE, VALUE)은 공식 문서 예시로 확인하지 못했습니다.'); return;
+      print(o + '\n'); unverified('showparam', 'SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE)은 SQL*Plus 19c SHOW 문서 예시와 같습니다. 열 폭은 문서 예시와 다르며, 실제 19c 형식을 따르려 했지만 확인하지 못했습니다.'); return;
     }
     if (what === 'SGA') { if (!needConn()) return; if (db.state === 'DOWN') { print('ORA-01034: ORACLE not available\n'); return; } print('\n' + sgaLines() + '\n'); return; }
     if (/^(LINESIZE|LIN|PAGESIZE|PAGES|FEEDBACK|FEED|NUMWIDTH|NUM)$/.test(what)) { const k = { LIN: 'linesize', LINESIZE: 'linesize', PAGES: 'pagesize', PAGESIZE: 'pagesize', FEED: 'feedback', FEEDBACK: 'feedback', NUM: 'numwidth', NUMWIDTH: 'numwidth' }[what]; const v = me.set[k]; print(k === 'feedback' ? (v ? `FEEDBACK ON for ${v} or more rows\n` : 'feedback OFF\n') : `${k} ${v}\n`); return; }
@@ -2977,8 +2983,9 @@ function doStartup(t) {
   startInstance(); me.idle = false;
   if (!me.sess) me.sess = addSession({ username: 'SYS', program: 'sqlplus@dbserver02 (TNS V1-V3)', status: 'INACTIVE', me: true, cpid: S.shellPid + 40, spid: 31000 + Math.floor(Math.random() * 900) });
   let o = 'ORACLE instance started.\n\n' + sgaLines();
-  if (!nomount) { db.state = 'MOUNTED'; o += 'Database mounted.\n'; alertAdd('ALTER DATABASE   MOUNT', 'Completed: ALTER DATABASE   MOUNT'); }
-  if (!nomount && !mount) { openDb(); o += 'Database opened.\n'; alertAdd('ALTER DATABASE OPEN', 'Completed: ALTER DATABASE OPEN'); }
+  let stop = nomount;
+  if (!nomount) { const cf = cfProblem(); if (cf) { o += 'ORA-00205: error in identifying control file, check alert log for more info\n\n'; cfAlert(cf); ev.sqlErr = 'ORA-00205'; stop = true; } else { db.state = 'MOUNTED'; o += 'Database mounted.\n'; alertAdd('ALTER DATABASE   MOUNT', 'Completed: ALTER DATABASE   MOUNT'); } }
+  if (!stop && !mount) { const op = openProblem(); if (op) { o += op + '\n'; ev.sqlErr = op.split(':')[0]; alertAdd('ALTER DATABASE OPEN', ...op.split('\n'), 'ORA-' + op.slice(4, 9).replace(/^0+/, '') + ' signalled during: ALTER DATABASE OPEN...'); } else { openDb(); o += 'Database opened.\n'; alertAdd('ALTER DATABASE OPEN', 'Completed: ALTER DATABASE OPEN'); } }
   db.restrict = restrict;
   ev.startup = nomount ? 'NOMOUNT' : mount ? 'MOUNT' : 'OPEN'; ev.dbState = db.state; ev.force = force;
   print(o);
@@ -3150,6 +3157,7 @@ function rmanCmd(cmd, ctx) {
   let pre = '';
   if (ctx.first) { pre = 'using target database control file instead of recovery catalog\n'; ctx.first = false; }
   let m;
+  { const x = rman4(cmd, U, ctx); if (x !== undefined) return pre + x; }
   if (/^SHOW ALL$/.test(U)) {
     ev.rmanShow = true;
     return pre + `RMAN configuration parameters for database with db_unique_name ORCL are:\nCONFIGURE RETENTION POLICY TO ${db.retention};${db.retentionDefault ? ' # default' : ''}\nCONFIGURE BACKUP OPTIMIZATION OFF; # default\nCONFIGURE DEFAULT DEVICE TYPE TO DISK; # default\nCONFIGURE CONTROLFILE AUTOBACKUP ${db.autobackup ? 'ON; # default' : 'OFF;'}\nCONFIGURE CONTROLFILE AUTOBACKUP FORMAT FOR DEVICE TYPE DISK TO '%F'; # default\nCONFIGURE DEVICE TYPE DISK PARALLELISM 1 BACKUP TYPE TO BACKUPSET; # default\nCONFIGURE DATAFILE BACKUP COPIES FOR DEVICE TYPE DISK TO 1; # default\nCONFIGURE ARCHIVELOG BACKUP COPIES FOR DEVICE TYPE DISK TO 1; # default\nCONFIGURE MAXSETSIZE TO UNLIMITED; # default\nCONFIGURE ENCRYPTION FOR DATABASE OFF; # default\nCONFIGURE ENCRYPTION ALGORITHM 'AES128'; # default\nCONFIGURE COMPRESSION ALGORITHM 'BASIC' AS OF RELEASE 'DEFAULT' OPTIMIZE FOR LOAD TRUE ; # default\nCONFIGURE RMAN OUTPUT TO KEEP FOR 7 DAYS; # default\nCONFIGURE ARCHIVELOG DELETION POLICY TO NONE; # default\nCONFIGURE SNAPSHOT CONTROLFILE NAME TO '${OH}/dbs/snapcf_ORCL.f'; # default\n\n`;
@@ -3224,6 +3232,261 @@ function rmanCmd(cmd, ctx) {
     }
     return r;
   };
+}
+
+/* =====================================================================
+   D7. 4단계 장애 대응: 데이터 파일·컨트롤 파일 손실, 빠른 복구 영역(FRA) 가득 참, 휴지통(Flashback Drop)
+       RMAN 복원·복구 흐름은 Backup and Recovery User's Guide 19c "Performing Complete Database Recovery",
+       컨트롤 파일 사본 복구는 같은 문서 "User-Managed Recovery: Advanced Scenarios" 37.1과
+       Administrator's Guide "Managing Control Files" 10.6을 따랐다.
+   ===================================================================== */
+const TABLE_SAMPLES = {};
+const isMissing = (f) => !(lookup(f.name) || {}).node;
+const dfLines = (f) => `ORA-01110: data file ${f.id}: '${f.name}'`;
+function sizeParse(v) { const m = /^(\d+)\s*([KMGT]?)$/i.exec(String(v || '').trim()); return m ? sizeOfSpec(m[1], m[2]) : 0; }
+function fraLimit() { return sizeParse(S.db.params.db_recovery_file_dest_size[1]); }
+function fraUsed() { const r = lookup(FRAD); return r && r.node ? duOf(r.node) : 0; }
+function fraStuck() { const db = S.db; return db.logMode === 'ARCHIVELOG' && db.state === 'OPEN' && fraUsed() >= fraLimit(); }
+function tbsAccess(ts) {
+  for (const f of S.db.files.filter(x => x.ts === ts).sort((a, b) => a.id - b.id)) {
+    if (f.offline) throw new SqlErr(`ORA-00376: file ${f.id} cannot be read at this time`, 0, dfLines(f));
+    if (isMissing(f)) throw new SqlErr(`ORA-01116: error in opening database file ${f.id}`, 0, `${dfLines(f)}\nORA-27041: unable to open file\nLinux-x86_64 Error: 2: No such file or directory\nAdditional information: 3`);
+  }
+}
+function openProblem() {
+  for (const f of S.db.files.slice().sort((a, b) => a.id - b.id)) {
+    if (f.offline) continue;
+    if (isMissing(f)) return `ORA-01157: cannot identify/lock data file ${f.id} - see DBWR trace file\n${dfLines(f)}`;
+    if (f.needRec) return `ORA-01113: file ${f.id} needs media recovery\n${dfLines(f)}`;
+  }
+  return null;
+}
+function cfProblem() { return S.db.params.control_files[1].split(/\s*,\s*/).find(p => !(lookup(p) || {}).node) || null; }
+function cfAlert(p) { alertAdd('ALTER DATABASE   MOUNT', `ORA-00202: control file: '${p}'`, 'ORA-27037: unable to obtain file status', 'Linux-x86_64 Error: 2: No such file or directory', 'Additional information: 7', 'ORA-205 signalled during: ALTER DATABASE   MOUNT...'); }
+
+/* 보관 정책 REDUNDANCY 1 기준으로 더 이상 필요 없는 백업과 아카이브 로그 */
+function obsoleteSet() {
+  const db = S.db; const fulls = db.backups.filter(b => b.lv === 'F' && b.kind === 'B' && b.status !== 'DELETED').sort((a, b) => a.done - b.done);
+  const newest = fulls[fulls.length - 1]; if (!newest) return { backups: [], arcs: [] };
+  const autos = db.backups.filter(b => b.kind === 'S' && b.status !== 'DELETED').sort((a, b) => a.done - b.done);
+  const backups = db.backups.filter(b => b.status !== 'DELETED' && ((b.lv === 'F' && b.kind === 'B' && b !== newest) || (b.lv === 'A' && b.done < newest.done) || (b.kind === 'S' && b !== autos[autos.length - 1])));
+  const arcs = []; const ad = lookup(FRAD + '/archivelog'); const today = ymd(newest.done, '_');
+  if (ad && ad.node) for (const day of Object.keys(ad.node.c).sort()) if (day < today) for (const fn of Object.keys(ad.node.c[day].c).sort()) { const n = ad.node.c[day].c[fn]; arcs.push({ path: `${FRAD}/archivelog/${day}/${fn}`, size: n.size, mt: n.mt, seq: n.seq || 0 }); }
+  return { backups, arcs };
+}
+function obsoleteBytes() { const o = obsoleteSet(); return o.backups.reduce((a, b) => a + b.bytes, 0) + o.arcs.reduce((a, b) => a + b.size, 0); }
+
+/* 4단계 세계: 3단계를 마친 dbserver02. 아카이브 모드, 매일 새벽 1시 30분 RMAN 백업 */
+function makeWorld4(lid) {
+  makeWorld3(10);
+  delete APP_TABLES['APP.CUST_MEMO']; delete TABLE_SAMPLES['APP.CUST_MEMO'];
+  const db = S.db; delete db.tables['APP.CUST_MEMO'];
+  db.logMode = 'ARCHIVELOG'; startBg(2031, stime(2)); bgSessions();
+  db.params.log_archive_dest_1[1] = '';
+  // 날짜별 아카이브 로그(한 개 약 190MB)
+  let seq = 31;
+  const arcDay = (d, n) => { const dir = fraDir('archivelog', d); for (let i = 0; i < n; i++) { const t = new Date(d.getTime() + i * 1800000); const fn = `o1_mf_1_${seq}_${omfId()}_.arc`; putFile(`${dir}/${fn}`, F('oracle', 'oinstall', 0o640, 190 * MB + 1024 * (i % 7), { mt: t, seq })); seq++; } };
+  arcDay(ago(3, 0, 5), 36); arcDay(ago(2, 0, 5), 34);
+  addBackups(ago(1, 1, 30), true);
+  arcDay(ago(1, 2, 0), 22);
+  addBackups(ago(0, 1, 30), true);
+  arcDay(ago(0, 1, 40), 3);
+  db.seq = seq; db.archSeqFirstToday = seq - 3;
+  const ll = []; for (let q = seq - 3; q <= seq; q++) ll.push(`Thread 1 advanced to log sequence ${q} (LGWR switch)`, `  Current log# ${q % 3 + 1} seq# ${q} mem# 0: ${DBH}/redo0${q % 3 + 1}.log`);
+  alertAdd(...ll);
+  db.recyclebin = [];
+  const dd = lookup(DBH).node.c;
+  if (lid === 1 || lid === 6) { delete dd['users02.dbf']; }
+  if (lid === 2 || lid === 3) {
+    db.state = 'DOWN'; db.lsnr.reg = false;
+    S.procs = S.procs.filter(p => !/^ora_|oracleORCL/.test(p.cmd)); db.sessions = [];
+    alertAdd('Shutting down ORACLE instance (immediate) (OS id: 31877)', 'Instance shutdown complete (OS id: 31877)');
+    if (lid === 2) delete dd['system01.dbf'];
+    if (lid === 3) delete dd['control01.ctl'];
+  }
+  if (lid === 4) {
+    db.params.db_recovery_file_dest_size[1] = '20G';
+    const lim = 20 * GB;
+    alertAdd(`ORA-19815: WARNING: db_recovery_file_dest_size of ${lim} bytes is 85.12% used, and has ${Math.round(lim * 0.1488)} remaining bytes available.`);
+    alertAdd(`ORA-19815: WARNING: db_recovery_file_dest_size of ${lim} bytes is 100.00% used, and has 0 remaining bytes available.`, 'ORA-19809: limit exceeded for recovery files', 'ORA-00257: Archiver error. Connect AS SYSDBA only until resolved.');
+    for (const s of db.sessions.filter(x => x.username === 'APP')) Object.assign(s, { status: 'ACTIVE', event: 'log file switch (archiving needed)', lastCall: 300 + s.sid });
+  }
+  if (lid === 5 || lid === 6) {
+    const dt = ago(0, 0, 58);
+    const fmt = (d) => toCharDate(d, 'YYYY-MM-DD') + ':' + hms(d);
+    db.recyclebin.push({ owner: 'APP', obj: 'BIN$9F2kq1x0QxGcY0eKJm3VbQ==$0', orig: 'CUST_MEMO', op: 'DROP', type: 'TABLE', ts: 'USERS', create: fmt(ago(40, 10, 3)), drop: fmt(dt), scn: 2419938, undrop: 'YES', purge: 'YES', space: 1536, cols: [N('MEMO_ID'), N('CUST_ID'), C('MEMO', 400), Dt('CREATED')], count: 18342 });
+    db.recyclebin.push({ owner: 'APP', obj: 'BIN$9F2kq1x1QxGcY0eKJm3VbQ==$0', orig: 'PK_CUST_MEMO', op: 'DROP', type: 'INDEX', ts: 'USERS', create: fmt(ago(40, 10, 3)), drop: fmt(dt), scn: 2419937, undrop: 'NO', purge: 'YES', space: 384 });
+    TABLE_SAMPLES['APP.CUST_MEMO'] = () => [[551, 10233, 'VIP 전담 상담 요청', ago(3, 10, 2)], [552, 48211, '배송지 변경 2회', ago(2, 15, 40)], [553, 77102, '대량 주문 견적 문의', ago(1, 11, 8)]];
+  }
+  if (lid === 6) { db.params.db_recovery_file_dest_size[1] = '24G'; }
+}
+
+/* ---------- 뷰 추가와 수정 ---------- */
+Object.assign(VIEWS, {
+  'V$DATAFILE': { fixed: true, cf: true, cols: [N('FILE#'), C('STATUS', 7), C('ENABLED', 10), N('BYTES'), C('NAME', 513)],
+    rows: () => S.db.files.slice().sort((a, b) => a.id - b.id).map(f => ({ 'FILE#': f.id, STATUS: f.offline ? (f.needRec || isMissing(f) ? 'RECOVER' : 'OFFLINE') : f.ts === 'SYSTEM' ? 'SYSTEM' : 'ONLINE', ENABLED: f.offline ? 'DISABLED' : 'READ WRITE', BYTES: isMissing(f) ? 0 : f.bytes, NAME: f.name })) },
+  'V$RECOVER_FILE': { fixed: true, cf: true, cols: [N('FILE#'), C('ONLINE', 7), C('ONLINE_STATUS', 7), C('ERROR', 18), N('CHANGE#'), Dt('TIME')],
+    rows: () => S.db.files.filter(f => isMissing(f) || f.needRec).sort((a, b) => a.id - b.id).map(f => ({ 'FILE#': f.id, ONLINE: f.offline ? 'OFFLINE' : 'ONLINE', ONLINE_STATUS: f.offline ? 'OFFLINE' : 'ONLINE', ERROR: isMissing(f) ? 'FILE NOT FOUND' : null, 'CHANGE#': isMissing(f) ? 0 : 2401177, TIME: isMissing(f) ? null : ago(0, 1, 30) })) },
+  'V$RECOVERY_FILE_DEST': { fixed: true, cols: [C('NAME', 513), N('SPACE_LIMIT'), N('SPACE_USED'), N('SPACE_RECLAIMABLE'), N('NUMBER_OF_FILES')],
+    rows: () => { const r = lookup(FRAD); let n = 0; const cnt = (x) => { if (x.t === 'f') n++; else if (x.c) Object.values(x.c).forEach(cnt); }; if (r && r.node) cnt(r.node); return [{ NAME: FRA, SPACE_LIMIT: fraLimit(), SPACE_USED: fraUsed(), SPACE_RECLAIMABLE: obsoleteBytes(), NUMBER_OF_FILES: n }]; } },
+  'DBA_RECYCLEBIN': { cols: [C('OWNER', 128), C('OBJECT_NAME', 128), C('ORIGINAL_NAME', 128), C('OPERATION', 9), C('TYPE', 25), C('TS_NAME', 30), C('CREATETIME', 19), C('DROPTIME', 19), N('DROPSCN'), C('CAN_UNDROP', 3), C('CAN_PURGE', 3), N('SPACE')],
+    rows: () => (S.db.recyclebin || []).map(r => ({ OWNER: r.owner, OBJECT_NAME: r.obj, ORIGINAL_NAME: r.orig, OPERATION: r.op, TYPE: r.type, TS_NAME: r.ts, CREATETIME: r.create, DROPTIME: r.drop, DROPSCN: r.scn, CAN_UNDROP: r.undrop, CAN_PURGE: r.purge, SPACE: r.space })) },
+});
+{
+  const userRb = { pub: true, cols: VIEWS.DBA_RECYCLEBIN.cols.filter(c => c[0] !== 'OWNER'), rows: () => VIEWS.DBA_RECYCLEBIN.rows().filter(r => r.OWNER === S.sql.schema).map(r => { const x = Object.assign({}, r); delete x.OWNER; return x; }) };
+  VIEWS.USER_RECYCLEBIN = userRb; VIEWS.RECYCLEBIN = userRb; VIEWS.DUAL.pub = true;
+}
+
+/* ---------- SQL*Plus 쪽 문장 ---------- */
+function sql4(sql, raw) {
+  const db = S.db, me = S.sql, ev = S.ev; let m;
+  if ((m = /^ALTER TABLESPACE (\w+) (OFFLINE)( IMMEDIATE| NORMAL| TEMPORARY)?$/i.exec(sql))) {
+    needDba(); needOpen(); const ts = m[1].toUpperCase();
+    if (!db.tbs[ts]) throw new SqlErr(`ORA-00959: tablespace '${ts}' does not exist`, raw.toUpperCase().indexOf(ts));
+    if (ts === 'SYSTEM') throw new SqlErr('ORA-01541: system tablespace cannot be brought offline; shut down if necessary', 0);
+    const imm = /IMMEDIATE/i.test(m[3] || '');
+    if (imm && db.logMode !== 'ARCHIVELOG') throw new SqlErr('ORA-01145: offline immediate disallowed unless media recovery enabled', 0);
+    const fs = db.files.filter(f => f.ts === ts);
+    if (!imm) { const bad = fs.find(f => isMissing(f)); if (bad) throw new SqlErr(`ORA-01116: error in opening database file ${bad.id}`, 0, `${dfLines(bad)}\nORA-27041: unable to open file\nLinux-x86_64 Error: 2: No such file or directory\nAdditional information: 3`); }
+    for (const f of fs) { f.offline = true; if (imm) f.needRec = true; }
+    alertAdd(sql, 'Completed: ' + sql); ev.ddl = { kind: 'tbs-offline', ts, imm };
+    return '\nTablespace altered.\n\n';
+  }
+  if ((m = /^ALTER TABLESPACE (\w+) ONLINE$/i.exec(sql))) {
+    needDba(); needOpen(); const ts = m[1].toUpperCase();
+    if (!db.tbs[ts]) throw new SqlErr(`ORA-00959: tablespace '${ts}' does not exist`, raw.toUpperCase().indexOf(ts));
+    const fs = db.files.filter(f => f.ts === ts).sort((a, b) => a.id - b.id);
+    for (const f of fs) { if (isMissing(f)) throw new SqlErr(`ORA-01157: cannot identify/lock data file ${f.id} - see DBWR trace file`, 0, dfLines(f)); if (f.needRec) throw new SqlErr(`ORA-01113: file ${f.id} needs media recovery`, 0, dfLines(f)); }
+    for (const f of fs) f.offline = false;
+    alertAdd(sql, 'Completed: ' + sql); ev.ddl = { kind: 'tbs-online', ts };
+    return '\nTablespace altered.\n\n';
+  }
+  if ((m = /^ALTER DATABASE DATAFILE (\d+|'[^']+') (OFFLINE|ONLINE)$/i.exec(sql))) {
+    needDba(); if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0); if (db.state === 'STARTED') throw new SqlErr('ORA-01507: database not mounted', 0);
+    const key = m[1].replace(/'/g, ''); const f = db.files.find(x => String(x.id) === key || x.name === key);
+    if (!f) throw new SqlErr(`ORA-01516: nonexistent log file, data file, or temporary file "${key}"`, 0);
+    if (/OFFLINE/i.test(m[2])) { if (db.logMode !== 'ARCHIVELOG') throw new SqlErr('ORA-01145: offline immediate disallowed unless media recovery enabled', 0); f.offline = true; if (db.state === 'OPEN') f.needRec = true; }
+    else { if (db.state === 'OPEN') { if (isMissing(f)) throw new SqlErr(`ORA-01157: cannot identify/lock data file ${f.id} - see DBWR trace file`, 0, dfLines(f)); if (f.needRec) throw new SqlErr(`ORA-01113: file ${f.id} needs media recovery`, 0, dfLines(f)); } f.offline = false; }
+    ev.ddl = { kind: 'df-' + m[2].toLowerCase(), id: f.id };
+    return '\nDatabase altered.\n\n';
+  }
+  if ((m = /^FLASHBACK TABLE ("?[\w$#=+/]+"?)(?:\.("?[\w$#=+/]+"?))? TO BEFORE DROP(?: RENAME TO (\w+))?$/i.exec(sql))) {
+    needOpen();
+    let owner = m[2] ? m[1] : me.schema; let name = m[2] || m[1];
+    const q = (s) => /^"/.test(s) ? s.replace(/"/g, '') : s.toUpperCase(); owner = q(owner); name = q(name);
+    if (owner !== me.schema && !(me.priv === 'SYSDBA' || userHas(me.user, 'DBA'))) throw new SqlErr('ORA-01031: insufficient privileges', 0);
+    const rb = (db.recyclebin || []).filter(r => r.owner === owner && r.type === 'TABLE' && (r.orig === name || r.obj === name)).sort((a, b) => b.scn - a.scn)[0];
+    if (!rb) throw new SqlErr('ORA-38305: object not in RECYCLE BIN', 0);
+    const newName = m[3] ? m[3].toUpperCase() : rb.orig; const full = owner + '.' + newName;
+    if (APP_TABLES[full]) throw new SqlErr('ORA-38312: original name is used by an existing object', 0);
+    APP_TABLES[full] = rb.cols; db.tables[full] = { count: rb.count, cols: rb.cols.map(c => [c[0], c[1] === 'n' ? 'NUMBER' : c[1] === 'd' ? 'DATE' : `VARCHAR2(${c[2]})`]) };
+    if (newName !== rb.orig && TABLE_SAMPLES[owner + '.' + rb.orig]) TABLE_SAMPLES[full] = TABLE_SAMPLES[owner + '.' + rb.orig];
+    db.recyclebin = db.recyclebin.filter(r => !(r.owner === owner && r.drop === rb.drop));
+    ev.ddl = { kind: 'flashback', table: full };
+    print('\nFlashback complete.\n\n');
+    unverified('flashback', '"Flashback complete." 문구는 공식 문서 예시로 확인하지 못했습니다. SQL Language Reference 19c는 되살린 테이블의 인덱스, 트리거, 제약 조건이 휴지통 이름(BIN$...)을 그대로 가진다고 설명합니다.');
+    return null;
+  }
+  if (/^PURGE\b/i.test(sql)) return note('실습에서는 PURGE(휴지통 비우기)를 실행하지 않습니다. PURGE한 객체는 FLASHBACK TABLE로 되살릴 수 없습니다.');
+  return undefined;
+}
+
+/* SHOW RECYCLEBIN: 열 제목은 SQL*Plus 19c SHOW 문서 예시를 따름 */
+function showRecyclebin() {
+  const me = S.sql; if (!needConn()) return;
+  if (S.db.state !== 'OPEN') { print('ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only\n'); return; }
+  const rows = (S.db.recyclebin || []).filter(r => r.owner === me.schema && r.type === 'TABLE');
+  S.ev.showRecyc = true; S.ev.showRecycRows = rows.length;
+  if (!rows.length) { print('\n'); return; }
+  let o = 'ORIGINAL NAME    RECYCLEBIN NAME                OBJECT TYPE  DROP TIME\n---------------- ------------------------------ ------------ -------------------\n';
+  for (const r of rows) o += `${r.orig.padEnd(16)} ${r.obj.padEnd(30)} ${r.type.padEnd(12)} ${r.drop}\n`;
+  print(o);
+  unverified('recyc', 'SHOW RECYCLEBIN의 열 제목(ORIGINAL NAME, RECYCLEBIN NAME, OBJECT TYPE, DROP TIME)과 DROP TIME 형식은 SQL*Plus 19c SHOW 문서 예시와 같습니다. 열 폭과 BIN$로 시작하는 이름 모양은 공식 문서 예시로 확인하지 못했습니다(19c 문서 예시는 옛 RB$$ 이름을 보여 줍니다).');
+}
+
+/* ---------- RMAN 쪽 명령 ---------- */
+const rmanWhen = () => `${new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} ${hms(new Date())}`;
+function rmanTargets(spec) {
+  const db = S.db; let m;
+  if ((m = /^TABLESPACE (\w+)$/.exec(spec))) { const ts = m[1]; if (!db.tbs[ts]) return { err: `RMAN-20202: Tablespace not found in the recovery catalog\nRMAN-06019: could not translate tablespace name "${ts}"` }; return { files: db.files.filter(f => f.ts === ts) }; }
+  if ((m = /^DATAFILE (.+)$/.exec(spec))) { const ids = m[1].split(/\s*,\s*/).map(x => x.replace(/'/g, '')); const files = []; for (const k of ids) { const f = db.files.find(x => String(x.id) === k || x.name.toUpperCase() === k.toUpperCase()); if (!f) return { err: `RMAN-20201: datafile not found in the recovery catalog\nRMAN-06010: error while looking up datafile: ${k}` }; files.push(f); } return { files }; }
+  if (spec === 'DATABASE') return { files: db.files.slice(), db: true };
+  return null;
+}
+let RMAN_CH = false;
+function rmanChannel() { if (RMAN_CH) return 'using channel ORA_DISK_1\n'; RMAN_CH = true; return `allocated channel: ORA_DISK_1\nchannel ORA_DISK_1: SID=${SID_SEQ + 3} device type=DISK\n`; }
+function rman4(cmd, U, ctx) {
+  const db = S.db, ev = S.ev; let m;
+  if (ctx.newCh !== false) { RMAN_CH = !!ctx.chan; }
+  const finish = (o) => { ctx.chan = RMAN_CH; return o; };
+  // RMAN 프롬프트에서 SQL 실행
+  if ((m = /^SQL\s+'(.+)'$/i.exec(cmd)) || /^(ALTER (TABLESPACE|DATABASE|SYSTEM)|FLASHBACK TABLE)\b/.test(U)) {
+    const stmt = m ? m[1] : cmd;
+    const save = S.sql; S.sql = Object.assign(newSqlCtx(), { conn: true, user: 'SYS', priv: 'SYSDBA', shownUser: 'SYS', schema: 'SYS' });
+    let o;
+    try { const r = execSql(stmt.replace(/\s+/g, ' ').trim(), stmt); o = (m ? `sql statement: ${stmt}\n` : 'Statement processed\n'); if (r && /\u0001NOTE/.test(r)) o += r; }
+    catch (e) { if (!(e instanceof SqlErr)) throw e; ev.sqlErr = e.msg; o = rmanErr(`RMAN-03009: failure of sql command on default channel at ${rmanWhen()}`, `RMAN-11003: failure during parse/execution of SQL statement: ${stmt}`, e.msg + (e.extra ? '\n' + e.extra : '')); }
+    finally { S.sql = save; }
+    unverified('rman-sql', 'RMAN 프롬프트에서 SQL 문을 실행했을 때의 출력("sql statement: ...", "Statement processed")과 오류 줄은 공식 문서 예시로 확인하지 못했습니다. Backup and Recovery User\'s Guide 19c의 복구 예시는 ALTER 문을 RMAN 프롬프트와 따로 보여 줍니다.');
+    return finish(o + '\n');
+  }
+  if (/^VALIDATE DATABASE$/.test(U)) {
+    ev.rmanValidate = true;
+    const bad = db.files.filter(isMissing).sort((a, b) => a.id - b.id);
+    let o = `Starting validate at ${oDate(new Date())}\n${rmanChannel()}`;
+    if (bad.length) {
+      for (const f of bad) o += `could not read file header for datafile ${f.id} error reason 4\n`;
+      o += rmanErr(`RMAN-03002: failure of validate command at ${rmanWhen()}`, ...bad.map(f => `RMAN-06056: could not access datafile ${f.id}`));
+      ev.rmanValidateBad = bad.map(f => f.id);
+    } else o += 'channel ORA_DISK_1: starting validation of datafile\nchannel ORA_DISK_1: validation complete, elapsed time: 00:00:15\nFinished validate at ' + oDate(new Date()) + '\n';
+    unverified('validate', 'VALIDATE DATABASE는 Backup and Recovery User\'s Guide 19c가 "없어진 데이터 파일을 찾는 쉬운 방법"으로 권하는 명령입니다. "could not read file header for datafile N error reason 4"와 "RMAN-06056: could not access datafile N"은 그 문서 예시의 문구이고, 나머지 줄(정상일 때의 파일별 검증 표 포함)은 줄이거나 확인하지 못한 형식입니다.');
+    return finish(o + '\n');
+  }
+  if ((m = /^RESTORE (TABLESPACE \w+|DATAFILE .+|DATABASE)( PREVIEW( SUMMARY)?| VALIDATE)?$/.exec(U))) {
+    const t = rmanTargets(m[1]); if (!t) return undefined; if (t.err) return finish(rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, t.err) + '\n');
+    if (m[2]) return finish(note('실습에서는 RESTORE ... PREVIEW와 VALIDATE의 출력을 흉내 내지 않습니다. 문서는 복원 전에 RESTORE DATABASE PREVIEW;로 어떤 백업을 쓸지 미리 볼 수 있다고 설명합니다.'));
+    if (db.state === 'OPEN') { const busy = t.files.find(f => !f.offline); if (busy) { ev.rmanErr = 'busy'; return finish(rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, `ORA-19573: cannot obtain exclusive enqueue for datafile ${busy.id}`) + '\n' + note('열려 있는 DB에서는 복원할 데이터 파일(또는 테이블스페이스)을 먼저 OFFLINE으로 내려야 합니다. 이 오류 문구는 공식 문서로 확인하지 못했습니다.')); } }
+    const full = db.backups.filter(b => b.lv === 'F' && b.kind === 'B' && b.status === 'AVAILABLE').sort((a, b) => b.done - a.done)[0];
+    if (!full || !lookup(full.piece) || !lookup(full.piece).node) return finish(rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, `RMAN-06026: some targets not found - aborting restore`, ...t.files.map(f => `RMAN-06023: no backup or copy of datafile ${f.id} found to restore`)) + '\n');
+    let o = `Starting restore at ${oDate(new Date())}\n${rmanChannel()}\nchannel ORA_DISK_1: starting datafile backup set restore\nchannel ORA_DISK_1: specifying datafile(s) to restore from backup set\n`;
+    for (const f of t.files.sort((a, b) => a.id - b.id)) { o += `channel ORA_DISK_1: restoring datafile ${String(f.id).padStart(5, '0')} to ${f.name}\n`; putFile(f.name, dbfNode(f.bytes)); f.needRec = true; }
+    o += `channel ORA_DISK_1: reading from backup piece ${full.piece}\nchannel ORA_DISK_1: piece handle=${full.piece} tag=${full.tag}\nchannel ORA_DISK_1: restored backup piece 1\nchannel ORA_DISK_1: restore complete, elapsed time: 00:00:07\nFinished restore at ${oDate(new Date())}\n`;
+    ev.rmanRestore = t.files.map(f => f.id);
+    unverified('restore', 'RESTORE 출력 중 "Starting restore at", "starting datafile backup set restore", "restoring datafile 0000N to 경로", "restore complete, elapsed time", "Finished restore at"는 Backup and Recovery User\'s Guide 19c 예시의 문구입니다. 나머지 줄은 확인하지 못한 형식입니다. 복원한 파일은 백업 시점의 내용이라 아직 쓸 수 없고, RECOVER로 그 뒤의 변경을 적용해야 합니다.');
+    return finish(o + '\n');
+  }
+  if ((m = /^RECOVER (TABLESPACE \w+|DATAFILE .+|DATABASE)$/.exec(U))) {
+    const t = rmanTargets(m[1]); if (!t) return undefined; if (t.err) return finish(rmanErr(`RMAN-03002: failure of recover command at ${rmanWhen()}`, t.err) + '\n');
+    const miss = t.files.find(isMissing);
+    if (miss) return finish(`Starting recover at ${oDate(new Date())}\n${rmanChannel()}` + rmanErr(`RMAN-03002: failure of recover command at ${rmanWhen()}`, `RMAN-06094: datafile ${miss.id} must be restored`) + '\n' + note('Backup and Recovery Reference 19c: "RECOVER하기 전에 데이터 파일을 RESTORE해야 합니다." 이 오류 문구는 공식 문서로 확인하지 못했습니다.'));
+    if (db.state === 'OPEN') { const busy = t.files.find(f => !f.offline && f.needRec); if (busy) return finish(rmanErr(`RMAN-03002: failure of recover command at ${rmanWhen()}`, `ORA-01124: cannot recover data file ${busy.id} - file is in use or recovery`) + '\n'); }
+    let o = `Starting recover at ${oDate(new Date())}\n${rmanChannel()}\nstarting media recovery\n`;
+    const need = t.files.filter(f => f.needRec);
+    if (need.length) { const ad = lookup(fraDir('archivelog', new Date())).node; for (const fn of Object.keys(ad.c).sort((a, b) => (ad.c[a].seq || 0) - (ad.c[b].seq || 0))) o += `archived log for thread 1 with sequence ${ad.c[fn].seq || ''} is on disk as file ${FRAD}/archivelog/${ymd(new Date(), '_')}/${fn}\n`; }
+    o += `media recovery complete, elapsed time: 00:00:02\nFinished recover at ${oDate(new Date())}\n`;
+    for (const f of need) f.needRec = false;
+    ev.rmanRecover = need.map(f => f.id);
+    unverified('recover', '"Starting recover at", "starting media recovery", "media recovery complete, elapsed time", "Finished recover at"은 Backup and Recovery User\'s Guide 19c 예시의 문구입니다. 문서는 RECOVER가 필요한 아카이브 로그와 증분 백업을 자동으로 복원해 적용한다고 설명합니다. "archived log for thread 1 with sequence N is on disk as file" 줄도 같은 문서 예시의 형식입니다. 시퀀스 번호와 파일 이름은 예시입니다.');
+    return finish(o + '\n');
+  }
+  if ((m = /^DELETE( NOPROMPT)? OBSOLETE$/.test(U) ? [U, /NOPROMPT/.test(U)] : null)) {
+    const ob = obsoleteSet(); let o = `RMAN retention policy will be applied to the command\nRMAN retention policy is set to ${db.retention.toLowerCase()}\n${rmanChannel()}`;
+    if (!ob.backups.length && !ob.arcs.length) return finish(o + 'no obsolete backups found\n\n');
+    o += 'Deleting the following obsolete backups and copies:\nType                 Key    Completion Time    Filename/Handle\n-------------------- ------ ------------------ --------------------\n';
+    const SHOW = 3; let k = 0;
+    for (const b of ob.backups) o += `Backup Set           ${String(b.key).padEnd(6)} ${oDate(b.done).padEnd(18)}\n  Backup Piece       ${String(b.key).padEnd(6)} ${oDate(b.done).padEnd(18)} ${b.piece}\n`;
+    for (const a of ob.arcs) { if (k++ < SHOW) o += `Archive Log          ${String(a.seq).padEnd(6)} ${oDate(a.mt).padEnd(18)} ${a.path}\n`; }
+    if (ob.arcs.length > SHOW) o += note(`같은 모양의 Archive Log 줄 ${ob.arcs.length - SHOW}개를 줄였습니다.`);
+    if (!m[1]) return finish(o + '\n' + note('실제 RMAN은 여기서 "Do you really want to delete the above objects (enter YES or NO)?"라고 묻습니다. 실습에서는 묻지 않고 지우려면 DELETE NOPROMPT OBSOLETE; 를 쓰세요. 이번에는 아무것도 지우지 않았습니다.'));
+    let n = 0;
+    for (const b of ob.backups) { const r = lookup(b.piece); if (r && r.node) delete r.parent.c[baseOf(b.piece)]; b.status = 'DELETED'; o += `deleted backup piece\nbackup piece handle=${b.piece} RECID=${b.key} STAMP=${b.stamp}\n`; n++; }
+    k = 0; for (const a of ob.arcs) { const r = lookup(a.path); if (r && r.node) delete r.parent.c[baseOf(a.path)]; if (k++ < SHOW) o += `deleted archived log\narchived log file name=${a.path} RECID=${a.seq} STAMP=${stampOf(a.mt)}\n`; n++; }
+    db.backups = db.backups.filter(b => b.status !== 'DELETED');
+    o += `Deleted ${n} objects\n`; ev.rmanDeleted = n;
+    unverified('delobs', 'DELETE OBSOLETE의 출력 형식은 공식 문서 예시로 확인하지 못했습니다. 보관 정책이 REDUNDANCY 1이면 가장 최근 전체 백업 하나로 복구할 수 있으므로, 그보다 오래된 백업과 그 이전의 아카이브 로그는 "더 이상 필요 없음(obsolete)"이 됩니다.');
+    return finish(o + '\n');
+  }
+  return undefined;
 }
 
 </script>
@@ -3524,6 +3787,155 @@ LESSONS.push(
     field: '아침 점검 순서를 정리하면 ① OS(서버 이름, 디스크, 메모리) ② 인스턴스(pmon, v$instance) ③ 리스너(lsnrctl status) ④ alert log의 ORA- 오류 ⑤ 공간(테이블스페이스, FRA) ⑥ 계정(잠긴 업무 계정) ⑦ 백업 결과입니다. 1단계의 check_db.sh처럼 스크립트로 만들어 매일 같은 순서로 보면 놓치는 것이 줄어듭니다.',
     sources: ['adstart', 'lsnrtut', 'netlsnr', 'secpw', 'crprof', 'err28000', 'rmbk'] },
 );
+Object.assign(SRC, {
+  rmrec:   ['Oracle Database 19c Backup and Recovery User\'s Guide · Performing Complete Database Recovery (VALIDATE DATABASE, RESTORE·RECOVER, 출력 예시)', D19 + 'bradv/rman-complete-database-recovery.html'],
+  rmrecref: ['Oracle Database 19c Backup and Recovery Reference · RECOVER', D19 + 'rcmrf/RECOVER.html'],
+  umadv:   ['Oracle Database 19c Backup and Recovery User\'s Guide · Performing User-Managed Recovery: Advanced Scenarios (37.1 컨트롤 파일 일부 손실)', D19 + 'bradv/user-managed-recovery-advanced.html'],
+  adcf:    ['Oracle Database 19c Administrator\'s Guide · Managing Control Files (다중화, 10.6 복구)', D19 + 'admin/managing-control-files.html'],
+  e00205:  ['Oracle Error Help · ORA-00205', 'https://docs.oracle.com/en/error-help/db/ora-00205/'],
+  e00257:  ['Oracle Error Help · ORA-00257', 'https://docs.oracle.com/en/error-help/db/ora-00257/'],
+  e19809:  ['Oracle Error Help · ORA-19809', 'https://docs.oracle.com/en/error-help/db/ora-19809/'],
+  e19815:  ['Oracle Error Help · ORA-19815', 'https://docs.oracle.com/en/error-help/db/ora-19815/'],
+  e01116:  ['Oracle Error Help · ORA-01116 (파일을 열 수 없음)', 'https://docs.oracle.com/en/error-help/db/ora-01116/'],
+  e01157:  ['Oracle Error Help · ORA-01157', 'https://docs.oracle.com/en/error-help/db/ora-01157/'],
+  e01113:  ['Oracle Error Help · ORA-01113', 'https://docs.oracle.com/en/error-help/db/ora-01113/'],
+  e00376:  ['Oracle Error Help · ORA-00376', 'https://docs.oracle.com/en/error-help/db/ora-00376/'],
+  e01145:  ['Oracle Error Help · ORA-01145 (OFFLINE IMMEDIATE는 ARCHIVELOG에서만)', 'https://docs.oracle.com/en/error-help/db/ora-01145/'],
+  e38305:  ['Oracle Error Help · ORA-38305', 'https://docs.oracle.com/en/error-help/db/ora-38305/'],
+  fbtab:   ['Oracle Database 19c SQL Language Reference · FLASHBACK TABLE (TO BEFORE DROP)', D19 + 'sqlrf/FLASHBACK-TABLE.html'],
+  sqshow:  ['SQL*Plus 19c User\'s Guide and Reference · SHOW (RECYCLEBIN, PARAMETERS, SGA 출력 예시)', D19 + 'sqpug/SHOW.html'],
+  rbview:  ['Oracle Database 19c Reference · DBA_RECYCLEBIN', D19 + 'refrn/DBA_RECYCLEBIN.html'],
+  fbdbpitr: ['Oracle Database 19c Backup and Recovery User\'s Guide · Performing Flashback and Database Point-in-Time Recovery (Flashback Drop과 휴지통)', D19 + 'bradv/rman-performing-flashback-dbpitr.html'],
+  maint18: ['(참고, 18c 문서) Backup and Recovery User\'s Guide 18c · Maintaining RMAN Backups (Responding to a Full Fast Recovery Area)', 'https://docs.oracle.com/en/database/oracle/oracle-database/18/bradv/maintaining-rman-backups.html'],
+});
+const qtab = (ev, full) => qsel(ev, full) || (asUser(full.split('.')[0]) && qsel(ev, full.split('.')[1]));
+const fileOk = (id) => { const f = S.db.files.find(x => x.id === id); return f && !isMissing(f) && !f.needRec && !f.offline; };
+
+LESSONS.push(
+  { id: 31, stage: 4, title: '지워진 데이터 파일 하나 되살리기', short: '데이터 파일 복구', start: 'oracle',
+    who: '앱 담당 최대리 (전화)',
+    situation: '"주문 이력 화면에서 ORA-01116이 떠요!" 어젯밤 다른 팀이 /u02를 정리하다가 파일을 지웠다는 소문이 있어요. DB는 열려 있고, 새벽 1시 30분 백업은 정상이었어요. DB를 내리지 않고 고쳐 봐요.',
+    tasks: [
+      { text: '앱 계정으로 증상 재현하기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => failed(ev, 'ORA-01116'),
+        why: '<code>ORA-01116: error in opening database file 2</code>, <code>ORA-01110: data file 2: \'.../users02.dbf\'</code>, <code>ORA-27041: unable to open file</code>. 19c 오류 도움말에 따르면 ORA-01116은 "대개 파일에 접근할 수 없을 때" 나고, 조치는 "데이터베이스 파일을 복원하라"입니다. ORA-01110은 어떤 파일인지 알려 주는 짝 메시지입니다. 아래 Linux 오류 2(No such file or directory)가 파일이 없다는 뜻입니다.' },
+      { text: 'SQL*Plus에서 나와 데이터 파일 디렉터리 보기', hint: 'exit\nls -l /u02/app/oracle/oradata/ORCL', done: ev => !S.sql && (listedL(ev, DBH) || (has(ev, 'ls') && ev.stages.some(a => a.some(x => x.startsWith('/u02'))))),
+        why: 'users01.dbf는 있는데 users02.dbf가 없습니다. 3단계 레슨 4에서 추가한 파일입니다. 리눅스에서 지운 파일은 휴지통이 없으니 백업에서 되살려야 합니다.' },
+      { text: 'RMAN으로 접속해서 없어진 데이터 파일 확인하기', hint: 'rman target /\nvalidate database;', done: ev => ev.rmanValidate && (ev.rmanValidateBad || []).includes(2),
+        why: 'Backup and Recovery User\'s Guide 19c는 없어진 데이터 파일을 찾는 쉬운 방법으로 <code>VALIDATE DATABASE</code>를 권합니다. <code>RMAN-06056: could not access datafile 2</code>가 나옵니다. SQL*Plus에서는 <code>V$RECOVER_FILE</code>로도 볼 수 있습니다.' },
+      { text: 'USERS 테이블스페이스를 OFFLINE으로 내리기', hint: "sql 'alter tablespace users offline immediate';\n(또는 exit 뒤 sqlplus / as sysdba 에서 alter tablespace users offline immediate;)", done: () => S.db.files.filter(f => f.ts === 'USERS').every(f => f.offline),
+        why: '문서의 열린 DB 복구 순서는 ① 복구할 테이블스페이스를 OFFLINE ② RESTORE ③ RECOVER ④ ONLINE입니다. IMMEDIATE는 파일에 체크포인트를 하지 않고 바로 내립니다. 파일이 없으니 IMMEDIATE가 필요합니다. 19c 오류 도움말(ORA-01145)대로 OFFLINE IMMEDIATE는 ARCHIVELOG 모드에서만 됩니다. 3단계에서 아카이브 모드로 바꿔 둔 덕분입니다. 다른 테이블스페이스를 쓰는 업무는 계속 돌아갑니다.' },
+      { text: 'USERS 테이블스페이스 복원하기', hint: 'restore tablespace users;', done: ev => (ev.rmanRestore || []).includes(2),
+        why: '가장 최근 백업(새벽 1시 30분)에서 users01.dbf와 users02.dbf를 꺼내 원래 자리에 놓았습니다. 하지만 이 파일들은 <b>백업 시점의 내용</b>입니다. 그 뒤 오전에 들어온 주문은 아직 없습니다.' },
+      { text: '복원한 테이블스페이스 복구하기', hint: 'recover tablespace users;', done: () => S.db.files.filter(f => f.ts === 'USERS').every(f => !f.needRec),
+        why: '<code>starting media recovery</code> → <code>media recovery complete</code>. RECOVER는 백업 뒤에 쌓인 아카이브 로그(와 온라인 리두 로그)를 차례로 적용해 파일을 지금 시점까지 따라잡게 합니다. 문서대로 필요한 아카이브 로그가 백업에만 있으면 RMAN이 자동으로 복원해 씁니다. 아카이브 모드가 아니었다면 이 단계가 불가능해 백업 뒤의 주문을 모두 잃었을 것입니다.' },
+      { text: '테이블스페이스를 다시 ONLINE으로 올리기', hint: "sql 'alter tablespace users online';\n(또는 SQL*Plus에서 alter tablespace users online;)", done: () => S.db.files.filter(f => f.ts === 'USERS').every(f => !f.offline && !f.needRec && !isMissing(f)),
+        why: '이제 USERS를 다시 쓸 수 있습니다. 복구 전에 ONLINE을 시도하면 <code>ORA-01113: file 2 needs media recovery</code>가 나서 막아 줍니다.' },
+      { text: 'RMAN에서 나와 앱 계정으로 다시 조회하기', hint: 'exit\nsqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => asUser('APP') && qtab(ev, 'APP.ORDER_HIST'),
+        why: '건수가 나옵니다. 최대리에게 알려 주고, 파일을 지운 팀과 /u02 정리 절차를 다시 이야기해야 합니다. 장애 보고서에는 시각, 증상, 원인, 조치, 잃은 데이터(이번에는 없음)를 적습니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '이번 복구가 데이터 손실 없이 끝난 조건은 세 가지였습니다. ① 아카이브 모드 ② 쓸 수 있는 백업 ③ 백업 뒤의 아카이브 로그가 모두 남아 있음. 하나라도 빠지면 시점 복구나 데이터 손실로 이어집니다. 문서는 복원 전에 <code>RESTORE DATABASE PREVIEW;</code>로 어떤 백업이 쓰일지 미리 보라고도 합니다.',
+    sources: ['rmrec', 'rmrecref', 'e01116', 'e01145', 'e01113', 'e00376'] },
+
+  { id: 32, stage: 4, title: 'SYSTEM 데이터 파일을 잃은 DB 살리기', short: 'SYSTEM 복구', start: 'oracle',
+    who: '박팀장',
+    situation: '주말 점검 때 DB를 내렸다가 올리는데 열리지 않는대요. 스토리지 작업 중에 /u02의 파일 하나가 사라졌다는 보고가 있어요. SYSTEM 테이블스페이스는 OFFLINE으로 내릴 수 없으니, 이번에는 MOUNT 상태에서 복구해요.',
+    tasks: [
+      { text: 'SYSDBA로 접속해서 DB 올려 보기', hint: 'sqlplus / as sysdba\nstartup', done: ev => failed(ev, 'ORA-01157') && S.db.state === 'MOUNTED',
+        why: '<code>Database mounted.</code> 다음에 <code>ORA-01157: cannot identify/lock data file 1 - see DBWR trace file</code>가 나고 멈췄습니다. 컨트롤 파일은 읽었지만(MOUNT), OPEN 단계에서 데이터 파일 1을 열지 못했습니다. 19c 오류 도움말의 조치는 "운영체제가 파일을 쓸 수 있게 한 뒤 DB를 열라"입니다.' },
+      { text: '복구가 필요한 파일 목록 보기', hint: 'select file#, online_status, error from v$recover_file;', done: ev => qsel(ev, 'V$RECOVER_FILE'),
+        why: '<code>1 ONLINE FILE NOT FOUND</code>. V$RECOVER_FILE은 문서가 복구 대상 파일을 찾을 때 쓰는 뷰입니다. MOUNT 상태에서도 볼 수 있습니다. 파일 1은 SYSTEM입니다(<code>select file#, name from v$datafile;</code>).' },
+      { text: 'SQL*Plus에서 나와 RMAN으로 접속하기', hint: 'exit\nrman target /', done: ev => !S.sql && ev.rmanConn,
+        why: '<code>connected to target database: ORCL (DBID=..., not open)</code>. DB가 열리지 않아도 MOUNT 상태라면 RMAN이 컨트롤 파일의 백업 기록을 읽을 수 있습니다. 인스턴스는 SQL*Plus를 나가도 그대로 떠 있습니다.' },
+      { text: '데이터 파일 1 복원하기', hint: 'restore datafile 1;', done: ev => (ev.rmanRestore || []).includes(1),
+        why: 'DB가 MOUNT 상태라 OFFLINE으로 내릴 필요 없이 바로 복원할 수 있습니다. 문서의 DB 전체 복구 순서(STARTUP MOUNT → RESTORE → RECOVER → ALTER DATABASE OPEN)를 파일 하나에 적용한 것입니다.' },
+      { text: '데이터 파일 1 복구하기', hint: 'recover datafile 1;', done: () => fileOk(1) },
+      { text: 'RMAN에서 나와 DB 열기', hint: 'exit\nsqlplus / as sysdba\nalter database open;', done: () => S.db.state === 'OPEN',
+        why: '<code>Database altered.</code> 복구가 끝나지 않은 채 열려고 하면 <code>ORA-01113: file 1 needs media recovery</code>가 납니다.' },
+      { text: '인스턴스 상태 확인하고 나가기', hint: 'select instance_name, status from v$instance;\nexit', done: ev => ev.type === 'sql-exit' && S.db.state === 'OPEN' },
+    ],
+    field: 'SYSTEM, UNDO 테이블스페이스의 파일을 잃으면 DB를 연 채로 복구할 수 없어 업무가 멈춥니다. 데이터 파일과 컨트롤 파일, 리두 로그, 백업을 서로 다른 디스크에 두는 것도 같은 이유입니다. 문서는 DB 전체를 잃었을 때도 같은 흐름(STARTUP MOUNT, RESTORE DATABASE, RECOVER DATABASE, ALTER DATABASE OPEN)을 보여 줍니다.',
+    sources: ['rmrec', 'e01157', 'e01113', 'vinst'] },
+
+  { id: 33, stage: 4, title: '컨트롤 파일 사본 하나를 잃었을 때', short: '컨트롤 파일', start: 'oracle',
+    who: '인프라팀 윤과장 (메신저)',
+    situation: '"/u02 디스크를 교체했어요. 데이터 파일은 RAID라 멀쩡한데, 교체 중에 control01.ctl이 지워진 것 같아요. DB를 올려 주세요." 컨트롤 파일은 두 군데(/u02와 /u01의 FRA)에 다중화되어 있어요.',
+    tasks: [
+      { text: 'SYSDBA로 접속해서 DB 올려 보기', hint: 'sqlplus / as sysdba\nstartup', done: ev => failed(ev, 'ORA-00205'),
+        why: '<code>ORACLE instance started.</code> 뒤 <code>ORA-00205: error in identifying control file, check alert log for more info</code>. 인스턴스는 떴지만(NOMOUNT) 컨트롤 파일을 열지 못해 MOUNT에서 멈췄습니다. 오류 문구대로 alert log를 봅니다.' },
+      { text: 'alert log에서 어떤 컨트롤 파일이 문제인지 찾기', hint: 'host grep -A3 ORA-00202 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log\n(또는 host tail -20 ...alert_ORCL.log)', done: ev => ev.host && ev.stages.some(a => a.some(x => /alert_ORCL\.log/.test(x))),
+        why: '<code>ORA-00202: control file: \'/u02/.../control01.ctl\'</code>, <code>ORA-27037: unable to obtain file status</code>, Linux 오류 2(파일 없음)입니다. 19c 오류 도움말에서 ORA-00202는 "다른 메시지와 관련된 파일 이름을 알려 주는" 메시지입니다.' },
+      { text: '컨트롤 파일 설정 확인하기', hint: 'show parameter control_files', done: ev => ev.showParam === 'control_files',
+        why: '두 사본이 /u02(control01.ctl)와 /u01 FRA(control02.ctl)에 있습니다. Administrator\'s Guide는 "모든 DB는 서로 다른 물리 디스크에 컨트롤 파일을 두 개 이상 두라"고 권합니다. 그 덕분에 살아남은 사본이 있습니다. NOMOUNT 상태에서도 파라미터는 볼 수 있습니다.' },
+      { text: '인스턴스를 내리기', hint: 'shutdown abort', done: () => S.db.state === 'DOWN',
+        why: 'User-Managed Recovery 문서 37.1.1의 첫 단계가 "인스턴스가 아직 떠 있으면 내린다: SHUTDOWN ABORT"입니다. 지금은 DB가 열리지 않은 NOMOUNT 상태라 ABORT로 내려도 데이터 파일에는 영향이 없습니다.' },
+      { text: '살아남은 사본을 없어진 자리로 복사하기', hint: 'host cp /u01/app/oracle/fast_recovery_area/ORCL/control02.ctl /u02/app/oracle/oradata/ORCL/control01.ctl', done: () => !!node(DBH + '/control01.ctl'),
+        why: '문서의 예시 <code>% cp /oracle/good_cf.f /oracle/dbs/bad_cf.f</code>처럼 운영체제 명령으로 성한 사본을 덮어씁니다. 같은 자리로 되돌리므로 CONTROL_FILES 파라미터는 고칠 필요가 없습니다. 인스턴스가 내려간 상태에서만 복사해야 두 사본이 같은 내용이 됩니다.' },
+      { text: 'DB 올리기', hint: 'startup', done: () => S.db.state === 'OPEN',
+        why: '<code>Database mounted.</code>, <code>Database opened.</code> 데이터 파일은 멀쩡했고 컨트롤 파일 두 사본이 같은 시점의 것이라 복구가 필요 없습니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '사본을 바로 같은 자리에 둘 수 없을 때(디스크가 아직 고장)는 다른 위치로 복사하고 CONTROL_FILES를 고치거나, Administrator\'s Guide 10.6.2처럼 망가진 사본을 CONTROL_FILES에서 빼고 바로 올릴 수도 있습니다. 이때는 다중화가 하나 줄었으니 디스크를 고친 뒤 다시 늘려야 합니다. 컨트롤 파일을 모두 잃었다면 자동 백업에서 복원하고 RESETLOGS로 여는 훨씬 어려운 절차가 됩니다.',
+    sources: ['umadv', 'adcf', 'e00205'] },
+
+  { id: 34, stage: 4, title: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', short: 'FRA 가득 참', start: 'oracle',
+    who: '앱 담당 최대리 (전화)',
+    situation: '"주문 저장이 안 되고, 새로 접속하면 ORA-00257이 나와요!" 지난주 배치 작업이 많아서 아카이브 로그가 평소보다 많이 쌓였어요. 이 DB는 빠른 복구 영역(FRA) 한도를 20GB로 잡아 두었어요.',
+    tasks: [
+      { text: '앱 계정으로 증상 확인하기', hint: 'sqlplus app/App#2026@ORCL\n(오류를 확인하고 Ctrl+C)', done: ev => failed(ev, 'ORA-00257'),
+        why: '<code>ORA-00257: Archiver error. Connect AS SYSDBA only until resolved.</code> 19c 오류 도움말: 아카이버가 리두 로그를 보관하지 못했고, 빨리 풀지 않으면 DB가 트랜잭션 실행을 멈춥니다. 가장 흔한 원인은 보관할 곳의 공간 부족입니다. 리두 로그 세 개가 모두 보관을 기다리면 더 이상 바꿀(switch) 수 없어 쓰기가 모두 멈춥니다.' },
+      { text: 'alert log에서 원인 찾기', hint: 'grep -E "ORA-19815|ORA-19809|ORA-00257" /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT),
+        why: '<code>ORA-19815: WARNING: db_recovery_file_dest_size of ... bytes is 100.00% used</code>, <code>ORA-19809: limit exceeded for recovery files</code>. ORA-19809의 원인은 "DB_RECOVERY_FILE_DEST_SIZE로 정한 한도를 넘었다"입니다. 85% 경고는 이미 전에 나와 있었습니다. 매일 alert log를 보는 이유입니다.' },
+      { text: 'SYSDBA로 접속해서 FRA 사용량 보기', hint: 'sqlplus / as sysdba\nselect space_limit/1024/1024/1024 limit_gb, round(space_used/1024/1024/1024,1) used_gb, round(space_reclaimable/1024/1024/1024,1) reclaim_gb, number_of_files from v$recovery_file_dest;', done: ev => inSysdba() && qsel(ev, 'V$RECOVERY_FILE_DEST'),
+        why: '오류 문구대로 SYSDBA 접속은 됩니다. 한도 20GB를 모두 썼고, 그중 RECLAIMABLE(보관 정책상 지워도 되는 양)이 큽니다. 지난 며칠 치 아카이브 로그는 이미 백업되어 더 이상 필요 없는 상태입니다.' },
+      { text: '디스크(/u01)에 실제 남은 공간 확인하기', hint: 'host df -h /u01', done: ev => ev.host && has(ev, 'df'),
+        why: '/u01은 200GB 중 일부만 씁니다. 막힌 것은 디스크가 아니라 DB가 스스로 정한 한도입니다.' },
+      { text: '급한 불 끄기: FRA 한도 늘리기', hint: 'alter system set db_recovery_file_dest_size=40G scope=both;', done: () => fraLimit() >= 30 * GB && !fraStuck(),
+        why: 'ORA-19809 도움말이 드는 해결책 다섯 가지 중 하나가 "디스크 공간을 더하고 DB_RECOVERY_FILE_DEST_SIZE를 늘리라"입니다. 한도가 늘자 아카이버가 다시 보관을 시작하고 DB가 움직입니다. SCOPE=BOTH는 지금 인스턴스와 spfile 모두에 적용한다는 뜻입니다.' },
+      { text: 'SQL*Plus에서 나와 RMAN으로 필요 없는 파일 지우기', hint: 'exit\nrman target /\ndelete noprompt obsolete;', done: ev => ev.rmanDeleted > 0,
+        why: '해결책 목록의 "RMAN으로 복구 영역의 파일을 지우라"입니다. 보관 정책(REDUNDANCY 1)상 필요 없는 오래된 백업과 아카이브 로그를 RMAN이 골라서 지웁니다. 리눅스 <code>rm</code>으로 지우면 RMAN 기록과 어긋나고 FRA 사용량도 바로 줄지 않으니, FRA의 파일은 RMAN으로 지웁니다.' },
+      { text: 'RMAN에서 나와 앱 접속이 되는지 확인하기', hint: 'exit\nsqlplus app/App#2026@ORCL', done: () => asUser('APP'),
+        why: '접속됩니다. 마지막으로 SYSDBA로 <code>v$recovery_file_dest</code>를 다시 보면 사용량이 크게 줄었습니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '재발을 막으려면 FRA 크기를 하루 아카이브 양과 백업 크기에 맞춰 다시 잡고, 사용률 경보(예: 80%)를 걸고, 백업 스크립트 끝에 <code>DELETE NOPROMPT OBSOLETE</code>를 넣습니다. 오류 도움말은 백업을 테이프 등 다른 장치로 옮기는 것, 보관 정책과 아카이브 로그 삭제 정책을 바꾸는 것도 해결책으로 듭니다. 이 레슨의 관련 절(Responding to a Full Fast Recovery Area)은 18c 문서에서만 확인했습니다.',
+    sources: ['e00257', 'e19809', 'e19815', 'rmcfg', 'maint18'] },
+
+  { id: 35, stage: 4, title: '실수로 지운 테이블 되살리기', short: 'Flashback Drop', start: 'oracle',
+    who: '개발팀 송대리 (메신저)',
+    situation: '"죄송해요… 개발 DB인 줄 알고 운영에서 DROP TABLE cust_memo를 쳤어요. 한 시간쯤 전이에요." 고객 상담 메모 테이블이에요. 백업에서 테이블 하나만 꺼내는 건 일이 커요. 먼저 휴지통을 봐요.',
+    tasks: [
+      { text: 'APP 계정으로 접속해서 테이블이 정말 없는지 보기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from cust_memo;', done: ev => asUser('APP') && failed(ev, 'ORA-00942'),
+        why: '<code>ORA-00942: table or view does not exist</code>. 테이블이 없습니다.' },
+      { text: '휴지통 보기', hint: 'show recyclebin', done: ev => ev.showRecyc && ev.showRecycRows > 0,
+        why: 'CUST_MEMO가 <code>BIN$...</code> 이름으로 들어 있습니다. Backup and Recovery User\'s Guide 19c에 따르면 Flashback Drop은 "휴지통(recycle bin)"에 기대는데, DB는 지운 객체를 그 공간이 새 데이터에 필요해질 때까지 휴지통에 둡니다. SHOW RECYCLEBIN은 지금 사용자의 휴지통(USER_RECYCLEBIN)을 보여 줍니다.' },
+      { text: '테이블 되살리기', hint: 'flashback table cust_memo to before drop;', done: ev => ev.ddl && ev.ddl.kind === 'flashback',
+        why: 'SQL Language Reference의 예시 <code>FLASHBACK TABLE print_media TO BEFORE DROP;</code>와 같은 문법입니다. 같은 이름의 테이블이 이미 있으면 <code>RENAME TO 새이름</code>을 붙여 다른 이름으로 되살립니다. 문서는 되살린 인덱스, 트리거, 제약 조건이 휴지통 이름(BIN$...)을 그대로 가진다고 설명하니, 필요하면 원래 이름으로 바꿔 줍니다.' },
+      { text: '데이터가 돌아왔는지 확인하기', hint: 'select count(*) from cust_memo;', done: ev => asUser('APP') && qtab(ev, 'APP.CUST_MEMO'),
+        why: '건수가 돌아왔습니다. Flashback Drop은 UNDO가 아니라 휴지통에 남은 실제 세그먼트를 되돌리는 것이라, 지운 순간의 내용 그대로 돌아옵니다.' },
+      { text: 'SYSDBA로 DB 전체의 휴지통 확인하기', hint: "conn / as sysdba\ncol original_name format a20\ncol object_name format a32\nselect owner, original_name, object_name, type, droptime, can_undrop from dba_recyclebin;", done: ev => inSysdba() && qsel(ev, 'DBA_RECYCLEBIN'),
+        why: '<code>no rows selected</code>. 휴지통이 비었습니다. 테이블과 함께 PK_CUST_MEMO 인덱스도 휴지통에서 나왔기 때문입니다. SQL Language Reference가 설명하듯 되살린 인덱스는 휴지통 이름(BIN$...)을 그대로 가지니, <code>select index_name from user_indexes;</code>로 보고 <code>ALTER INDEX ... RENAME TO pk_cust_memo</code>로 원래 이름을 돌려줍니다. DBA_RECYCLEBIN은 DB 전체 사용자의 휴지통이고, CAN_UNDROP 열은 되살릴 수 있는지를 알려 줍니다. (되살리기 전에 이 뷰를 보면 TABLE과 INDEX 두 줄이 보입니다.)' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '휴지통은 보험일 뿐입니다. <code>DROP TABLE ... PURGE</code>로 지웠거나, 공간이 모자라 DB가 휴지통을 비웠거나, SYSTEM 테이블스페이스에 있던 테이블이면(SQL Reference의 제한) 되살릴 수 없습니다. 그때는 RMAN의 테이블 단위 복구(RECOVER TABLE)나 시점 복구처럼 훨씬 큰 작업이 필요합니다. 운영 DB 접속 화면을 개발 DB와 다르게 꾸미는 것(프롬프트에 DB 이름 넣기 등)도 좋은 예방책입니다.',
+    sources: ['fbdbpitr', 'fbtab', 'sqshow', 'rbview', 'e38305'] },
+
+  { id: 36, stage: 4, title: '졸업 미션: 장애가 겹친 아침', short: '졸업 미션', start: 'oracle',
+    who: '박팀장',
+    situation: '오늘 아침 연락이 두 개 왔어요. ① 앱팀: "주문 이력 조회가 ORA-01116으로 실패해요." ② 개발팀: "어제 밤에 cust_memo 테이블을 실수로 지웠어요." 4단계에서 배운 대로 데이터 손실 없이 해결하고, 장애 보고서를 ~/incident_report.txt로 남겨 주세요.',
+    tasks: [
+      { text: '앱 계정으로 첫 번째 증상 확인하기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => failed(ev, 'ORA-01116') },
+      { text: 'RMAN으로 없어진 파일 확인하기', hint: 'exit\nrman target /\nvalidate database;', done: ev => ev.rmanValidate && (ev.rmanValidateBad || []).length > 0 },
+      { text: 'USERS 테이블스페이스를 OFFLINE → RESTORE → RECOVER → ONLINE으로 되살리기', hint: "sql 'alter tablespace users offline immediate';\nrestore tablespace users;\nrecover tablespace users;\nsql 'alter tablespace users online';", done: () => S.db.files.filter(f => f.ts === 'USERS').every(f => !f.offline && !f.needRec && !isMissing(f)),
+        why: '레슨 1과 같은 순서입니다. 복원 전에 OFFLINE, 복구 뒤에 ONLINE입니다.' },
+      { text: 'RMAN에서 나와 APP 계정으로 지운 테이블 되살리기', hint: 'exit\nsqlplus app/App#2026@ORCL\nshow recyclebin\nflashback table cust_memo to before drop;', done: () => !!S.db.tables['APP.CUST_MEMO'] },
+      { text: '두 테이블 모두 조회되는지 확인하기', hint: 'select count(*) from order_hist;\nselect count(*) from cust_memo;', done: ev => asUser('APP') && (qtab(ev, 'APP.CUST_MEMO') || qtab(ev, 'APP.ORDER_HIST')) && fileOk(2) && !!S.db.tables['APP.CUST_MEMO'] },
+      { text: '장애 보고서 남기기', hint: "exit\necho '09:10 users02.dbf 삭제로 ORA-01116 → USERS OFFLINE, RESTORE/RECOVER, ONLINE (손실 없음). cust_memo DROP → FLASHBACK TABLE TO BEFORE DROP (손실 없음).' > ~/incident_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/incident_report.txt') || {}).txt || ''),
+        why: '수고했습니다. 4단계 장애 대응을 마쳤습니다. 장애 보고서에는 시각(언제 알았고 언제 끝났나), 증상(오류 번호), 원인, 조치(명령), 잃은 데이터, 재발 방지책을 적습니다. 다음 사람이 같은 장애를 만났을 때 이 보고서가 가장 좋은 교과서가 됩니다.' },
+    ],
+    field: '장애 때 가장 위험한 것은 서두르다 상황을 더 나쁘게 만드는 것입니다. 복구 명령을 치기 전에 ① 무엇이 망가졌는지(오류 번호, alert log, VALIDATE) ② 쓸 백업이 있는지 ③ 복구로 잃을 것이 있는지를 확인하고, 할 수 있으면 다른 사람과 함께 봅니다. 복구가 끝나면 새 백업을 한 번 받아 두는 것도 잊지 마세요.',
+    sources: ['rmrec', 'fbtab', 'e01116', 'sqshow'] },
+);
 
 
 /* =====================================================================
@@ -3537,7 +3949,8 @@ function startLesson(id) {
   const L = LESSONS.find(l => l.id === id) || LESSONS[0];
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
-  if (S.stage === 3) { makeWorld3(L.id - 20); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 3) { makeWorld3(L.id - 20); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 2) { makeWorld2(L.id); S.dfRows = () => [['devtmpfs', 15.5 * GB, 0, '/dev'], ['tmpfs', 15.6 * GB, 0, '/dev/shm'], ['tmpfs', 15.6 * GB, 8.5 * MB, '/run'], ['tmpfs', 15.6 * GB, 0, '/sys/fs/cgroup'], ['/dev/mapper/ol-root', 50 * GB, 4.1 * GB, '/'], ['/dev/sda1', 1014 * MB, 233 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', 200 * GB, 1.5 * GB + duOf(lookup('/u01').node), '/u01'], ['/dev/nvme0n1p1', 500 * GB, 3.6 * GB + duOf(lookup('/u02').node), '/u02'], ['tmpfs', 3.2 * GB, 0, '/run/user/0']]; S.user = 'root'; loginEnv('root'); S.cwd = '/root'; }
   else { setIds(USERS1, GIDS1); const w = makeFS(L.id); Object.assign(S, { fs: w.fs, alertSeq: w.alertSeq, procs: makeProcs(L.id), hn: HOSTS[1].hn, ip: HOSTS[1].ip, mem: MEM1 }); if (L.start !== 'laptop') { S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; } }
   if (V) { V = null; viEl.hidden = true; termEl.hidden = false; }
@@ -3568,7 +3981,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' } };
 const stageOf = (l) => l.stage || 3;
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
