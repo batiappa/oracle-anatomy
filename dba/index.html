@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DBA 실습 · Oracle 해부도</title>
-<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익히고, 4단계에서 데이터 파일·컨트롤 파일 손실, FRA 가득 참, 지운 테이블 같은 장애를 RMAN과 Flashback Drop으로 복구합니다.">
+<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익히고, 4단계에서 데이터 파일·컨트롤 파일 손실, FRA 가득 참, 지운 테이블 같은 장애를 RMAN과 Flashback Drop으로 복구하고, 5단계 시점 복구와 컨트롤 파일 전체 복구, 6단계 대기 이벤트와 AWR 보고서로 성능을 점검합니다.">
 <meta name="theme-color" content="#e5e9ee">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/dba/">
@@ -200,7 +200,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 
 <footer class="foot">
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), "Connected to an idle instance."와 "ORACLE instance started." 및 SGA 줄 이름, lsnrctl status·start·stop·services의 형식, rman 접속 문구, SHOW ALL과 CROSSCHECK의 형식, ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA- 오류 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. <b>확인하지 못한 출력</b>: "Database mounted/opened/closed/dismounted", "ORACLE instance shut down", DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN BACKUP 진행 줄과 LIST BACKUP SUMMARY·REPORT의 표, 리스너가 없을 때 lsnrctl의 TNS 오류 줄, orapwd의 암호 질문 문구, 레슨에 인용하지 않은 일부 ORA-·SP2- 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, DELETE OBSOLETE 목록, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094 문구. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), "Connected to an idle instance."와 "ORACLE instance started." 및 SGA 줄 이름, lsnrctl status·start·stop·services의 형식, rman 접속 문구, SHOW ALL과 CROSSCHECK의 형식, ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA- 오류 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: "Database mounted/opened/closed/dismounted", "ORACLE instance shut down", DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN BACKUP 진행 줄과 LIST BACKUP SUMMARY·REPORT의 표, 리스너가 없을 때 lsnrctl의 TNS 오류 줄, orapwd의 암호 질문 문구, 레슨에 인용하지 않은 일부 ORA-·SP2- 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, DELETE OBSOLETE 목록, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094 문구, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -1160,8 +1160,9 @@ const CMDS = {
   head(argv, io) { return headTail(argv, io, 'head'); },
   tail(argv, io) { return headTail(argv, io, 'tail'); },
   grep(argv, io) {
-    const { f, rest } = opts(argv, { e: 'arg' });
+    const { f, rest } = opts(argv, { e: 'arg', A: 'arg', B: 'arg', C: 'arg' });
     let pat = f.e || rest.shift();
+    const ctxA = +(f.A || f.C || 0), ctxB = +(f.B || f.C || 0);
     if (pat == null) return fail("Usage: grep [OPTION]... PATTERN [FILE]...\nTry 'grep --help' for more information.\n", 2);
     let re; try { re = new RegExp(pat, f.i ? 'i' : ''); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), f.i ? 'i' : ''); }
     const srcs = rest.length ? rest.map(t => ({ t, r: readFile(t, 'grep') })) : [{ t: '(standard input)', r: { txt: io.stdin || '' } }];
@@ -1170,7 +1171,19 @@ const CMDS = {
       if (r.e) { err += r.e + '\n'; continue; }
       if (r.bin) { if (re.test('')) out += `Binary file ${t} matches\n`; continue; }
       let c = 0;
-      linesOf(r.txt).forEach((ln, i) => {
+      const all = linesOf(r.txt); const keep = new Map(); let lastOut = -2;
+      if ((ctxA || ctxB) && !f.c && !f.l) {
+        all.forEach((ln, i) => { if ((re.test(ln) !== !!f.v)) { for (let k = Math.max(0, i - ctxB); k <= Math.min(all.length - 1, i + ctxA); k++) if (!keep.has(k)) keep.set(k, false); keep.set(i, true); } });
+        for (const i of [...keep.keys()].sort((a, b) => a - b)) {
+          const ln = all[i]; const isHit = keep.get(i); if (isHit) { c++; hit++; }
+          if (lastOut >= 0 && i > lastOut + 1) out += '--\n';
+          lastOut = i;
+          const shown = io.tty && isHit && !f.v ? esc(ln).replace(new RegExp(re.source.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), 'g' + (f.i ? 'i' : '')), m0 => m0 ? `<span class="hl">${m0}</span>` : m0) : (io.tty ? esc(ln) : ln);
+          out += (multi ? (io.tty ? esc(t) : t) + (isHit ? ':' : '-') : '') + (f.n ? (i + 1) + (isHit ? ':' : '-') : '') + shown + '\n';
+        }
+        continue;
+      }
+      all.forEach((ln, i) => {
         const m = re.test(ln) !== !!f.v; if (!m) return; c++; hit++;
         if (f.c || f.l) return;
         let shown = io.tty && !f.v ? esc(ln).replace(new RegExp(re.source.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), 'g' + (f.i ? 'i' : '')), m0 => m0 ? `<span class="hl">${m0}</span>` : m0) : (io.tty ? esc(ln) : ln);
@@ -2619,13 +2632,14 @@ function sqlInput(v) {
     if (!t) return;
     if (t.startsWith('!')) return sqlHost(t.slice(1));
     const w = t.split(/\s+/)[0].replace(/;$/, '');
+    { const x = sql6(t); if (x === 'wait') return 'wait'; if (x) return; }
     if (t === '/') { if (!me.last) { print('SP2-0103: Nothing in SQL buffer to run.\n'); return; } print(''); return runStmt(me.last.text, me.last.lines); }
     if (SQLPLUS_CMDS.test(w) && !/^(ARCHIVE)$/i.test(w) || (/^ARCHIVE$/i.test(w) && /^archive\s+log\s+list/i.test(t))) return plusCmd(t.replace(/;\s*$/, ''));
   }
   if (!t && me.buf.length) { me.last = { text: me.buf.join('\n'), lines: me.buf.length }; me.buf = []; return; }
-  if (t === '/' && me.buf.length) { const text = me.buf.join('\n'); me.last = { text, lines: me.buf.length }; me.buf = []; return runStmt(text, me.last.lines); }
+  if (t === '/' && me.buf.length) { const text = me.buf.join('\n'); me.last = { text, lines: me.buf.length }; me.buf = []; if (/^(BEGIN|DECLARE)\b/i.test(text.trim())) { if (!sql6(text.replace(/\s+/g, ' ').trim())) print(note('실습에서는 PL/SQL 블록으로 BEGIN dbms_workload_repository.create_snapshot(); END; 만 흉내 냅니다.')); return; } return runStmt(text, me.last.lines); }
   me.buf.push(v);
-  if (/;\s*$/.test(t)) { const text = me.buf.join('\n').replace(/;\s*$/, ''); me.last = { text, lines: me.buf.length }; me.buf = []; return runStmt(text, me.last.lines); }
+  if (/;\s*$/.test(t) && !/^(BEGIN|DECLARE)\b/i.test(me.buf[0].trim())) { const text = me.buf.join('\n').replace(/;\s*$/, ''); me.last = { text, lines: me.buf.length }; me.buf = []; return runStmt(text, me.last.lines); }
 }
 function sqlHost(cmd) {
   const cmds = parseLine(cmd.trim());
@@ -2772,6 +2786,7 @@ function addDatafile(path, ts, bytes, m, raw) {
 function alterDatabase(U, sql) {
   const db = S.db, ev = S.ev; let m;
   needDba();
+  { const x = openResetlogs(U); if (x !== undefined) return x; }
   if (/^ALTER DATABASE MOUNT$/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     if (db.state !== 'STARTED') throw new SqlErr('ORA-01100: database already mounted', 0);
@@ -3123,7 +3138,7 @@ INTERACTIVE.rman = function (argv, done) {
     if (spec === '/' || spec === "'/'") {
       if (!USERS[S.user].groups.includes('dba')) { print('RMAN-00571: ===========================================================\nRMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============\nRMAN-00571: ===========================================================\nORA-01031: insufficient privileges\n'); return; }
       if (db.state === 'DOWN') { print('connected to target database (not started)\n'); ctx.conn = true; return; }
-      print(`connected to target database: ORCL (DBID=${DBID}${db.state !== 'OPEN' ? ', not open' : ''})\n`); ctx.conn = true; return;
+      print(db.state === 'STARTED' ? 'connected to target database: ORCL (not mounted)\n' : `connected to target database: ORCL (DBID=${DBID}${db.state !== 'OPEN' ? ', not open' : ''})\n`); ctx.conn = true; return;
     }
     print(note('실습에서는 rman target / 로 접속합니다.'));
   };
@@ -3138,6 +3153,7 @@ INTERACTIVE.rman = function (argv, done) {
     const t = v.trim();
     if (!ctx.buf.length && /^(exit|quit);?$/i.test(t)) { print('\n\nRecovery Manager complete.\n'); S.ev.type = 'rman-exit'; checkLesson(S.ev); mode = null; done(); return; }
     if (t) ctx.buf.push(t);
+    { const j = ctx.buf.join(' '); if (/^RUN\b/i.test(j)) { const o1 = (j.match(/{/g) || []).length, c1 = (j.match(/}/g) || []).length; if (!o1 || o1 > c1) { next(); return; } ctx.buf = []; S.ev.rman = 'RUN'; const pre = ctx.first ? 'using target database control file instead of recovery catalog\n' : ''; ctx.first = false; print('\n' + pre + rmanRun(j, ctx)); checkLesson(S.ev); next(); return; } }
     if (!/;\s*$/.test(t)) { next(); return; }
     const cmd = ctx.buf.join(' ').replace(/;\s*$/, '').replace(/\s+/g, ' ').trim(); ctx.buf = [];
     S.ev.rman = cmd.toUpperCase();
@@ -3151,6 +3167,7 @@ function rmanCmd(cmd, ctx) {
   const db = S.db; const U = cmd.toUpperCase(); const ev = S.ev;
   if (/^CONNECT TARGET/.test(U)) { return note('실습에서는 rman target / 로 다시 시작해 주세요.'); }
   if (!ctx.conn) return rmanErr('RMAN-06171: not connected to target database') + '\n';
+  { const x = rman5(cmd, U, ctx); if (x !== undefined) return x; }
   if (db.state === 'DOWN' || db.state === 'STARTED') return rmanErr(`RMAN-03002: failure of ${U.split(' ')[0].toLowerCase()} command at ${new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })} ${hms(new Date())}`, 'ORA-01507: database not mounted') + '\n';
   let pre = '';
   if (ctx.first) { pre = 'using target database control file instead of recovery catalog\n'; ctx.first = false; }
@@ -3260,7 +3277,7 @@ function openProblem() {
   return null;
 }
 function cfProblem() { return S.db.params.control_files[1].split(/\s*,\s*/).find(p => !(lookup(p) || {}).node) || null; }
-function cfAlert(p) { alertAdd('ALTER DATABASE   MOUNT', `ORA-00202: control file: '${p}'`, 'ORA-27037: unable to obtain file status', 'Linux-x86_64 Error: 2: No such file or directory', 'Additional information: 7', 'ORA-205 signalled during: ALTER DATABASE   MOUNT...'); }
+function cfAlert(p) { return cfAlertAll(); alertAdd('ALTER DATABASE   MOUNT', `ORA-00202: control file: '${p}'`, 'ORA-27037: unable to obtain file status', 'Linux-x86_64 Error: 2: No such file or directory', 'Additional information: 7', 'ORA-205 signalled during: ALTER DATABASE   MOUNT...'); }
 
 /* 보관 정책 REDUNDANCY 1 기준으로 더 이상 필요 없는 백업과 아카이브 로그 */
 function obsoleteSet() {
@@ -3485,6 +3502,320 @@ function rman4(cmd, U, ctx) {
     return finish(o + '\n');
   }
   return undefined;
+}
+
+/* =====================================================================
+   D8. 5단계 고급 복구: 시점 복구(DBPITR), 컨트롤 파일 전체 손실
+       Backup and Recovery User's Guide 19c "Performing Database Point-in-Time Recovery",
+       "Performing Recovery with a Backup Control File", Backup and Recovery Reference 19c
+       RESTORE·RECOVER·untilClause 를 따랐다. 문서에 예시가 없는 출력 줄은 ⓘ로 알린다.
+   ===================================================================== */
+const pad2 = (n) => String(n).padStart(2, '0');
+const isoMin = (d) => `${ymd(d, '-')} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:00`;
+const CUST_MEMO_DEF = () => ({ cols: [N('MEMO_ID'), N('CUST_ID'), C('MEMO', 400), Dt('CREATED')], count: 18342, rows: () => [[551, 10233, 'VIP 전담 상담 요청', ago(3, 10, 2)], [552, 48211, '배송지 변경 2회', ago(2, 15, 40)], [553, 77102, '대량 주문 견적 문의', ago(1, 11, 8)]] });
+function putTable(full, def) {
+  APP_TABLES[full] = def.cols; TABLE_SAMPLES[full] = def.rows;
+  S.db.tables[full] = { count: def.count, cols: def.cols.map(c => [c[0], c[1] === 'n' ? 'NUMBER' : c[1] === 'd' ? 'DATE' : `VARCHAR2(${c[2]})`]) };
+}
+function makeWorld5(lid) {
+  makeWorld4(0);
+  const db = S.db;
+  db.incident = null; db.needResetlogs = false; db.cfBackup = false; db.restoredFrom = null;
+  if (lid === 1) {
+    const at = new Date(NOW.getTime() - 25 * 60000); at.setSeconds(31);
+    const tb = db.tables['APP.ORDER_HIST']; const orig = tb.count;
+    tb.count = 0; TABLE_SAMPLES['APP.ORDER_HIST'] = () => [];
+    db.incident = { at, what: 'TRUNCATE TABLE app.order_hist', undo() { tb.count = orig; delete TABLE_SAMPLES['APP.ORDER_HIST']; } };
+  }
+  if (lid === 3) {
+    const at = new Date(NOW.getTime() - 40 * 60000); at.setSeconds(12);
+    db.incident = { at, what: 'DROP TABLE app.cust_memo PURGE', undo() { putTable('APP.CUST_MEMO', CUST_MEMO_DEF()); } };
+  }
+  if (lid === 2) {
+    db.state = 'DOWN'; db.lsnr.reg = false;
+    S.procs = S.procs.filter(p => !/^ora_|oracleORCL/.test(p.cmd)); db.sessions = [];
+    alertAdd('Shutting down ORACLE instance (abort) (OS id: 31877)', 'Instance shutdown complete (OS id: 31877)');
+    delete lookup(DBH).node.c['control01.ctl'];
+    delete lookup(FRAD).node.c['control02.ctl'];
+  }
+}
+const PITR_UNTIL = () => { const d = S.db && S.db.incident ? new Date(S.db.incident.at.getTime() - 120000) : new Date(); return isoMin(d); };
+const at5 = () => S.db && S.db.incident ? `${pad2(S.db.incident.at.getHours())}:${pad2(S.db.incident.at.getMinutes())}:${pad2(S.db.incident.at.getSeconds())}` : '';
+
+/* 컨트롤 파일 오류를 alert log 에 모두 남긴다 */
+function cfAlertAll() {
+  const miss = S.db.params.control_files[1].split(/\s*,\s*/).filter(p => !(lookup(p) || {}).node);
+  const ls = ['ALTER DATABASE   MOUNT'];
+  for (const p of miss) ls.push(`ORA-00202: control file: '${p}'`, 'ORA-27037: unable to obtain file status', 'Linux-x86_64 Error: 2: No such file or directory', 'Additional information: 7');
+  ls.push('ORA-205 signalled during: ALTER DATABASE   MOUNT...');
+  alertAdd(...ls);
+}
+
+/* RMAN 안의 시각 문자열: untilClause 문서대로 NLS_DATE_FORMAT 형식을 따른다 */
+function parseUntil(str) {
+  const fmt = String(S.env.NLS_DATE_FORMAT || '').replace(/^['"]|['"]$/g, '').toUpperCase();
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(str.trim());
+  if (fmt !== 'YYYY-MM-DD HH24:MI:SS' || !m) return null;
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+}
+function rmanRun(text, ctx) {
+  const inner = text.slice(text.indexOf('{') + 1, text.lastIndexOf('}'));
+  const cmds = inner.split(';').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  let o = ''; ctx.until = null; S.ev.rmanRun = cmds.map(c => c.toUpperCase());
+  for (const c of cmds) {
+    let m;
+    if ((m = /^SET UNTIL TIME\s+(['"])(.+)\1$/i.exec(c))) {
+      const d = parseUntil(m[2]);
+      if (!d) { o += '\nexecuting command: SET until clause\n' + rmanErr(`RMAN-03002: failure of set command at ${rmanWhen()}`, 'ORA-01861: literal does not match format string') + '\n' + note('SET UNTIL TIME의 날짜 문자열은 NLS_DATE_FORMAT 형식과 맞아야 합니다(Backup and Recovery Reference 19c, untilClause). 실습에서는 RMAN을 실행하기 전에 셸에서 export NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS" 를 하고, 시각을 \'2026-11-26 09:00:00\' 모양으로 적습니다. ORA-01861의 원인은 19c 오류 도움말대로 "리터럴이 형식 문자열과 맞지 않음"입니다. 이 오류 화면의 RMAN 줄 모양은 확인하지 못했습니다.'); break; }
+      ctx.until = d; S.ev.rmanUntil = d; o += '\nexecuting command: SET until clause\n'; continue;
+    }
+    if (/^SET UNTIL (SCN|SEQUENCE)\b/i.test(c)) { o += note('실습에서는 SET UNTIL TIME 만 흉내 냅니다. 문서는 SCN, 로그 시퀀스, 복원 지점(SET TO RESTORE POINT)도 쓸 수 있다고 설명합니다.'); break; }
+    const r = rmanCmd(c, ctx); o += '\n' + r;
+    if (/RMAN-00571/.test(r)) break;
+  }
+  ctx.until = null;
+  unverified('rman-run', 'RUN 블록 안의 SET UNTIL, RESTORE DATABASE, RECOVER DATABASE 순서는 Backup and Recovery User\'s Guide 19c의 DBPITR 절차 그대로입니다. Backup and Recovery Reference 19c는 SET UNTIL을 RESTORE와 RECOVER 앞에 함께 두라고 권합니다. "executing command: SET until clause" 줄은 공식 문서 예시로 확인하지 못했습니다.');
+  return o;
+}
+function arcsBetween(a, b) {
+  const out = []; const base = lookup(FRAD + '/archivelog'); if (!base || !base.node) return out;
+  for (const day of Object.keys(base.node.c)) for (const [fn, n] of Object.entries(base.node.c[day].c)) if (n.mt > a && n.mt <= b) out.push({ seq: n.seq, path: `${FRAD}/archivelog/${day}/${fn}`, mt: n.mt });
+  return out.sort((x, y) => x.seq - y.seq);
+}
+function rman5(cmd, U, ctx) {
+  const db = S.db, ev = S.ev; let m;
+  if (/^SET UNTIL\b/.test(U)) return rmanErr('RMAN-00558: error encountered while parsing input commands', 'RMAN-01009: syntax error: found "until": expecting one of: "..."', 'RMAN-01007: at line 1 column 5 file: standard input') + '\n' + note('SET UNTIL은 RUN { ... } 블록 안에서 씁니다. 문서의 예: RUN { SET UNTIL TIME \'...\'; RESTORE DATABASE; RECOVER DATABASE; } 이 오류 줄의 정확한 문구는 확인하지 못했습니다.');
+  if (/^RESTORE CONTROLFILE FROM AUTOBACKUP$/.test(U)) {
+    if (db.state !== 'STARTED') return rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, 'RMAN-06496: must use the TO clause when the database is mounted or open') + '\n' + note('Backup and Recovery Reference 19c(표 3-9): 카탈로그 없이 DB가 MOUNT나 OPEN 상태이면 TO \'파일 이름\'을 써야 합니다. 컨트롤 파일을 모두 잃었을 때는 STARTUP NOMOUNT 상태에서 RESTORE CONTROLFILE FROM AUTOBACKUP을 합니다. 이 오류 문구는 확인하지 못했습니다.');
+    const auto = db.backups.filter(b => b.kind === 'S' && lookup(b.piece) && lookup(b.piece).node).sort((a, b) => b.done - a.done)[0];
+    let o = `Starting restore at ${oDate(new Date())}\n${rmanChannel()}\nrecovery area destination: ${FRA}\ndatabase name (or database unique name) used for search: ORCL\n`;
+    if (!auto) return o + 'channel ORA_DISK_1: no AUTOBACKUPS found in the recovery area\n' + rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, 'RMAN-06172: no AUTOBACKUP found or specified handle is not a valid copy or piece') + '\n';
+    o += `channel ORA_DISK_1: AUTOBACKUP ${auto.piece} found in the recovery area\nchannel ORA_DISK_1: looking for AUTOBACKUP on day: ${ymd(new Date())}\nchannel ORA_DISK_1: restoring control file from AUTOBACKUP ${auto.piece}\nchannel ORA_DISK_1: control file restore from AUTOBACKUP complete\n`;
+    for (const p of db.params.control_files[1].split(/\s*,\s*/)) { putFile(p, F('oracle', 'oinstall', 0o640, 18 * MB + 400 * KB, { mt: new Date() })); o += `output file name=${p}\n`; }
+    o += `Finished restore at ${oDate(new Date())}\n`;
+    db.cfBackup = true; db.needResetlogs = true; ev.rmanRestoreCf = true;
+    unverified('restore-cf', 'RESTORE CONTROLFILE FROM AUTOBACKUP는 Backup and Recovery User\'s Guide 19c와 Reference 19c의 절차·예시 그대로입니다. 문서(표 3-10)는 자동 백업이 빠른 복구 영역에 있으면 SET DBID가 필요 없다고 설명합니다. 문서대로 복원된 컨트롤 파일은 CONTROL_FILES의 모든 위치에 쓰입니다. 화면의 진행 줄(recovery area destination, AUTOBACKUP ... found, output file name 등)은 공식 문서 예시로 확인하지 못했습니다.');
+    return o + '\n';
+  }
+  if (/^ALTER DATABASE (MOUNT|OPEN)/.test(U) && db.state === 'STARTED') return rman4(cmd, U, ctx);
+  if (S.stage !== 5) return undefined;
+  if (/^RESTORE DATABASE$/.test(U)) {
+    if (db.state !== 'MOUNTED') return undefined;
+    const limit = ctx.until || new Date();
+    const full = db.backups.filter(b => b.lv === 'F' && b.kind === 'B' && b.status === 'AVAILABLE' && b.done < limit && lookup(b.piece) && lookup(b.piece).node).sort((a, b) => b.done - a.done)[0];
+    if (!full) return rmanErr(`RMAN-03002: failure of restore command at ${rmanWhen()}`, 'RMAN-06026: some targets not found - aborting restore', ...db.files.map(f => `RMAN-06023: no backup or copy of datafile ${f.id} found to restore`)) + '\n';
+    let o = `Starting restore at ${oDate(new Date())}\n${rmanChannel()}\nchannel ORA_DISK_1: starting datafile backup set restore\nchannel ORA_DISK_1: specifying datafile(s) to restore from backup set\n`;
+    for (const f of db.files.slice().sort((a, b) => a.id - b.id)) { o += `channel ORA_DISK_1: restoring datafile ${String(f.id).padStart(5, '0')} to ${f.name}\n`; putFile(f.name, dbfNode(f.bytes)); f.needRec = true; }
+    o += `channel ORA_DISK_1: reading from backup piece ${full.piece}\nchannel ORA_DISK_1: piece handle=${full.piece} tag=${full.tag}\nchannel ORA_DISK_1: restored backup piece 1\nchannel ORA_DISK_1: restore complete, elapsed time: 00:00:21\nFinished restore at ${oDate(new Date())}\n`;
+    db.restoredFrom = full; ev.rmanRestore = db.files.map(f => f.id); ev.rmanRestoreDb = { until: ctx.until || null, from: full.done };
+    // 백업 시점의 내용으로 돌아간다: 사고 전에 받은 백업이면 사고 전 상태다.
+    if (db.incident && full.done < db.incident.at && !db.incident.restored) { db.incident.undo(); db.incident.restored = true; db.incident.reapply = true; }
+    return o + '\n';
+  }
+  if (/^RECOVER DATABASE$/.test(U)) {
+    if (db.state !== 'MOUNTED') return undefined;
+    const miss = db.files.find(isMissing);
+    if (miss) return `Starting recover at ${oDate(new Date())}\n${rmanChannel()}` + rmanErr(`RMAN-03002: failure of recover command at ${rmanWhen()}`, `RMAN-06094: datafile ${miss.id} must be restored`) + '\n';
+    const from = db.restoredFrom ? db.restoredFrom.done : new Date(NOW.getTime() - 3600000);
+    const until = ctx.until || null;
+    if (until && db.restoredFrom && until <= db.restoredFrom.done) return rmanErr(`RMAN-03002: failure of recover command at ${rmanWhen()}`, `ORA-01152: file 1 was not restored from a sufficiently old backup`, dfLines(db.files.find(f => f.id === 1))) + '\n' + note('복원한 백업이 목표 시각보다 나중 것입니다. ORA-01152의 19c 오류 도움말: "불완전 복구 전에 파일을 백업에서 복원하는 것을 잊은 경우가 가장 흔하다. 더 오래된 백업에서 복원하고 다시 복구하라." Reference 19c는 SET UNTIL을 RESTORE 앞에 두라고 권합니다. 오류 줄의 배치는 확인하지 못했습니다.');
+    let o = `Starting recover at ${oDate(new Date())}\n${rmanChannel()}\nstarting media recovery\n`;
+    const end = until || new Date();
+    const needLogs = db.files.some(f => f.needRec) || db.cfBackup;
+    if (needLogs) {
+      for (const a of arcsBetween(db.cfBackup && !db.restoredFrom ? new Date(NOW.getTime() - 4 * 3600000) : from, end)) o += `archived log for thread 1 with sequence ${a.seq} is on disk as file ${a.path}\n`;
+      if (!until) { const g = db.seq % 3 + 1; o += `archived log file name=${DBH}/redo0${g}.log thread=1 sequence=${db.seq}\n`; }
+    }
+    o += `media recovery complete, elapsed time: 00:00:0${until ? 4 : 6}\nFinished recover at ${oDate(new Date())}\n`;
+    for (const f of db.files) f.needRec = false;
+    ev.rmanRecoverDb = { until };
+    if (until) {
+      db.needResetlogs = true;
+      if (db.incident && db.incident.reapply && until > db.incident.at) { /* 목표 시각이 사고 뒤라 사고까지 다시 적용된다 */ db.incident.reapply = false; db.incident.restored = false; makeIncidentAgain(); }
+      if (db.incident && until < db.incident.at) db.incident.fixed = true;
+    } else {
+      if (db.incident && db.incident.reapply) { db.incident.reapply = false; db.incident.restored = false; makeIncidentAgain(); o += note(`목표 시각 없이 끝까지 복구(완전 복구)했기 때문에 ${at5()}의 실수(${db.incident.what})까지 Redo로 다시 적용되었습니다. 지운 데이터는 돌아오지 않습니다.`); }
+      if (db.cfBackup) db.needResetlogs = true;
+    }
+    db.restoredFrom = null;
+    unverified('recover-db', '"Starting recover at", "starting media recovery", "archived log for thread 1 with sequence N is on disk as file", "media recovery complete", "Finished recover at"은 Backup and Recovery User\'s Guide 19c 예시의 문구입니다. 온라인 리두 로그를 적용하는 "archived log file name=... redo0N.log" 줄은 확인하지 못한 형식입니다. 문서: "백업 컨트롤 파일로 복구한 뒤에는 로그가 있든 없든 OPEN RESETLOGS가 항상 필요하다."');
+    return o + '\n';
+  }
+  return undefined;
+}
+function makeIncidentAgain() {
+  const db = S.db, inc = db.incident;
+  if (/ORDER_HIST/i.test(inc.what)) { db.tables['APP.ORDER_HIST'].count = 0; TABLE_SAMPLES['APP.ORDER_HIST'] = () => []; }
+  if (/CUST_MEMO/i.test(inc.what)) { delete APP_TABLES['APP.CUST_MEMO']; delete TABLE_SAMPLES['APP.CUST_MEMO']; delete db.tables['APP.CUST_MEMO']; }
+}
+/* ALTER DATABASE OPEN RESETLOGS */
+function openResetlogs(U) {
+  const db = S.db, ev = S.ev;
+  if (!/^ALTER DATABASE OPEN( RESETLOGS| NORESETLOGS)?$/.test(U) || !(db.needResetlogs || /RESETLOGS/.test(U))) return undefined;
+  needDba();
+  if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
+  if (db.state === 'STARTED') throw new SqlErr('ORA-01507: database not mounted', 0);
+  if (db.state === 'OPEN') throw new SqlErr('ORA-01531: a database already open by the instance', 0);
+  if (/ NORESETLOGS$/.test(U) || (!/RESETLOGS/.test(U) && db.needResetlogs)) { unverified('o1589', 'ORA-01589의 원인(19c 오류 도움말): 불완전 복구나 백업 컨트롤 파일 복구를 했기 때문에 RESETLOGS 또는 NORESETLOGS를 지정해야 합니다. 실습에서는 RESETLOGS로 엽니다.'); throw new SqlErr('ORA-01589: must use RESETLOGS or NORESETLOGS option for database open', 0); }
+  if (!db.needResetlogs) { unverified('o1139', 'ORA-01139(19c 오류 도움말): RESETLOGS를 지정했지만 불완전 복구가 없었습니다. RESETLOGS 없이 다시 여세요.'); throw new SqlErr('ORA-01139: RESETLOGS option only valid after an incomplete database recovery', 0); }
+  if (db.files.some(f => f.needRec)) { const f = db.files.find(x => x.needRec); throw new SqlErr(`ORA-01113: file ${f.id} needs media recovery`, 0, dfLines(f)); }
+  if (db.files.some(isMissing)) { const f = db.files.find(isMissing); throw new SqlErr(`ORA-01157: cannot identify/lock data file ${f.id} - see DBWR trace file`, 0, dfLines(f)); }
+  openDb(); db.needResetlogs = false; db.cfBackup = false; db.resetlogsAt = new Date(); db.incarnation = (db.incarnation || 2) + 1;
+  db.seq = 1; alertAdd('alter database open resetlogs', 'RESETLOGS after incomplete recovery', 'Completed: alter database open resetlogs');
+  ev.dbState = 'OPEN'; ev.resetlogs = true;
+  return '\nDatabase altered.\n\n';
+}
+
+/* =====================================================================
+   D9. 6단계 성능 점검: 대기 이벤트, V$SQL, V$SYSTEM_EVENT, DB time, AWR 보고서
+       Performance Tuning Guide 19c (Gathering Database Statistics, Instance Tuning Using Performance Views)와
+       Database Reference 19c 부록 C(대기 이벤트)를 따랐다.
+   ===================================================================== */
+const PERF = { sql: [], events: [], time: {}, snaps: [], batch: null };
+const BATCH_DAY = NOW.getHours() >= 4 ? 0 : 1;
+function perfBase() {
+  PERF.sql = [
+    { id: '7h35uxf5uhmm1', text: 'select sysdate from dual', exec: 88214, ela: 4.1e6, cpu: 3.9e6, disk: 0, gets: 0, rows: 88214, module: 'JDBC Thin Client' },
+    { id: '0w2qpuc6u2zsp', text: "SELECT ORDER_ID, CUST_ID, ORDER_DATE, AMOUNT, STATUS FROM ORDER_HIST WHERE ORDER_ID = :B1", exec: 412883, ela: 61.2e6, cpu: 52.8e6, disk: 1904, gets: 1651532, rows: 412870, module: 'JDBC Thin Client' },
+    { id: 'b6usrg82hwsa3', text: "UPDATE ORDER_HIST SET STATUS = :B1 WHERE ORDER_ID = :B2", exec: 9214, ela: 3.8e6, cpu: 2.9e6, disk: 41, gets: 46070, rows: 9214, module: 'JDBC Thin Client' },
+  ];
+  PERF.events = [
+    ['db file sequential read', 'User I/O', 1804412, 2214.6], ['log file sync', 'Commit', 318204, 402.3], ['log file parallel write', 'System I/O', 331990, 351.8],
+    ['db file parallel write', 'System I/O', 88120, 140.2], ['control file sequential read', 'System I/O', 140228, 21.4], ['enq: TX - row lock contention', 'Application', 12, 3.1],
+    ['SQL*Net message from client', 'Idle', 9182044, 912882.0], ['rdbms ipc message', 'Idle', 4123321, 1402114.9],
+  ];
+  PERF.time = { 'DB time': 6118.4e6, 'DB CPU': 2988.1e6, 'sql execute elapsed time': 5402.2e6, 'parse time elapsed': 88.3e6 };
+  // AWR 스냅샷: 문서대로 1시간마다, 8일 보관. 실습에서는 최근 이틀 치만 둔다.
+  PERF.snaps = []; let id = 2318;
+  const t0 = ago(2, 0, 0);
+  for (let t = new Date(t0); t <= NOW; t = new Date(t.getTime() + 3600000)) { const b = new Date(t), e = new Date(t.getTime() + 3600000); if (e > NOW) break; PERF.snaps.push({ id: id++, begin: b, end: new Date(e.getTime() + 4000) }); }
+  // 스냅샷 시각은 구간의 끝(END_INTERVAL_TIME)이다. 2시에 찍힌 것과 3시에 찍힌 것 사이가 배치 시간이다.
+  const bs = ago(BATCH_DAY, 1, 0); PERF.batch = { begin: PERF.snaps.find(s => s.begin.getTime() === bs.getTime()), end: PERF.snaps.find(s => s.begin.getTime() === bs.getTime() + 3600000) };
+}
+function makeWorld6(lid) {
+  makeWorld4(0); perfBase();
+  const db = S.db;
+  for (const s of db.sessions.filter(x => x.username === 'APP')) Object.assign(s, { status: 'INACTIVE', event: 'SQL*Net message from client', waitClass: 'Idle' });
+  if (lid === 1) {
+    PERF.sql.push({ id: '8wzq2k1ptm6c4', text: "SELECT O.ORDER_ID, O.ORDER_DATE, O.AMOUNT, C.CUST_NAME FROM ORDER_HIST O, CUSTOMER C WHERE O.CUST_ID = C.CUST_ID AND TO_CHAR(O.ORDER_DATE, 'YYYYMM') = :B1 ORDER BY O.ORDER_DATE DESC", exec: 1284, ela: 4012.7e6, cpu: 702.4e6, disk: 41820311, gets: 42998214, rows: 192600, module: 'order-web' });
+    PERF.events[0] = ['db file scattered read', 'User I/O', 2981442, 3388.2]; PERF.events.splice(1, 0, ['db file sequential read', 'User I/O', 1804412, 2214.6]);
+    let sid = 211;
+    for (let i = 0; i < 6; i++) addSession({ sid: sid + i * 7, username: 'APP', status: 'ACTIVE', event: 'db file scattered read', waitClass: 'User I/O', sqlId: '8wzq2k1ptm6c4', lastCall: 12 + i * 9, wait: 0, machine: 'websvr0' + (1 + i % 2), program: 'JDBC Thin Client', osuser: 'tomcat', terminal: 'unknown', remote: true, logon: ago(0, 8, 2 + i) });
+  }
+  if (lid === 3) {
+    const blocker = addSession({ sid: 88, serial: 40213, username: 'APP', status: 'INACTIVE', event: 'SQL*Net message from client', waitClass: 'Idle', lastCall: 2410, machine: 'dev-pc07', program: 'SQL Developer', osuser: 'song', terminal: 'unknown', remote: true, logon: ago(0, 8, 31), txn: true });
+    let sid = 142;
+    for (let i = 0; i < 4; i++) addSession({ sid: sid + i * 5, username: 'APP', status: 'ACTIVE', event: 'enq: TX - row lock contention', waitClass: 'Application', blocking: blocker.sid, sqlId: 'b6usrg82hwsa3', lastCall: 300 + i * 41, machine: 'websvr0' + (1 + i % 2), program: 'JDBC Thin Client', osuser: 'tomcat', terminal: 'unknown', remote: true, logon: ago(0, 8, 2 + i) });
+    PERF.events.splice(2, 0, ['enq: TX - row lock contention', 'Application', 196, 1484.7]);
+    PERF.events = PERF.events.filter((e, i, a) => a.findIndex(x => x[0] === e[0]) === i);
+  }
+}
+/* V$SESSION 의 WAIT_CLASS 를 세션마다 정해 준다 */
+{
+  const base = VIEWS['V$SESSION'].rows;
+  VIEWS['V$SESSION'].rows = () => base().map(r => { const s = S.db.sessions.find(x => x.sid === r.SID); if (s && s.waitClass) r.WAIT_CLASS = s.waitClass; if (r.STATUS === 'KILLED') { r.EVENT = 'SQL*Net message from client'; r.WAIT_CLASS = 'Idle'; } return r; });
+}
+Object.assign(VIEWS, {
+  'V$SQL': { fixed: true, cols: [C('SQL_ID', 13), N('EXECUTIONS'), N('ELAPSED_TIME'), N('CPU_TIME'), N('DISK_READS'), N('BUFFER_GETS'), N('ROWS_PROCESSED'), C('MODULE', 64), C('SQL_TEXT', 1000)],
+    rows: () => PERF.sql.map(q => ({ SQL_ID: q.id, EXECUTIONS: q.exec, ELAPSED_TIME: Math.round(q.ela), CPU_TIME: Math.round(q.cpu), DISK_READS: q.disk, BUFFER_GETS: q.gets, ROWS_PROCESSED: q.rows, MODULE: q.module, SQL_TEXT: q.text })) },
+  'V$SYSTEM_EVENT': { fixed: true, cols: [C('EVENT', 64), N('TOTAL_WAITS'), N('TIME_WAITED'), N('AVERAGE_WAIT'), N('TIME_WAITED_MICRO'), C('WAIT_CLASS', 64)],
+    rows: () => PERF.events.map(([e, c, n, s]) => ({ EVENT: e, TOTAL_WAITS: n, TIME_WAITED: Math.round(s * 100), AVERAGE_WAIT: Math.round(s * 100 / n * 100) / 100, TIME_WAITED_MICRO: Math.round(s * 1e6), WAIT_CLASS: c })) },
+  'V$SYS_TIME_MODEL': { fixed: true, cols: [N('STAT_ID'), C('STAT_NAME', 64), N('VALUE')],
+    rows: () => Object.entries(PERF.time).map(([k, v], i) => ({ STAT_ID: 3649082374 - i * 7919, STAT_NAME: k, VALUE: Math.round(v) })) },
+  'DBA_HIST_SNAPSHOT': { cols: [N('SNAP_ID'), N('DBID'), N('INSTANCE_NUMBER'), Dt('BEGIN_INTERVAL_TIME'), Dt('END_INTERVAL_TIME')],
+    rows: () => PERF.snaps.map(s => ({ SNAP_ID: s.id, DBID: DBID, INSTANCE_NUMBER: 1, BEGIN_INTERVAL_TIME: s.begin, END_INTERVAL_TIME: s.end })) },
+});
+/* SQL*Plus: EXECUTE, PL/SQL 블록, @스크립트 */
+function sql6(t) {
+  const me = S.sql, ev = S.ev; let m;
+  const U = t.replace(/\s+/g, ' ').trim().toUpperCase();
+  const snap = () => {
+    needOpen(); needDba();
+    const last = PERF.snaps[PERF.snaps.length - 1]; const now = new Date();
+    PERF.snaps.push({ id: last.id + 1, begin: last.end, end: now }); ev.awrSnap = last.id + 1;
+    return '\nPL/SQL procedure successfully completed.\n\n';
+  };
+  if ((m = /^EXEC(UTE)? (.+?);?$/.exec(U))) {
+    if (!needConn()) return true;
+    try {
+      if (/^DBMS_WORKLOAD_REPOSITORY\.CREATE_SNAPSHOT( ?\(\s*\))?$/.test(m[2])) print(snap());
+      else print(note('실습에서는 EXEC dbms_workload_repository.create_snapshot 만 흉내 냅니다.'));
+    } catch (e) { if (!(e instanceof SqlErr)) throw e; ev.sqlErr = e.msg; print(`BEGIN ${m[2].toLowerCase()}; END;\n\n*\nERROR at line 1:\n${e.msg}\n\n`); }
+    unverified('plsql-ok', '"PL/SQL procedure successfully completed."는 SQL*Plus가 PL/SQL 실행 뒤 보여 주는 문구지만, 이번에 확인한 19c 문서 예시에는 없습니다. 스냅샷을 직접 만드는 DBMS_WORKLOAD_REPOSITORY.CREATE_SNAPSHOT은 Performance Tuning Guide 19c의 예시입니다.');
+    return true;
+  }
+  if (/^BEGIN DBMS_WORKLOAD_REPOSITORY\.CREATE_SNAPSHOT ?(\( ?\))?; END;$/.test(U)) { if (!needConn()) return true; try { print(snap()); } catch (e) { if (!(e instanceof SqlErr)) throw e; ev.sqlErr = e.msg; print(e.msg + '\n'); } return true; }
+  if (t.startsWith('@')) {
+    if (!needConn()) return true;
+    const path = t.slice(1).trim().replace(/;$/, '').replace(/^\?/, OH).replace(/^\$ORACLE_HOME|^\$\{ORACLE_HOME\}/, OH);
+    if (path === OH + '/rdbms/admin/awrrpt.sql') { awrrpt(); return 'wait'; }
+    print(`SP2-0310: unable to open file "${t.slice(1).trim()}"\n`); return true;
+  }
+  return false;
+}
+function awrrpt() {
+  const me = S.sql, ev = S.ev;
+  try { needOpen(); needDba(); } catch (e) { print(e.msg + '\n'); me.next(); return; }
+  const ask = (q, fn) => { mode = { type: 'line', onSubmit(v) { print(''); fn(v.trim()); }, cancel() { print(''); me.next(); return true; } }; setPrompt(`Enter value for ${q}: `); };
+  const st = { type: 'text' };
+  print('\nCurrent Instance\n~~~~~~~~~~~~~~~~\n   DB Id    DB Name      Inst Num Instance\n----------- ------------ -------- ------------\n ' + String(DBID).padStart(10) + ' ORCL                1 ORCL\n\n\nSpecify the Report Type\n~~~~~~~~~~~~~~~~~~~~~~~\nEnter \'html\' for an HTML report, or \'text\' for plain text\nDefaults to \'html\'\n');
+  unverified('awrrpt', 'awrrpt.sql이 묻는 질문(report_type, num_days, begin_snap, end_snap, report_name)과 예시 답, 기본 보고서 이름 "awrrpt_1_시작_끝"은 Performance Tuning Guide 19c 계열 문서(18c·26ai판에서 원문 확인)의 그대로입니다. 질문 사이에 나오는 안내문과 스냅샷 목록의 모양은 줄였거나 확인하지 못한 형식입니다. AWR을 쓰려면 Oracle Diagnostics Pack 라이선스가 필요합니다(Performance Tuning Guide 19c).');
+  ask('report_type', (v) => {
+    st.type = /^html$/i.test(v) || !v ? 'html' : 'text';
+    if (st.type === 'html') print(note('실습에서는 text 보고서만 만들 수 있습니다. 실제 기본값은 html입니다. 다시 실행해 text 로 답해 주세요.'));
+    if (st.type === 'html') { me.next(); return; }
+    print('\nType Specified:  text\n\nSpecify the number of days of snapshots to choose from\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nEntering the number of days (n) will result in the most recent\n(n) days of snapshots being listed.  Pressing <return> without\nspecifying a number lists all completed snapshots.\n');
+    ask('num_days', (nd) => {
+      const n = +nd || 8; const since = new Date(NOW); since.setDate(since.getDate() - n + 1); since.setHours(0, 0, 0, 0);
+      const list = PERF.snaps.filter(s => s.end >= since);
+      let o = '\nListing the last ' + (nd || 'all') + ' days of Completed Snapshots\nInstance     DB Name      Snap Id       Snap Started    Snap\n                                                        Level\n------------ ------------ ---------- ------------------ -----\n';
+      let lastDay = '';
+      for (const s of list) { const day = ymd(s.end); const lbl = day !== lastDay ? 'ORCL         ORCL    ' : '                     '; lastDay = day; o += `${lbl}   ${String(s.id).padStart(7)}  ${String(s.end.getDate()).padStart(2, '0')} ${s.end.toLocaleString('en-US', { month: 'short' })} ${s.end.getFullYear()} ${pad2(s.end.getHours())}:${pad2(s.end.getMinutes())}      1\n`; }
+      print(o + '\n\nSpecify the Begin and End Snapshot Ids\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n');
+      ask('begin_snap', (b) => {
+        ask('end_snap', (e) => {
+          const B = +b, E = +e; const ids = PERF.snaps.map(s => s.id);
+          if (!ids.includes(B) || !ids.includes(E) || E <= B) { print(`ERROR:\n${note('시작 스냅샷은 목록에 있는 번호여야 하고, 끝 스냅샷은 시작보다 커야 합니다. 다시 @ 로 실행해 주세요. (실제 스크립트의 오류 문구는 확인하지 못했습니다.)')}`); me.next(); return; }
+          print(`Begin Snapshot Id specified: ${B}\n\nEnd   Snapshot Id specified: ${E}\n\n\nSpecify the Report Name\n~~~~~~~~~~~~~~~~~~~~~~~\nThe default report file name is awrrpt_1_${B}_${E}.  To use this name,\npress <return> to continue, otherwise enter an alternative.\n`);
+          ask('report_name', (nm) => {
+            const name = nm || `awrrpt_1_${B}_${E}`;
+            print(`\nUsing the report name ${name}\n`);
+            const txt = awrText(B, E); const abs = normPath(name, S.cwd);
+            putFile(abs, F(S.user, USERS[S.user].group, 0o644, txt, { mt: new Date() }));
+            print(txt.split('\n').slice(0, 8).join('\n') + '\n' + note(`보고서 전체(${txt.split('\n').length}줄)는 ${abs} 에 저장했습니다. SQL*Plus에서 나와 less, grep 으로 읽어 보세요.`) + `Report written to ${name}\n`);
+            ev.awrReport = { begin: B, end: E, path: abs, batch: PERF.batch.begin && B <= PERF.batch.begin.id && E >= PERF.batch.end.id };
+            S.ev = ev; checkLesson(ev); me.next();
+          });
+        });
+      });
+    });
+  });
+}
+function fmtN(n, d) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+function awrText(B, E) {
+  const sb = PERF.snaps.find(s => s.id === B), se = PERF.snaps.find(s => s.id === E);
+  const batch = PERF.batch.begin && B <= PERF.batch.begin.id && E >= PERF.batch.end.id;
+  const mins = (se.end - sb.end) / 60000; const secs = mins * 60;
+  const ev = batch
+    ? [['log file sync', 1000412, 1046.1, '1.05ms', 61.8, 'Commit'], ['DB CPU', null, 498.2, null, 29.4, null], ['log file parallel write', 1000980, 812.4, '812.27us', null, 'System I/O'], ['db file sequential read', 21880, 31.8, '1.45ms', 1.9, 'User I/O'], ['SQL*Net message to client', 2001310, 3.9, '1.95us', .2, 'Network']]
+    : [['DB CPU', null, 41.2 * mins / 60, null, 48.1, null], ['db file sequential read', Math.round(52004 * mins / 60), 38.9 * mins / 60, '748.01us', 45.4, 'User I/O'], ['log file sync', Math.round(1311 * mins / 60), 1.4 * mins / 60, '1.07ms', 1.6, 'Commit'], ['control file sequential read', Math.round(3604 * mins / 60), .4 * mins / 60, '111.0us', .5, 'System I/O'], ['SQL*Net message to client', Math.round(140022 * mins / 60), .2 * mins / 60, '1.43us', .2, 'Network']];
+  const dbTime = batch ? 1692.4 : 85.6 * mins / 60;
+  const fg = ev.filter(e => e[1] != null && e[0] !== 'log file parallel write');
+  let o = `WORKLOAD REPOSITORY report for\n\nDB Name         DB Id    Unique Name DB Role          Edition Release    RAC CDB\n------------ ----------- ----------- ---------------- ------- ---------- --- ---\nORCL          ${DBID} ORCL        PRIMARY          EE      19.0.0.0.0 NO  NO\n\nInstance     Inst Num Startup Time\n------------ -------- ---------------\nORCL                1 ${oDate(S.db.startTime)}\n\n              Snap Id      Snap Time      Sessions Curs/Sess\n            --------- ------------------- -------- ---------\nBegin Snap:     ${String(B).padStart(5)} ${oDate(sb.end)} ${pad2(sb.end.getHours())}:${pad2(sb.end.getMinutes())}:${pad2(sb.end.getSeconds())}       58       1.4\n  End Snap:     ${String(E).padStart(5)} ${oDate(se.end)} ${pad2(se.end.getHours())}:${pad2(se.end.getMinutes())}:${pad2(se.end.getSeconds())}       61       1.4\n   Elapsed:               ${fmtN(mins, 2)} (mins)\n   DB Time:               ${fmtN(dbTime / 60, 2)} (mins)\n\n`;
+  const tx = batch ? 1000412 / secs : 1311 * mins / 60 / secs;
+  o += `Load Profile                    Per Second   Per Transaction\n~~~~~~~~~~~~~~~            ---------------   ---------------\n             DB Time(s):     ${fmtN(dbTime / secs, 1).padStart(14)}   ${fmtN(dbTime / (tx * secs), 2).padStart(15)}\n              DB CPU(s):     ${fmtN(ev.find(e => e[0] === 'DB CPU')[2] / secs, 1).padStart(14)}   ${fmtN(ev.find(e => e[0] === 'DB CPU')[2] / (tx * secs), 2).padStart(15)}\n      Redo size (bytes):     ${fmtN(batch ? 158220.4 : 21044.1, 1).padStart(14)}   ${fmtN(batch ? 571.9 : 5902.3, 1).padStart(15)}\n  Logical read (blocks):     ${fmtN(batch ? 2914.2 : 7012.6, 1).padStart(14)}   ${fmtN(batch ? 10.5 : 1966.8, 1).padStart(15)}\n          User calls:        ${fmtN(batch ? 556.1 : 39.8, 1).padStart(14)}   ${fmtN(batch ? 2.0 : 11.2, 1).padStart(15)}\n             Executes:       ${fmtN(batch ? 279.4 : 58.2, 1).padStart(14)}   ${fmtN(batch ? 1.0 : 16.3, 1).padStart(15)}\n         Transactions:       ${fmtN(tx, 1).padStart(14)}\n\n`;
+  o += `Top 10 Foreground Events by Total Wait Time\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n                                           Total Wait       Avg   % DB Wait\nEvent                                Waits Time (sec)      Wait   time Class\n------------------------------ ----------- ---------- --------- ------ --------\n`;
+  for (const e of ev.filter(x => x[0] !== 'log file parallel write')) o += `${e[0].padEnd(30)} ${e[1] == null ? ''.padStart(11) : fmtN(e[1]).padStart(11)} ${fmtN(e[2], 1).padStart(10)} ${(e[3] || '').padStart(9)} ${fmtN(e[4], 1).padStart(6)} ${e[5] || ''}\n`;
+  o += `\n\nBackground Wait Events\n~~~~~~~~~~~~~~~~~~~~~~\nEvent                                Waits Time (sec)      Wait\n------------------------------ ----------- ---------- ---------\n`;
+  const lpw = ev.find(e => e[0] === 'log file parallel write'); if (lpw) o += `${lpw[0].padEnd(30)} ${fmtN(lpw[1]).padStart(11)} ${fmtN(lpw[2], 1).padStart(10)} ${lpw[3].padStart(9)}\n`;
+  o += `\n\nSQL ordered by Elapsed Time\n~~~~~~~~~~~~~~~~~~~~~~~~~~~\n        Elapsed                  Elapsed Time\n        Time (s)    Executions  per Exec (s)  %Total   SQL Id\n---------------- -------------- ------------- ------ -------------\n`;
+  const sqls = batch ? [['b6usrg82hwsa3', 431.8, 1000412, 'UPDATE ORDER_HIST SET STATUS = :B1 WHERE ORDER_ID = :B2'], ['0w2qpuc6u2zsp', 52.6, 1000004, 'SELECT ORDER_ID, CUST_ID, ORDER_DATE, AMOUNT, STATUS FROM ORDER_HIST WHERE ORDER_ID = :B1']]
+    : [['0w2qpuc6u2zsp', 38.2 * mins / 60, Math.round(18320 * mins / 60), 'SELECT ORDER_ID, CUST_ID, ORDER_DATE, AMOUNT, STATUS FROM ORDER_HIST WHERE ORDER_ID = :B1'], ['b6usrg82hwsa3', 2.1 * mins / 60, Math.round(611 * mins / 60), 'UPDATE ORDER_HIST SET STATUS = :B1 WHERE ORDER_ID = :B2']];
+  for (const q of sqls) o += `${fmtN(q[1], 1).padStart(16)} ${fmtN(q[2]).padStart(14)} ${fmtN(q[1] / q[2], 4).padStart(13)} ${fmtN(q[1] / dbTime * 100, 1).padStart(6)} ${q[0]}\nModule: JDBC Thin Client\n${q[3]}\n\n`;
+  o += `\nSQL ordered by Executions\n~~~~~~~~~~~~~~~~~~~~~~~~~\n Executions   Rows Processed  Rows per Exec   Elapsed Time (s) SQL Id\n------------ --------------- -------------- ------------------ -------------\n`;
+  for (const q of sqls.slice().sort((a, b) => b[2] - a[2])) o += `${fmtN(q[2]).padStart(12)} ${fmtN(q[2]).padStart(15)} ${fmtN(1, 1).padStart(14)} ${fmtN(q[1], 1).padStart(18)} ${q[0]}\nModule: JDBC Thin Client\n${q[3]}\n\n`;
+  o += `\nInstance Activity Stats\n~~~~~~~~~~~~~~~~~~~~~~~\nStatistic                                     Total     per Second     per Trans\n-------------------------------- ------------------ -------------- -------------\nuser commits                     ${fmtN(batch ? 1000412 : Math.round(1311 * mins / 60)).padStart(18)} ${fmtN(tx, 1).padStart(14)} ${fmtN(1, 1).padStart(13)}\nredo writes                      ${fmtN(batch ? 1000980 : Math.round(1402 * mins / 60)).padStart(18)} ${fmtN(batch ? 1000980 / secs : 1402 / 3600, 1).padStart(14)} ${fmtN(1, 1).padStart(13)}\n\n\nEnd of Report\n`;
+  return o;
 }
 
 </script>
@@ -3934,6 +4265,145 @@ LESSONS.push(
     field: '장애 때 가장 위험한 것은 서두르다 상황을 더 나쁘게 만드는 것입니다. 복구 명령을 치기 전에 ① 무엇이 망가졌는지(오류 번호, alert log, VALIDATE) ② 쓸 백업이 있는지 ③ 복구로 잃을 것이 있는지를 확인하고, 할 수 있으면 다른 사람과 함께 봅니다. 복구가 끝나면 새 백업을 한 번 받아 두는 것도 잊지 마세요.',
     sources: ['rmrec', 'fbtab', 'e01116', 'sqshow'] },
 );
+Object.assign(SRC, {
+  pitr:    ['Oracle Database 19c Backup and Recovery User\'s Guide · Performing Flashback and Database Point-in-Time Recovery (DBPITR 절차)', D19 + 'bradv/rman-performing-flashback-dbpitr.html'],
+  rmadv:   ['Oracle Database 19c Backup and Recovery User\'s Guide · Performing RMAN Recovery: Advanced Scenarios (백업 컨트롤 파일로 복구)', D19 + 'bradv/rman-recovery-advanced.html'],
+  rcrest:  ['Oracle Database 19c Backup and Recovery Reference · RESTORE (RESTORE CONTROLFILE FROM AUTOBACKUP, 표 3-9·3-10)', D19 + 'rcmrf/RESTORE.html'],
+  rcuntil: ['Oracle Database 19c Backup and Recovery Reference · untilClause (UNTIL TIME은 NLS_DATE_FORMAT 형식)', D19 + 'rcmrf/untilClause.html'],
+  trunc:   ['Oracle Database 19c SQL Language Reference · TRUNCATE TABLE', D19 + 'sqlrf/TRUNCATE-TABLE.html'],
+  tgstat:  ['Oracle Database 19c Performance Tuning Guide · Gathering Database Statistics (AWR 스냅샷, 기본 1시간·8일, 라이선스)', D19 + 'tgdba/gathering-database-statistics.html'],
+  awr18:   ['(참고, 18c 문서) Performance Tuning Guide 18c · 6.3.2.1 Generating an AWR Report for the Local Database (awrrpt.sql 질문 원문)', 'https://docs.oracle.com/en/database/oracle/oracle-database/18/tgdba/gathering-database-statistics.html'],
+  tginst:  ['Oracle Database 19c Performance Tuning Guide · Instance Tuning Using Performance Views (대기 이벤트, V$SESSION, V$SYSTEM_EVENT, DB time)', D19 + 'tgdba/instance-tuning-using-performance-views.html'],
+  waitcls: ['Oracle Database 19c Reference · C.1 Classes of Wait Events', D19 + 'refrn/classes-of-wait-events.html'],
+  waitev:  ['Oracle Database 19c Reference · C.3 Descriptions of Wait Events', D19 + 'refrn/descriptions-of-wait-events.html'],
+  commit:  ['Oracle Database 19c SQL Language Reference · COMMIT (기본값 WRITE WAIT IMMEDIATE)', D19 + 'sqlrf/COMMIT.html'],
+  anat9:   ['Oracle 해부도 · 사례: 한 건마다 COMMIT 하는 배치', '../#step-9'],
+});
+const stillEmpty = () => S.db.tables['APP.ORDER_HIST'] && S.db.tables['APP.ORDER_HIST'].count === 0;
+const reportFile = () => { const r = lookup('/home/oracle'); return r && r.node ? Object.keys(r.node.c).find(n => /^awrrpt_1_\d+_\d+/.test(n)) : null; };
+const batchHint = () => PERF.batch && PERF.batch.begin ? `${PERF.batch.begin.id}과 ${PERF.batch.end.id}` : '';
+
+LESSONS.push(
+  { id: 41, stage: 5, title: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', short: '시점 복구', start: 'oracle',
+    who: '박팀장',
+    situation: () => `"큰일 났어요. 운영 DB에서 오늘 ${at5()}에 TRUNCATE TABLE app.order_hist가 실행됐어요. 주문 이력이 통째로 비었어요." TRUNCATE는 휴지통에 남지 않고, 이 DB는 Flashback Database도 켜 두지 않았습니다. 업무팀과 협의해서, 사고 2분 전 시각으로 DB 전체를 되돌리기로 했어요. 그 뒤에 들어온 변경은 잃는다는 데 모두 동의했어요.`,
+    tasks: [
+      { text: '앱 계정으로 테이블이 정말 비었는지 확인하기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => asUser('APP') && qtab(ev, 'APP.ORDER_HIST'),
+        why: '<code>0</code>건입니다. SQL Language Reference 19c의 TRUNCATE TABLE 주의 문구: "TRUNCATE TABLE 문은 롤백할 수 없고, FLASHBACK TABLE 문으로 비운 테이블의 내용을 되찾을 수도 없다." 4단계의 휴지통으로도 되살릴 수 없습니다.' },
+      { text: 'SQL*Plus에서 나와 RMAN 날짜 형식 맞추기', hint: 'exit\nexport NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"', done: () => !S.sql && String(S.env.NLS_DATE_FORMAT || '').replace(/['"]/g, '').toUpperCase() === 'YYYY-MM-DD HH24:MI:SS',
+        why: 'Backup and Recovery User\'s Guide 19c의 DBPITR 절차 3단계: "시각으로 목표를 정한다면 RMAN을 실행하기 전에 시각 형식 환경 변수를 맞춰 두라." Reference 19c의 untilClause도 UNTIL TIME 문자열이 NLS_DATE_FORMAT 형식과 맞아야 한다고 설명합니다. 문서 예시는 <code>"Mon DD YYYY HH24:MI:SS"</code>이고, 실습에서는 읽기 쉬운 <code>YYYY-MM-DD HH24:MI:SS</code>를 씁니다.' },
+      { text: 'RMAN으로 접속해서 사고 전 백업이 있는지 보기', hint: 'rman target /\nlist backup summary;', done: ev => ev.rmanList,
+        why: '오늘 새벽과 어제 새벽의 전체 백업(LV F)이 있습니다. 목표 시각보다 앞선 백업이 있어야 시점 복구를 할 수 있습니다.' },
+      { text: 'RMAN에서 나와 DB를 MOUNT 상태로 내렸다 올리기', hint: 'exit\nsqlplus / as sysdba\nshutdown immediate\nstartup mount\nexit', done: () => S.db.state === 'MOUNTED' && !S.sql,
+        why: '문서 절차 5단계: <code>SHUTDOWN IMMEDIATE;</code> <code>STARTUP MOUNT;</code> DB 전체를 되돌리므로 업무는 이 순간부터 멈춥니다. 데이터 파일을 모두 덮어써야 하니 DB가 열려 있으면 안 됩니다.' },
+      { text: 'RMAN의 RUN 블록으로 목표 시각까지 복원·복구하기', hint: () => `rman target /\nrun {\n  set until time '${PITR_UNTIL()}';\n  restore database;\n  recover database;\n}`, done: ev => !!(ev.rmanRecoverDb && ev.rmanRecoverDb.until) && S.db.needResetlogs,
+        why: '문서 절차 6단계와 같은 모양입니다: <code>RUN { SET UNTIL ...; RESTORE DATABASE; RECOVER DATABASE; }</code>. Reference 19c는 SET UNTIL을 RESTORE와 RECOVER 앞에 함께 두라고 권합니다. 그래야 목표 시각보다 앞선 백업을 고르고, 아카이브 로그를 딱 그 시각까지만 적용합니다. 문서: "오류 없이 끝나면 DBPITR은 성공한 것이다." 목표 시각은 포함하지 않는 상한입니다(untilClause).' },
+      { text: 'RESETLOGS로 DB 열기', hint: 'alter database open resetlogs;', done: () => S.db.state === 'OPEN' && !S.db.needResetlogs,
+        why: '<code>ALTER DATABASE OPEN RESETLOGS;</code> Reference 19c(RECOVER): "불완전 복구(DBPITR) 뒤에는 RESETLOGS 옵션으로 DB를 열어야 한다." 문서 7단계는 이것을 "목표 시각 뒤의 모든 변경을 버리고 읽기·쓰기로 연다"고 설명합니다. 그냥 <code>alter database open</code>을 치면 ORA-01589로 막힙니다.' },
+      { text: 'RMAN에서 나와 주문 이력이 돌아왔는지 확인하기', hint: 'exit\nsqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => asUser('APP') && qtab(ev, 'APP.ORDER_HIST') && !stillEmpty(),
+        why: '건수가 돌아왔습니다. 대신 사고 2분 전부터 지금까지 들어온 다른 변경은 모두 사라졌습니다. 업무팀은 그 시간의 주문을 다시 넣어야 합니다. 목표 시각을 사고 뒤로 잡았거나 SET UNTIL 없이 끝까지 복구했다면 TRUNCATE까지 다시 적용되어 0건 그대로였을 것입니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: 'DB 전체를 되돌리는 시점 복구는 업무 전체를 멈추고 다른 변경까지 버리는 무거운 결정이라, DBA 혼자 정하지 않습니다. 문서는 대안으로 "Data Pump로 필요한 객체만 내보낸 뒤 DB를 현재 시점으로 되돌리고 다시 넣는 방법"도 듭니다. 실무에서는 별도 서버에 복원해 필요한 테이블만 꺼내는 방법, RMAN의 테이블 단위 복구(RECOVER TABLE), Flashback Database(미리 켜 두어야 함)도 검토합니다. RESETLOGS로 연 뒤에는 새 전체 백업을 받아 두는 것이 현장의 관례입니다(이번에 확인한 19c 문서의 DBPITR 절에는 이 권고가 없습니다).',
+    sources: ['pitr', 'rcuntil', 'rmrecref', 'trunc'] },
+
+  { id: 42, stage: 5, title: '컨트롤 파일을 모두 잃었을 때', short: '컨트롤 파일 전체', start: 'oracle',
+    who: '인프라팀 윤과장 (전화)',
+    situation: '"스토리지 정리 스크립트가 잘못 돌아서 /u02와 /u01의 control0*.ctl 파일이 둘 다 지워졌어요. DB는 그 직후 비정상 종료됐고요." 데이터 파일과 온라인 리두 로그는 남아 있습니다. 컨트롤 파일 자동 백업(CONTROLFILE AUTOBACKUP ON)은 빠른 복구 영역에 있어요.',
+    tasks: [
+      { text: 'SYSDBA로 접속해서 DB 올려 보기', hint: 'sqlplus / as sysdba\nstartup', done: ev => failed(ev, 'ORA-00205'),
+        why: '3단계 레슨과 같은 ORA-00205입니다. 인스턴스는 떴지만(NOMOUNT) 컨트롤 파일을 열지 못했습니다.' },
+      { text: 'alert log에서 컨트롤 파일 상태 보기', hint: 'host grep ORA-00202 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => ev.host && ev.stages.some(a => a.some(x => /alert_ORCL\.log/.test(x))),
+        why: '이번에는 <code>control01.ctl</code>과 <code>control02.ctl</code> 둘 다 ORA-00202입니다. 복사할 성한 사본이 없습니다. Backup and Recovery User\'s Guide 19c: "현재 컨트롤 파일을 모두 잃었다면 백업 컨트롤 파일을 복원해야 한다."' },
+      { text: 'SQL*Plus에서 나와 RMAN으로 접속하기', hint: 'exit\nrman target /', done: ev => !S.sql && ev.rmanConn,
+        why: '<code>connected to target database: ORCL (not mounted)</code>. 인스턴스는 NOMOUNT 상태로 떠 있습니다. 문서 절차의 2단계가 바로 <code>STARTUP NOMOUNT</code>입니다.' },
+      { text: '자동 백업에서 컨트롤 파일 복원하기', hint: 'restore controlfile from autobackup;', done: ev => ev.rmanRestoreCf,
+        why: 'Backup and Recovery Reference 19c: 카탈로그 없이 NOMOUNT 상태에서는 <code>FROM AUTOBACKUP</code>을 꼭 붙여야 하고, 복원한 컨트롤 파일은 CONTROL_FILES의 모든 위치에 쓰입니다. 문서의 표 3-10에 따르면 자동 백업이 빠른 복구 영역에 있으면 <code>SET DBID</code>가 필요 없습니다. 빠른 복구 영역 밖에 있었다면 DBID를 알아야 하니, 평소 DBID를 기록해 두세요(RMAN이 접속할 때마다 보여 줍니다).' },
+      { text: '복원한 컨트롤 파일로 MOUNT 하기', hint: 'alter database mount;', done: () => S.db.state === 'MOUNTED' },
+      { text: '복구하기', hint: 'recover database;', done: ev => !!ev.rmanRecoverDb,
+        why: '문서: "데이터 파일을 하나도 복원하지 않았더라도 RECOVER 명령을 실행해야 한다." 백업 컨트롤 파일은 백업 시점의 기록이라, 그 뒤의 로그를 적용해 데이터 파일과 맞춰야 합니다. 문서대로 "온라인 리두 로그를 쓸 수 있으면 RMAN이 찾아서 적용"합니다. 온라인 리두 로그까지 잃었다면 목표 시각을 정한 시점 복구가 되고, UNTIL 없이 하면 RMAN-06054가 납니다.' },
+      { text: 'RESETLOGS로 DB 열기', hint: 'alter database open resetlogs;', done: () => S.db.state === 'OPEN',
+        why: '문서: "백업 컨트롤 파일로 복구한 뒤에는 로그가 있든 없든 OPEN RESETLOGS가 항상 필요하다." 데이터 손실 없이 열렸습니다.' },
+      { text: 'RMAN에서 나와 컨트롤 파일이 두 군데 다 생겼는지 보기', hint: 'exit\nls -l /u02/app/oracle/oradata/ORCL/control01.ctl /u01/app/oracle/fast_recovery_area/ORCL/control02.ctl', done: ev => !S.sql && (has(ev, 'ls') || has(ev, 'find')) && ev.stages.some(a => a.some(x => /control0[12]\.ctl/.test(x))),
+        why: '두 사본이 모두 돌아왔습니다. 자동 백업이 없었다면 CREATE CONTROLFILE 문을 손으로 써야 하는 훨씬 어려운 상황이 됩니다. 3단계에서 <code>SHOW ALL</code>로 CONTROLFILE AUTOBACKUP ON을 확인한 이유입니다.' },
+    ],
+    field: '컨트롤 파일 다중화(서로 다른 디스크), 자동 백업 켜기, DBID 기록. 이 세 가지가 이번 장애를 10분짜리로 만들었습니다. RESETLOGS로 연 뒤에는 새 백업을 받아 두는 것이 현장의 관례입니다.',
+    sources: ['rmadv', 'rcrest', 'rmrecref', 'e00205'] },
+
+  { id: 43, stage: 5, title: '졸업 미션: 지워진 테이블과 빈 휴지통', short: '졸업 미션', start: 'oracle',
+    who: '박팀장',
+    situation: () => `개발팀 송대리가 오늘 ${at5()}에 운영 DB에서 <code>DROP TABLE app.cust_memo PURGE</code>를 실행했습니다. 고객 상담 메모는 법적 보관 대상이라 반드시 되살려야 하고, 업무팀은 그 뒤에 들어온 변경을 다시 넣기로 했어요. 4단계에서 배운 휴지통부터 확인하고, 안 되면 사고 2분 전으로 시점 복구하세요. 끝나면 ~/incident_pitr.txt 에 보고서를 남겨 주세요.`,
+    tasks: [
+      { text: '앱 계정으로 휴지통부터 확인하기', hint: 'sqlplus app/App#2026@ORCL\nshow recyclebin\nflashback table cust_memo to before drop;', done: ev => failed(ev, 'ORA-38305') || (ev.showRecyc && !ev.showRecycRows),
+        why: 'PURGE로 지운 테이블은 휴지통을 거치지 않습니다. SQL Language Reference 19c는 휴지통에서 지운(purge) 테이블은 FLASHBACK TABLE로 되살릴 수 없다고 설명합니다.' },
+      { text: 'SQL*Plus에서 나와 날짜 형식을 맞추고 DB를 MOUNT로', hint: 'exit\nexport NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"\nsqlplus / as sysdba\nshutdown immediate\nstartup mount\nexit', done: () => S.db.state === 'MOUNTED' && !S.sql },
+      { text: 'RMAN으로 사고 2분 전까지 시점 복구하기', hint: () => `rman target /\nrun {\n  set until time '${PITR_UNTIL()}';\n  restore database;\n  recover database;\n}`, done: ev => !!(ev.rmanRecoverDb && ev.rmanRecoverDb.until) },
+      { text: 'RESETLOGS로 열기', hint: 'alter database open resetlogs;', done: () => S.db.state === 'OPEN' },
+      { text: '열린 DB를 바로 새로 백업하기', hint: 'backup database plus archivelog;', done: ev => ev.rmanBackup && ev.rmanBackup.full,
+        why: 'RESETLOGS 뒤의 첫 백업입니다. 다음 장애 때 되돌아갈 출발점을 새로 만든 것입니다.' },
+      { text: 'RMAN에서 나와 테이블이 돌아왔는지 확인하기', hint: 'exit\nsqlplus app/App#2026@ORCL\nselect count(*) from cust_memo;\nexit', done: ev => asUser('APP') && qtab(ev, 'APP.CUST_MEMO') },
+      { text: '장애 보고서 남기기', hint: () => `exit\necho '${at5()} cust_memo DROP PURGE → ${PITR_UNTIL().slice(11)} 시점 복구, OPEN RESETLOGS, 새 백업. 그 뒤 변경은 재입력 필요.' > ~/incident_pitr.txt`, done: () => !S.sql && /\S/.test((node('/home/oracle/incident_pitr.txt') || {}).txt || ''),
+        why: '수고했습니다. 5단계 고급 복구를 마쳤습니다. 시점 복구 보고서에는 목표 시각을 어떻게 정했는지, 잃은 변경의 범위(목표 시각부터 열 때까지), 누가 결정했는지를 꼭 적습니다.' },
+    ],
+    field: '이런 사고를 줄이는 방법은 복구보다 앞에 있습니다. 운영 DB 계정에 DROP 권한을 함부로 주지 않기, 개발자 접속과 운영 접속을 구분하기, 중요한 테이블이 있는 DB는 Flashback Database나 보존 기간이 긴 UNDO를 검토하기. 문서가 드는 다른 대안(Data Pump로 객체만 옮기기)도 기억해 두세요.',
+    sources: ['pitr', 'fbtab', 'rcuntil', 'rmrecref'] },
+
+  { id: 51, stage: 6, title: '지금 무엇을 기다리는지 보기 (대기 이벤트)', short: '대기 이벤트', start: 'oracle',
+    who: '영업팀 김과장 (전화)',
+    situation: '"월별 주문 조회 화면이 1분 넘게 걸려요. 어제까지는 금방 떴는데요." DB 서버 CPU는 여유가 있다고 합니다. 세션들이 무엇을 하고, 무엇을 기다리는지부터 봐요.',
+    tasks: [
+      { text: 'SYSDBA로 접속해서 화면 넓히기', hint: 'sqlplus / as sysdba\nset linesize 200\ncol username format a10\ncol event format a30\ncol wait_class format a12', done: () => inSysdba() && S.sql.set.linesize >= 150 },
+      { text: '쉬고 있지 않은(Idle이 아닌) 사용자 세션과 대기 이벤트 보기', hint: "select sid, username, status, event, wait_class, seconds_in_wait, sql_id from v$session where type = 'USER' and wait_class <> 'Idle';", done: ev => qsel(ev, 'V$SESSION') && /WAIT_CLASS/.test(ev.sqlU) && /IDLE/.test(ev.sqlU),
+        why: '같은 SQL_ID의 세션 여섯 개가 <code>db file scattered read</code>(User I/O)를 기다립니다. Database Reference 19c: Idle 대기 클래스는 "세션이 일 없이 다음 일을 기다리는 것(예: \'SQL*Net message from client\')"이라 문제를 찾을 때는 빼고 봅니다. <code>db file scattered read</code>는 "<code>db file sequential read</code>와 비슷하지만 여러 블록을 한 번에 읽는" 대기입니다. 한 블록씩 읽는 쪽이 sequential read입니다.' },
+      { text: '그 SQL이 무엇이고 얼마나 읽는지 보기', hint: "col sql_text format a60\nselect sql_id, executions, round(elapsed_time/1000000) elapsed_s, disk_reads, buffer_gets, sql_text from v$sql where sql_id = '8wzq2k1ptm6c4';", done: ev => qsel(ev, 'V$SQL'),
+        why: '1,284번 실행에 디스크 읽기가 4천만 블록이 넘습니다. 한 번 실행할 때마다 3만 블록 넘게 읽는 셈입니다(41,820,311 ÷ 1,284 ≈ 32,571). 주문 이력 테이블을 통째로 훑는 모양입니다. SQL 문장의 <code>WHERE</code> 조건이 어떻게 쓰였는지가 실마리가 됩니다.' },
+      { text: '인스턴스가 시작된 뒤 가장 오래 기다린 대기 이벤트 보기', hint: "col event format a32\nselect event, total_waits, round(time_waited_micro/1000000) waited_s, wait_class from v$system_event where wait_class <> 'Idle' order by time_waited_micro desc;", done: ev => qsel(ev, 'V$SYSTEM_EVENT'),
+        why: 'Performance Tuning Guide 19c: "V$SYSTEM_EVENT는 인스턴스가 시작된 뒤의 모든 대기를 요약한다." 지금 이 순간(V$SESSION)과 누적(V$SYSTEM_EVENT)을 함께 봐야 오늘 갑자기 생긴 문제인지 원래 있던 것인지 구분할 수 있습니다.' },
+      { text: 'DB time과 DB CPU 비교하기', hint: "select stat_name, round(value/1000000) seconds from v$sys_time_model where stat_name in ('DB time', 'DB CPU');", done: ev => qsel(ev, 'V$SYS_TIME_MODEL'),
+        why: 'Performance Tuning Guide 19c: DB time은 "데이터베이스 호출에 쓴 전체 시간"입니다. DB time에서 CPU를 쓴 시간을 빼면 대부분 기다린 시간입니다. 여기서는 절반 넘게 기다림이고, 그중 디스크 읽기가 가장 큽니다.' },
+      { text: 'SQL*Plus에서 나와 개발팀에 넘길 내용 남기기', hint: "exit\necho 'sql_id 8wzq2k1ptm6c4 (order-web 월별 조회): 실행 1회당 약 3.2만 블록 디스크 읽기, db file scattered read 대기. 실행 계획과 조건 확인 요청' > ~/slow_sql.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/slow_sql.txt') || {}).txt || ''),
+        why: 'DBA는 "어느 SQL이, 무엇을 얼마나 기다리는지"를 숫자로 넘깁니다. SQL 고치기(실행 계획, 인덱스)는 SQL 튜닝의 영역이라 이 과정에서는 다루지 않습니다.' },
+    ],
+    field: '"느려요"라는 말에는 대기 이벤트로 답합니다. 순서는 ① Idle이 아닌 세션의 EVENT ② 그 세션의 SQL_ID와 V$SQL ③ 누적 대기(V$SYSTEM_EVENT)와 DB time입니다. 대기 클래스 이름(User I/O, Commit, Application, Concurrency 등)만 봐도 어디를 볼지 방향이 잡힙니다.',
+    sources: ['tginst', 'waitcls', 'waitev'] },
+
+  { id: 52, stage: 6, title: 'AWR 보고서로 어젯밤 배치 들여다보기', short: 'AWR 보고서', start: 'oracle',
+    who: '정산팀 이대리 (메신저)',
+    situation: () => `"${BATCH_DAY ? '어제' : '오늘'} 새벽 2시에 도는 주문 정산 배치가 평소 10분이던 게 40분 넘게 걸렸어요. 이번 주에 프로그램을 새 버전으로 바꿨거든요." 지난 일은 V$ 뷰에 남아 있지 않습니다. AWR이 1시간마다 찍어 둔 스냅샷으로 그 시간을 봐요.`,
+    tasks: [
+      { text: 'SYSDBA로 접속해서 스냅샷 목록 보기', hint: "sqlplus / as sysdba\nset pagesize 60\nselect snap_id, to_char(begin_interval_time, 'MM-DD HH24:MI') begin_time, to_char(end_interval_time, 'MM-DD HH24:MI') end_time from dba_hist_snapshot order by snap_id;", done: ev => qsel(ev, 'DBA_HIST_SNAPSHOT'),
+        why: 'Performance Tuning Guide 19c: "기본적으로 Oracle Database는 1시간마다 스냅샷을 만들고 AWR에 8일간 보관한다." 배치 시간(2시~3시)을 감싸는 스냅샷 두 개를 찾습니다. 스냅샷 시각은 구간의 끝이니, 2시 스냅샷과 3시 스냅샷 사이가 배치 시간입니다.' },
+      { text: '지금 시점의 스냅샷도 하나 직접 만들기', hint: 'exec dbms_workload_repository.create_snapshot', done: ev => !!ev.awrSnap,
+        why: '문서의 예시 <code>DBMS_WORKLOAD_REPOSITORY.CREATE_SNAPSHOT ();</code>입니다. 부하 시험 앞뒤처럼 정확한 구간이 필요할 때 손으로 찍습니다. 새 스냅샷은 DBA_HIST_SNAPSHOT에서 볼 수 있습니다.' },
+      { text: '배치 시간의 AWR 보고서(text) 만들기', hint: () => `@$ORACLE_HOME/rdbms/admin/awrrpt.sql\ntext\n2\n${batchHint().replace('과 ', '\n')}\n(report_name은 그냥 Enter)`, done: ev => !!(ev.awrReport && ev.awrReport.batch),
+        why: '문서의 순서 그대로입니다: report_type(html/text) → num_days → begin_snap, end_snap → report_name(Enter면 기본 이름 <code>awrrpt_1_시작_끝</code>). 보고서는 SQL*Plus를 실행한 디렉터리에 생깁니다.' },
+      { text: 'SQL*Plus에서 나와 가장 오래 기다린 이벤트 읽기', hint: 'exit\ngrep -A10 "Top 10 Foreground Events" awrrpt_1_*', done: ev => !S.sql && reportFile() && [...ev.read].some(p => /awrrpt_1_/.test(p)),
+        why: '<code>log file sync</code>가 약 100만 번, DB time의 60% 넘게 차지합니다. Database Reference 19c: log file sync는 "세션이 커밋하면 세션의 리두를 리두 로그 파일로 내려써야 하고, LGWR이 다 쓰고 알려 줄 때까지 기다리는" 대기입니다. Commit 대기 클래스에는 이 이벤트 하나만 있습니다. 한 번은 1 ms 남짓으로 짧지만 횟수가 엄청납니다.' },
+      { text: '가장 많이 실행된 SQL 찾기', hint: 'grep -A8 "SQL ordered by Executions" awrrpt_1_*', done: ev => !S.sql && has(ev, 'grep') && ev.stages.some(a => a.some(x => /Executions/.test(x))),
+        why: '<code>UPDATE ORDER_HIST ...</code>가 100만 번, 한 번에 1행씩입니다. 아래쪽 Instance Activity Stats의 <code>user commits</code>도 100만입니다. 새 버전 프로그램이 한 건 고칠 때마다 커밋하는 것입니다. SQL Language Reference 19c에 따르면 클라이언트가 보낸 COMMIT의 기본은 WRITE WAIT IMMEDIATE라, 커밋마다 LGWR의 쓰기를 기다립니다. Oracle 해부도의 "한 건마다 COMMIT 하는 배치" 사례와 같은 상황입니다.' },
+      { text: '정산팀에 보낼 결과 남기기', hint: "echo 'AWR 배치 구간: log file sync 약 100만 회(DB time 60%↑), UPDATE ORDER_HIST 100만 회 = 건별 커밋. 업무 단위(예: 5,000건)로 묶어 커밋하도록 수정 요청' > ~/batch_awr.txt", done: () => /\S/.test((node('/home/oracle/batch_awr.txt') || {}).txt || '') },
+    ],
+    field: 'AWR은 지난 일을 볼 수 있는 가장 좋은 도구지만, Performance Tuning Guide 19c는 "이 장의 AWR 기능을 쓰려면 Oracle Diagnostics Pack 라이선스가 필요하다"고 밝힙니다. 라이선스가 없는 DB에서는 AWR 보고서를 만들지 말고, 회사의 라이선스 담당과 먼저 확인하세요. 또 STATISTICS_LEVEL을 BASIC으로 바꾸면 AWR이 꺼집니다(기본값 TYPICAL). 보고서 본문의 모양은 실제 19c 보고서와 비슷하게 만들었지만 공식 문서 예시로 확인하지 못했습니다.',
+    sources: ['tgstat', 'awr18', 'waitev', 'waitcls', 'commit', 'anat9'] },
+
+  { id: 53, stage: 6, title: '졸업 미션: 주문 저장이 멈춘 아침', short: '졸업 미션', start: 'oracle',
+    who: '박팀장',
+    situation: '"주문 저장 버튼을 누르면 화면이 돌기만 해요!" 오전 9시, 콜센터 전화가 몰립니다. 6단계에서 배운 순서대로 무엇을 기다리는지 찾고, 원인 세션을 정리한 뒤 ~/perf_report.txt 에 보고서를 남겨 주세요. 세션을 끊는 것은 팀장님이 승인했습니다.',
+    tasks: [
+      { text: 'Idle이 아닌 사용자 세션의 대기 이벤트 보기', hint: "sqlplus / as sysdba\nset linesize 200\ncol event format a32\nselect sid, username, event, wait_class, blocking_session, seconds_in_wait from v$session where type = 'USER' and wait_class <> 'Idle';", done: ev => qsel(ev, 'V$SESSION') && /WAIT_CLASS/.test(ev.sqlU),
+        why: '<code>enq: TX - row lock contention</code>(Application)입니다. Database Reference 19c: "한 사용자가 다른 세션이 고치고 있는 행을 고치거나 지우려 할 때" 생기고, "잠금을 쥔 세션이 COMMIT이나 ROLLBACK을 하면 풀린다." BLOCKING_SESSION이 모두 88입니다.' },
+      { text: '잠금을 쥔 세션 88이 누구인지 보기', hint: 'col program format a20\ncol machine format a12\nselect sid, serial#, username, status, machine, program, last_call_et from v$session where sid = 88;', done: ev => qsel(ev, 'V$SESSION') && /SID\s*=\s*88/.test(ev.sqlU),
+        why: '개발자 PC(dev-pc07)의 SQL Developer가 40분째 INACTIVE입니다. 행을 고쳐 놓고 커밋하지 않은 채 자리를 비운 것입니다. 3단계 세션 정리 레슨과 같은 모양입니다.' },
+      { text: '팀장 승인을 받았으니 세션 88 끊기', hint: "alter system kill session '88,40213';", done: ev => ev.killed.includes('88,40213') },
+      { text: '대기가 풀렸는지 다시 보기', hint: "select sid, username, event, wait_class from v$session where type = 'USER' and wait_class <> 'Idle';", done: ev => qsel(ev, 'V$SESSION') && /WAIT_CLASS/.test(ev.sqlU) && !S.db.sessions.some(s => /enq: TX/.test(s.event)),
+        why: '<code>no rows selected</code>. 기다리던 세션이 모두 풀렸습니다. 끊긴 세션의 고치다 만 변경은 롤백됩니다. 송대리에게 무엇을 고치던 중이었는지 알려 주어야 합니다.' },
+      { text: '누적 대기 순위로 오늘 아침 상황 확인하기', hint: "select event, total_waits, round(time_waited_micro/1000000) waited_s, wait_class from v$system_event where wait_class <> 'Idle' order by time_waited_micro desc;", done: ev => qsel(ev, 'V$SYSTEM_EVENT') },
+      { text: '보고서 남기기', hint: "exit\necho '09:05 주문 저장 멈춤: enq: TX - row lock contention, 원인 SID 88(dev-pc07 SQL Developer, 40분 미커밋). 승인 후 KILL, 대기 해소. 재발 방지: 운영 DB 개발자 직접 접속 제한' > ~/perf_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/perf_report.txt') || {}).txt || ''),
+        why: '수고했습니다. 6단계 성능 점검과 DBA 실습 과정 전체를 마쳤습니다. 리눅스 기초부터 장애 복구, 성능 점검까지, 신입 DBA가 현장에서 처음 몇 달 동안 만나는 일들을 한 번씩 손으로 해 보았습니다.' },
+    ],
+    field: '성능 문제의 첫 질문은 언제나 "무엇을 기다리는가"입니다. 대기 클래스가 Application이면 잠금, Commit이면 커밋 횟수, User I/O면 읽는 양과 SQL, Concurrency면 내부 자원 경합 쪽을 봅니다(Database Reference 19c의 대기 클래스 정의).',
+    sources: ['waitev', 'waitcls', 'tginst'] },
+);
 
 
 /* =====================================================================
@@ -3947,7 +4417,8 @@ function startLesson(id) {
   const L = LESSONS.find(l => l.id === id) || LESSONS[0];
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
-  if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 3) { makeWorld3(L.id - 20); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 2) { makeWorld2(L.id); S.dfRows = () => [['devtmpfs', 15.5 * GB, 0, '/dev'], ['tmpfs', 15.6 * GB, 0, '/dev/shm'], ['tmpfs', 15.6 * GB, 8.5 * MB, '/run'], ['tmpfs', 15.6 * GB, 0, '/sys/fs/cgroup'], ['/dev/mapper/ol-root', 50 * GB, 4.1 * GB, '/'], ['/dev/sda1', 1014 * MB, 233 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', 200 * GB, 1.5 * GB + duOf(lookup('/u01').node), '/u01'], ['/dev/nvme0n1p1', 500 * GB, 3.6 * GB + duOf(lookup('/u02').node), '/u02'], ['tmpfs', 3.2 * GB, 0, '/run/user/0']]; S.user = 'root'; loginEnv('root'); S.cwd = '/root'; }
   else { setIds(USERS1, GIDS1); const w = makeFS(L.id); Object.assign(S, { fs: w.fs, alertSeq: w.alertSeq, procs: makeProcs(L.id), hn: HOSTS[1].hn, ip: HOSTS[1].ip, mem: MEM1 }); if (L.start !== 'laptop') { S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; } }
@@ -3979,7 +4450,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' } };
 const stageOf = (l) => l.stage || 3;
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
@@ -3995,19 +4466,19 @@ function renderMission() {
   const L = cur.L; const el = document.getElementById('mission');
   const items = L.tasks.map((t, i) => {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
-    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${esc(t.hint)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
+    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${esc(typeof t.hint === 'function' ? t.hint() : t.hint)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
   }).join('');
   const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
   const away = !next && Course.nextElsewhere('dba', st);
   el.innerHTML = `<div class="eyebrow"><b>${STAGES[st].name}</b> / 레슨 ${lessonNo(L)} / ${cnt}</div>
     <h1>${L.title}</h1>
-    <p class="situation"><span class="who">${L.who}</span>${L.situation}</p>
+    <p class="situation"><span class="who">${L.who}</span>${typeof L.situation === 'function' ? L.situation() : L.situation}</p>
     <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
     ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
     <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
-  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
+  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(typeof t.hint === 'function' ? t.hint() : t.hint)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));
