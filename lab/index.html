@@ -18,6 +18,7 @@
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <script src="../session.js"></script>
+<script src="../tips.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -145,6 +146,9 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 .cur-task { display: none; padding: 8px 12px; border-bottom: 1px solid #263142; color: var(--term-ink); font-size: 13.5px; font-family: var(--font-sans); }
 .cur-task b { color: var(--term-green); font-weight: 600; margin-right: 4px; }
 .cur-task .hint { margin: 6px 0 0; background: #1a2230; }
+.hint .tips { display: block; margin-top: 7px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,.2); color: #9fb6cc; font-size: 12px; line-height: 1.55; }
+.hint .tip-src { color: #8a9bb0; }
+.hint .tips a { color: #9cc8ff; }
 .cur-task .hint-btn { margin-left: 6px; background: #1a2230; border-color: #334055; color: var(--term-ink); }
 .term-foot { border-top: 1px solid #263142; padding: 7px 12px; color: var(--term-dim); font-size: 12px; font-family: var(--font-sans); }
 
@@ -995,7 +999,29 @@ function readFile(name, cmd) {
 const linesOf = (t) => { if (!t) return []; const a = t.split('\n'); if (a[a.length - 1] === '') a.pop(); return a; };
 
 const CMDS = {
-  help() { return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear  sqlplus lsnrctl(일부)\n  (2단계) rpm -q  dnf install  sysctl  ulimit  groupadd useradd usermod passwd')); },
+  man(argv) {
+    const n = argv[1];
+    if (!n) return fail('What manual page do you want?\nFor example, try \'man man\'.\n');
+    const t = Tips.manText(n, 'man');
+    if (!t) return fail(`No manual entry for ${n}\n`, 16);
+    return ok(t + note('실습용 요약입니다. 실제 서버의 man 페이지는 영어 전체 설명서이고, 화면을 넘기며 읽다가 q로 닫습니다. 찾기는 /단어.'));
+  },
+  tee(argv, io) {
+    const { f, rest } = opts(argv); const txt = io.stdin || ''; let err = '';
+    for (const t of rest) { const abs = normPath(t.replace(/^~(?=\/|$)/, USERS[S.user].home), S.cwd); const r = lookup(abs); const prev = f.a && r && r.node && r.node.txt != null ? r.node.txt : ''; const m = mkfile(abs, prev + txt.replace(/<[^>]+>/g, '')); if (m.err) err += `tee: ${t}: ${m.err === 'perm' ? 'Permission denied' : m.err === 'isdir' ? 'Is a directory' : 'No such file or directory'}\n`; else S.ev.wrote = abs; }
+    return { out: txt, err, code: err ? 1 : 0 };
+  },
+  sort(argv, io) {
+    const { f, rest } = opts(argv); let txt = io.stdin || '';
+    if (rest.length) { const rf = readFile(rest[0], 'sort'); if (rf.e) return fail(rf.e + '\n', 2); txt = rf.txt; }
+    const hv = (x) => { const m = /^\s*([\d.]+)([KMGTP]?)/i.exec(x); if (!m) return 0; return parseFloat(m[1]) * Math.pow(1024, ' KMGTP'.indexOf((m[2] || ' ').toUpperCase())); };
+    const nv = (x) => { const m = /^\s*(-?[\d.]+)/.exec(x); return m ? parseFloat(m[1]) : 0; };
+    const ls = linesOf(txt);
+    ls.sort((a, b) => f.h ? hv(a) - hv(b) : f.n ? nv(a) - nv(b) : (a < b ? -1 : a > b ? 1 : 0));
+    if (f.r) ls.reverse();
+    return ok(ls.length ? ls.join('\n') + '\n' : '');
+  },
+  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear  sqlplus lsnrctl(일부)\n  (2단계) rpm -q  dnf install  sysctl  ulimit  groupadd useradd usermod passwd\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
   whoami() { return ok(S.user + '\n'); },
   hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
@@ -1628,6 +1654,7 @@ function execOne(argv, io) {
     return ok();
   }
   if ((name === 'bash' || name === 'sh') && argv[1]) { const rf = readFile(argv[1], 'bash'); if (rf.e) return fail(rf.e + '\n', 127); return { out: '', err: '', code: 0, script: { path: rf.abs, txt: rf.txt } }; }
+  if (argv.length === 2 && argv[1] === '--help' && Tips.ref(name) && (CMDS[name] || INTERACTIVE[name]) && findInPath(name)) return ok(Tips.manText(name, 'help') + note('실습용 요약입니다. 실제 서버의 --help는 영어로 모든 옵션을 보여 줍니다.'));
   const fn = CMDS[name];
   if (fn && (BUILTIN.has(name) || findInPath(name) || name === '__assign')) return fn(argv, io);
   if (name === 'sqlplus' || name === 'lsnrctl') { const p = findInPath(name); if (p) return fn(argv, io); }
@@ -2428,11 +2455,12 @@ function renderTabs() {
   el.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => startLesson(+b.dataset.id)));
   const a = el.querySelector('[aria-current="true"]'); if (a) a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
+function hintBody(t) { const h = typeof t.hint === 'function' ? t.hint() : t.hint; return esc(h) + (window.Tips ? Tips.html(h, esc) : ''); }
 function renderMission() {
   const L = cur.L; const el = document.getElementById('mission');
   const items = L.tasks.map((t, i) => {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
-    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${esc(t.hint)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
+    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
   }).join('');
   const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
@@ -2445,7 +2473,7 @@ function renderMission() {
     <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
     <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥은 Cmd+Shift+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
-  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
+  ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${hintBody(t)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; Sess.hints(cur.hints); renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));

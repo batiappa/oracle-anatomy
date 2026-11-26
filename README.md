@@ -117,6 +117,16 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
 - 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
 
+## 힌트의 실무 메모 (`tips.js`)
+
+- 힌트를 열면 명령 아래에 주석(리눅스·RMAN은 `#`, SQL은 `--`)으로 그 명령의 옵션을 찾아보는 방법과 현장에서 자주 덧붙이는 옵션이 나옵니다. 예: `set linesize 200` 아래에 `HELP SET`, `SHOW ALL`, `grep ORA- ...` 아래에 `grep --help`, `man grep`, `> 파일`, `| tee 파일`.
+- 주석에 나온 찾아보기 명령은 가상 터미널에서도 동작합니다.
+  - 리눅스: `man 명령`, `명령 --help`, `help 내장명령`(cd, echo, export, umask, source), `tee [-a]`, `sort [-n|-h|-r]`
+  - SQL*Plus: `HELP INDEX`, `HELP 명령`, `SHOW ALL`, `SPOOL 파일 [CREATE|REPLACE|APPEND]`, `SPOOL OFF`, `SPOOL`(상태)
+  - RMAN: `rman target / log 파일 [append]` (결과를 화면 대신 파일에 기록)
+  - lsnrctl: `lsnrctl help`
+- man, --help, HELP 화면은 실습용 한국어 요약입니다. SQL*Plus HELP의 형식 줄(`SET LIN[ESIZE] {80 | n | WINDOW}`, `SPO[OL] [file_name[.ext] [CRE[ATE] | REP[LACE] | APP[END]] | OFF | OUT]` 등)은 SQL*Plus User's Guide 19c의 표기를 옮겼습니다. RMAN LOG 동작(출력은 파일로, 입력은 화면에)은 Backup and Recovery Reference 19c의 RMAN 명령 설명을 따랐습니다. SHOW ALL 줄 형식, SPOOL 상태 문구와 오류 문구는 확인하지 못해 터미널에 ⓘ 줄로 알려 줍니다.
+
 ## 실습 세션 자동 저장 (`session.js`, `sw.js`)
 
 - 리눅스 실습실과 DBA 실습은 지금 하던 레슨을 브라우저(localStorage `ohb:lab:sess`, `ohb:dba:sess`)에 자동 저장합니다. 새로고침해도 터미널 화면, 명령 기록, 가상 서버 상태, vi 편집 중인 내용, 할 일 진행, 열어 둔 힌트가 그대로 돌아옵니다.
