@@ -5,9 +5,11 @@
      그 뒤에 입력한 키(Enter, Tab, Ctrl+C, vi 입력 등)를 시각과 함께 localStorage에 적어 둔다.
    - 새로고침하면 같은 레슨을 같은 시각·같은 난수로 다시 만들고, 적어 둔 입력을 그때의 시각대로 다시 실행한다.
      그래서 터미널 화면, 명령 기록, 가상 서버 상태, 할 일 진행이 그대로 돌아온다.
-   - 강력 새로고침(Ctrl+F5, Ctrl+Shift+R)을 하면 저장한 세션을 지운다. 브라우저는 강력 새로고침 때 서비스 워커를
-     거치지 않으므로, 아무 일도 하지 않는 서비스 워커(../sw.js)를 두고 "새로고침인데 서비스 워커가 페이지를
-     맡고 있지 않다"면 강력 새로고침으로 본다. 레슨 완료 표시(ohb:*:done)는 지우지 않는다.
+   - 강력 새로고침을 하면 저장한 세션을 지운다. 두 가지 신호 중 하나면 강력 새로고침으로 본다.
+     (1) 페이지가 받은 단축키: Ctrl+F5, Shift+F5, Ctrl+Shift+R, Cmd+Shift+R, Option+Cmd+R(사파리).
+     (2) 아무 일도 하지 않는 서비스 워커(../sw.js)를 두고, "새로고침인데 서비스 워커가 페이지를 맡지 않았다".
+         크롬은 강력 새로고침 때 서비스 워커를 거치지 않는다(툴바의 Shift+클릭 새로고침도 이것으로 잡는다).
+     레슨 완료 표시(ohb:*:done)는 지우지 않는다.
    - "레슨 다시 시작"이나 다른 레슨으로 옮기면 그 레슨의 새 세션이 시작되고 이전 저장은 덮어쓴다. */
 (function () {
   'use strict';
@@ -21,12 +23,22 @@
   };
 
   /* ---------- 강력 새로고침 감지 ---------- */
+  const realNowEarly = Date.now.bind(Date); // 아래에서 Date를 바꾸기 전의 진짜 시계
   let navType = '';
   try { const n = performance.getEntriesByType('navigation')[0]; navType = n ? n.type : ''; } catch (e) {}
   const swOk = 'serviceWorker' in navigator && window.isSecureContext;
   const controlled = swOk && !!navigator.serviceWorker.controller;
+  // 두 번째 신호: 페이지가 받은 강력 새로고침 단축키. 브라우저마다 서비스 워커를 건너뛰는지 다를 수 있어 함께 쓴다.
+  //   Ctrl+F5, Shift+F5, Ctrl+Shift+R(윈도·리눅스), Cmd+Shift+R(맥 크롬·파이어폭스), Option+Cmd+R(맥 사파리 "원본에서 다시 불러오기")
+  let keyHard = false;
+  try { const v = +sessionStorage.getItem('ohb:hardkey') || 0; sessionStorage.removeItem('ohb:hardkey'); keyHard = v > 0 && realNowEarly() - v < 15000; } catch (e) {}
+  window.addEventListener('keydown', (e) => {
+    const r = e.code === 'KeyR' || e.key === 'r' || e.key === 'R';
+    const hard = (e.code === 'F5' || e.key === 'F5') && (e.ctrlKey || e.shiftKey) || r && e.shiftKey && (e.ctrlKey || e.metaKey) || r && e.altKey && e.metaKey;
+    if (hard) { try { sessionStorage.setItem('ohb:hardkey', String(realNowEarly())); } catch (err) {} }
+  }, true);
   let hardReload = false;
-  if (swOk && navType === 'reload' && !controlled && ls.get('ohb:sw') === '1') { hardReload = true; KEYS.forEach(ls.del); }
+  if (navType === 'reload' && (keyHard || swOk && !controlled && ls.get('ohb:sw') === '1')) { hardReload = true; KEYS.forEach(ls.del); }
   if (controlled) ls.set('ohb:sw', '1');
   if (swOk) window.addEventListener('load', () => { navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {}); });
 

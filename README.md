@@ -66,7 +66,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`입니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`, 8단계가 `#lesson-71`부터 `#lesson-73`, 9단계가 `#lesson-81`부터 `#lesson-83`입니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -113,6 +113,41 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 - 5단계 절차는 Backup and Recovery User's Guide 19c(DBPITR, 백업 컨트롤 파일로 복구)와 Backup and Recovery Reference 19c(RESTORE, RECOVER, untilClause)를, 6단계는 Performance Tuning Guide 19c와 Database Reference 19c 부록 C(대기 이벤트)를 따랐습니다. awrrpt.sql의 질문 문구는 18c와 26ai 판 문서에서 원문을 확인했습니다(19c 해당 절은 확인한 범위 밖). AWR은 Oracle Diagnostics Pack 라이선스가 필요하다는 문서의 안내도 레슨에 적었습니다.
 
+### 7단계 · 패치 (OPatch와 분기별 RU)
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 패치 전 점검: 지금 버전과 받아 둔 RU 확인 | `opatch lspatches`, `opatch lsinventory -detail -oh $ORACLE_HOME > 파일`, `dba_registry_sqlpatch`, `unzip`, `opatch version`, OPatch 교체(패치 6880880), `opatch prereq CheckConflictAgainstOHWithDetail -ph ./` |
+| 2 | 정기점검: RU 적용하고 datapatch 돌리기 | `shutdown immediate`, `lsnrctl stop`, `opatch apply`, `startup`, `./datapatch -sanity_checks`, `./datapatch -verbose`, `dba_registry_sqlpatch` |
+| 3 | 졸업 미션: RU 되돌리기 | `opatch rollback -id`, `./datapatch -verbose`, ROLLBACK 기록 확인 |
+
+- 근거: Oracle Database Patch Maintenance(19c and Later)의 RU 주기(1·4·7·10월 셋째 화요일)와 out-of-place 권장, Upgrade Guide 19c의 버전 번호 설명, Database Reference 19c의 DBA_REGISTRY_SQLPATCH, OPatch User's Guide의 lsinventory·lspatches·rollback 형식. 단일 인스턴스 패치 절차(사전 lsinventory 저장, 충돌 검사, DB와 리스너 종료, opatch apply, datapatch -sanity_checks와 -verbose, SUCCESS 확인)는 19c판 문서에서 같은 장을 찾지 못해 26ai판 "Single-Instance Maintenance with OPatch"를 인용했고, 화면에도 그렇게 적었습니다.
+- OPatch와 datapatch의 화면 예시는 공식 문서에서 찾지 못했습니다. 실습 화면은 줄인 흉내이고 ⓘ 줄로 알립니다. 패치 번호(38291812), RU 버전(19.29), OPatch 버전 번호(12.2.0.1.17, 12.2.0.1.47)는 설명용 예시 값입니다.
+
+### 8단계 · SQL 튜닝 입문 (실행 계획과 인덱스)
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 느린 SQL의 실행 계획 읽기 | `explain plan for ...`, `select * from table(dbms_xplan.display)`, `user_ind_columns`, `dbms_xplan.display_cursor('sql_id')` |
+| 2 | 조건을 고쳐 인덱스 타게 하기 | `to_char(order_date,'YYYYMM')` → `order_date >= date '...' and order_date < date '...'`, TABLE ACCESS FULL → INDEX RANGE SCAN |
+| 3 | 졸업 미션: 고객별 주문 조회가 느린 아침 | `v$sql`, `dba_tab_statistics`(STALE_STATS), `dbms_stats.gather_table_stats`, `create index ... online` |
+
+- 근거: SQL Tuning Guide 19c(실행 계획 만들기와 보기, 접근 경로, 인덱스를 쓰지 못하는 이유 표, 통계 수집 예), PL/SQL Packages and Types Reference 19c의 DBMS_XPLAN(DISPLAY, DISPLAY_CURSOR 인수), SQL Language Reference 19c의 EXPLAIN PLAN과 CREATE INDEX(ONLINE, 함수 기반 인덱스 예). "Explained."와 DISPLAY_CURSOR의 `SQL_ID  ..., child number 0` 머리줄, 계획 표의 열 제목은 문서 예시와 같습니다.
+- 실습의 옵티마이저는 "인덱스 첫 열에 함수 없이 = 나 범위 조건이 있으면 인덱스를 쓴다"는 단순한 규칙만 흉내 냅니다. Rows, Bytes, Cost, Time과 Plan hash value는 설명용 예시입니다.
+
+### 9단계 · Data Guard 기초 (주 DB와 물리 대기 DB)
+
+dbserver02의 주 DB(DB_UNIQUE_NAME orcl)와 dbserver03의 물리 대기 DB(orclstby)가 Data Guard 브로커 구성(orcl_dg, MaxPerformance)으로 묶여 있는 상황입니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 주 DB와 대기 DB 상태 점검 | `dgmgrl /`, `show configuration`, `show database orclstby`, `sqlplus sys/...@ORCLSTBY as sysdba`, `v$database`(DATABASE_ROLE, DB_UNIQUE_NAME), `v$dataguard_stats`, `v$dataguard_process` |
+| 2 | 적용이 멈춘 대기 DB | `show database`의 Intended State APPLY-OFF와 Apply Lag, `edit database orclstby set state='APPLY-ON'` |
+| 3 | 졸업 미션: 계획된 전환(스위치오버) | `validate database orclstby`, `switchover to orclstby`, 두 서버의 `v$database` 역할 확인 |
+
+- 근거: Data Guard Broker 19c의 DGMGRL 예시(SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER 출력)와 명령 설명(CONNECT, VALIDATE DATABASE), Data Guard Concepts and Administration 19c의 Redo Apply와 역할 전환(스위치오버는 데이터 손실이 없음, 브로커 사용 권장), Database Reference 19c의 V$DATAGUARD_STATS(주 DB에서는 행이 없음)와 V$DATAGUARD_PROCESS.
+- 적용 지연이 시간 단위일 때의 표시, 주 DB 쪽 SHOW DATABASE, V$DATAGUARD_PROCESS의 프로세스 이름과 PID는 문서 예시로 확인하지 못했습니다. 실습 화면에 ⓘ 줄로 알립니다. 적용을 다시 켜면 실습에서는 지연이 바로 0이 됩니다.
+
 - SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
 - 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
@@ -131,7 +166,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 - 리눅스 실습실과 DBA 실습은 지금 하던 레슨을 브라우저(localStorage `ohb:lab:sess`, `ohb:dba:sess`)에 자동 저장합니다. 새로고침해도 터미널 화면, 명령 기록, 가상 서버 상태, vi 편집 중인 내용, 할 일 진행, 열어 둔 힌트가 그대로 돌아옵니다.
 - 화면을 통째로 저장하지 않고, 레슨을 시작한 시각과 난수 씨앗, 그 뒤의 입력(Enter, Tab, Ctrl+C, vi 키)을 시각과 함께 적어 둡니다. 다시 열면 같은 시각·같은 난수로 레슨을 만들고 입력을 그때 시각대로 다시 실행합니다.
-- **강력 새로고침(Ctrl+F5, Ctrl+Shift+R, 맥은 Cmd+Shift+R)을 하면 저장한 세션을 지우고 처음부터 시작합니다.** 브라우저는 강력 새로고침 때 서비스 워커를 거치지 않으므로, 요청을 가로채지 않는 빈 서비스 워커(`sw.js`)를 두고 "새로고침인데 서비스 워커가 페이지를 맡지 않았다"로 알아봅니다. Chromium에서 확인했고, 다른 브라우저는 확인하지 못했습니다. 휴대폰처럼 강력 새로고침이 없는 곳에서는 "레슨 다시 시작"을 누르면 됩니다.
+- **강력 새로고침을 하면 저장한 세션을 지우고 처음부터 시작합니다.** 단축키는 Ctrl+F5, Shift+F5, Ctrl+Shift+R, 맥 크롬·파이어폭스는 Cmd+Shift+R, 맥 사파리는 Option+Cmd+R입니다. 두 가지 신호로 알아봅니다. (1) 페이지가 받은 강력 새로고침 단축키를 기억해 두었다가 다음 로드에서 확인합니다. (2) 요청을 가로채지 않는 빈 서비스 워커(`sw.js`)를 두고 "새로고침인데 서비스 워커가 페이지를 맡지 않았다"를 봅니다. 툴바의 Shift+클릭 새로고침은 (2)로만 잡힙니다. 자동 시험은 Chromium에서만 했습니다. 휴대폰처럼 강력 새로고침이 없는 곳에서는 "레슨 다시 시작"을 누르면 됩니다.
 - 레슨 완료 표시(`ohb:*:done`)는 강력 새로고침으로 지우지 않습니다.
 
 ## 구현
@@ -152,7 +187,7 @@ python3 -m http.server 8000
 ## 로드맵
 
 - 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
-- DBA 실습 다음 후보: SQL 튜닝 입문(실행 계획), Data Guard 기초
+- DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
 ## 참고

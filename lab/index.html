@@ -2471,7 +2471,7 @@ function renderMission() {
     <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
     ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
     <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
-    <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥은 Cmd+Shift+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
+    <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥 크롬은 Cmd+Shift+R, 맥 사파리는 Option+Cmd+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
   ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${hintBody(t)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; Sess.hints(cur.hints); renderMission(); }));
