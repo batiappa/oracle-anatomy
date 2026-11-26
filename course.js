@@ -1,4 +1,4 @@
-/* 실습 과정 공용 내비게이션: 리눅스 실습실(lab/)과 DBA 실습(dba/)을 1~7단계 한 과정으로 보여 준다.
+/* 실습 과정 공용 내비게이션: 리눅스 실습실(lab/)과 DBA 실습(dba/)을 1~8단계 한 과정으로 보여 준다.
    각 페이지는 이 파일을 불러 Course.render()로 단계 메뉴를 그린다. 진행 상황은 두 페이지가 각자 저장한
    localStorage 값(ohb:lab:done, ohb:dba:done)을 함께 읽어 계산한다. */
 (function () {
@@ -12,6 +12,7 @@
     { st: 5, part: 'dba', group: 'DBA', name: '고급 복구', ids: range(41, 43) },
     { st: 6, part: 'dba', group: 'DBA', name: '성능 점검', ids: range(51, 53) },
     { st: 7, part: 'dba', group: 'DBA', name: '패치', ids: range(61, 63) },
+    { st: 8, part: 'dba', group: 'DBA', name: 'SQL 튜닝 입문', ids: range(71, 73) },
   ];
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };
   const progOf = (part) => { try { return JSON.parse(localStorage.getItem(KEY[part]) || '{}') || {}; } catch (e) { return {}; } };

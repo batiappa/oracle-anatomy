@@ -66,7 +66,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`입니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`, 8단계가 `#lesson-71`부터 `#lesson-73`입니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -124,6 +124,17 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 근거: Oracle Database Patch Maintenance(19c and Later)의 RU 주기(1·4·7·10월 셋째 화요일)와 out-of-place 권장, Upgrade Guide 19c의 버전 번호 설명, Database Reference 19c의 DBA_REGISTRY_SQLPATCH, OPatch User's Guide의 lsinventory·lspatches·rollback 형식. 단일 인스턴스 패치 절차(사전 lsinventory 저장, 충돌 검사, DB와 리스너 종료, opatch apply, datapatch -sanity_checks와 -verbose, SUCCESS 확인)는 19c판 문서에서 같은 장을 찾지 못해 26ai판 "Single-Instance Maintenance with OPatch"를 인용했고, 화면에도 그렇게 적었습니다.
 - OPatch와 datapatch의 화면 예시는 공식 문서에서 찾지 못했습니다. 실습 화면은 줄인 흉내이고 ⓘ 줄로 알립니다. 패치 번호(38291812), RU 버전(19.29), OPatch 버전 번호(12.2.0.1.17, 12.2.0.1.47)는 설명용 예시 값입니다.
 
+### 8단계 · SQL 튜닝 입문 (실행 계획과 인덱스)
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 느린 SQL의 실행 계획 읽기 | `explain plan for ...`, `select * from table(dbms_xplan.display)`, `user_ind_columns`, `dbms_xplan.display_cursor('sql_id')` |
+| 2 | 조건을 고쳐 인덱스 타게 하기 | `to_char(order_date,'YYYYMM')` → `order_date >= date '...' and order_date < date '...'`, TABLE ACCESS FULL → INDEX RANGE SCAN |
+| 3 | 졸업 미션: 고객별 주문 조회가 느린 아침 | `v$sql`, `dba_tab_statistics`(STALE_STATS), `dbms_stats.gather_table_stats`, `create index ... online` |
+
+- 근거: SQL Tuning Guide 19c(실행 계획 만들기와 보기, 접근 경로, 인덱스를 쓰지 못하는 이유 표, 통계 수집 예), PL/SQL Packages and Types Reference 19c의 DBMS_XPLAN(DISPLAY, DISPLAY_CURSOR 인수), SQL Language Reference 19c의 EXPLAIN PLAN과 CREATE INDEX(ONLINE, 함수 기반 인덱스 예). "Explained."와 DISPLAY_CURSOR의 `SQL_ID  ..., child number 0` 머리줄, 계획 표의 열 제목은 문서 예시와 같습니다.
+- 실습의 옵티마이저는 "인덱스 첫 열에 함수 없이 = 나 범위 조건이 있으면 인덱스를 쓴다"는 단순한 규칙만 흉내 냅니다. Rows, Bytes, Cost, Time과 Plan hash value는 설명용 예시입니다.
+
 - SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
 - 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
@@ -163,7 +174,7 @@ python3 -m http.server 8000
 ## 로드맵
 
 - 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
-- DBA 실습 다음 후보: SQL 튜닝 입문(실행 계획, 인덱스), Data Guard 기초
+- DBA 실습 다음 후보: Data Guard 기초
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
 ## 참고

@@ -205,8 +205,8 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 </main>
 
 <footer class="foot">
-  <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance, SQL Tuning Guide, PL/SQL Packages and Types Reference)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 8단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -217,6 +217,12 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
    1. 출처 목록. 레슨은 번호로 참조한다.
    ===================================================================== */
 const SRC = {
+  tgxplan: ['Oracle Database 19c SQL Tuning Guide · Generating and Displaying Execution Plans', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html'],
+  tgaccess: ['Oracle Database 19c SQL Tuning Guide · Optimizer Access Paths (인덱스를 쓰지 못하는 이유, 범위 스캔)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html'],
+  tgstats: ['Oracle Database 19c SQL Tuning Guide · Gathering Optimizer Statistics', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/gathering-optimizer-statistics.html'],
+  xplan: ['Oracle Database 19c PL/SQL Packages and Types Reference · DBMS_XPLAN (DISPLAY, DISPLAY_CURSOR)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_XPLAN.html'],
+  explain: ['Oracle Database 19c SQL Language Reference · EXPLAIN PLAN', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/EXPLAIN-PLAN.html'],
+  crindex: ['Oracle Database 19c SQL Language Reference · CREATE INDEX (ONLINE, 함수 기반 인덱스)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-INDEX.html'],
   dbptc: ['Oracle Database Patch Maintenance, Release 19c and Later (RU 주기, out-of-place 권장, DBA_REGISTRY_SQLPATCH, OPatch 6880880.1)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dbptc/index.html'],
   opsi26: ['Oracle AI Database 26ai · Single-Instance Maintenance with OPatch (19c판에는 같은 장이 없어 최신판의 절차를 인용)', 'https://docs.oracle.com/en/database/oracle/oracle-database/26/dbpss/opatch-si.pdf'],
   optch: ['Oracle OPatch User\'s Guide (lsinventory, lspatches, apply, rollback -id)', 'https://docs.oracle.com/en/enterprise-manager/cloud-control/enterprise-manager-cloud-control/13.4/optch/oracle-opatch-users-guide.pdf'],
@@ -2257,6 +2263,7 @@ function parseSelect(src) {
     const t = T[k];
     if (!t || (t.t === 'op' && t.v === ';')) err('ORA-00936: missing expression');
     if (t.t === 'num' || t.t === 'str') { k++; return { k: 'lit', v: t.v }; }
+    if (t.t === 'id' && t.v === 'DATE' && T[k + 1] && T[k + 1].t === 'str') { k += 2; return { k: 'lit', v: toDateLit(T[k - 1].v) }; }
     if (t.t === 'op' && t.v === '(') { k++; const e = expr(); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return e; }
     if (t.t === 'op' && t.v === '-') { k++; return { k: 'neg', e: primary() }; }
     if (t.t === 'id' || t.t === 'qid') {
@@ -2422,6 +2429,7 @@ function evalE(e, env, grp) {
       }
       const a = e.args.map(x => evalE(x, env, grp));
       if (f === 'ROUND' || f === 'TRUNC') { if (a[0] == null) return null; if (a[0] instanceof Date) { const d = new Date(a[0]); d.setHours(0, 0, 0, 0); return d; } const m = Math.pow(10, a[1] || 0); return f === 'ROUND' ? Math.round(a[0] * m) / m : Math.trunc(a[0] * m) / m; }
+      if (f === 'TO_DATE') return a[0] == null ? null : toDateLit(a[0], a[1]);
       if (f === 'UPPER') return a[0] == null ? null : String(a[0]).toUpperCase();
       if (f === 'LOWER') return a[0] == null ? null : String(a[0]).toLowerCase();
       if (f === 'NVL') return a[0] == null ? a[1] : a[0];
@@ -2685,6 +2693,7 @@ function sqlInput(v) {
     if (!t) return;
     if (t.startsWith('!')) return sqlHost(t.slice(1));
     const w = t.split(/\s+/)[0].replace(/;$/, '');
+    if (sql8exec(t)) return;
     { const x = sql6(t); if (x === 'wait') return 'wait'; if (x) return; }
     if (t === '/') { if (!me.last) { print('SP2-0103: Nothing in SQL buffer to run.\n'); return; } print(''); return runStmt(me.last.text, me.last.lines); }
     if (SQLPLUS_CMDS.test(w) && !/^(ARCHIVE)$/i.test(w) || (/^ARCHIVE$/i.test(w) && /^archive\s+log\s+list/i.test(t))) return plusCmd(t.replace(/;\s*$/, ''));
@@ -2734,9 +2743,11 @@ function execSql(sql, raw) {
   const me = S.sql, db = S.db, ev = S.ev; const U = sql.toUpperCase();
   let m;
   { const x = sql4(sql, raw); if (x !== undefined) return x; }
+  { const x = sql8(sql, raw); if (x !== undefined) return x; }
   if (/^SELECT\b/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     const res = runSelect(raw);
+    if (res.views.some(v => /^APP\./.test(v))) me.lastAppSql = { id: null, text: raw.replace(/\s+/g, ' ').trim() };
     ev.select = { views: res.views, cols: res.cols.map(c => c.head), rows: res.rows };
     return renderResult(res).replace(/\n$/, '\n');
   }
@@ -3032,7 +3043,7 @@ function plusCmd(t) {
   if (/^(R|RUN|L|LIST)$/.test(c0)) { if (!me.last) { print('SP2-0223: No lines in SQL buffer.\n'); return; } const ls = me.last.text.split('\n'); print(ls.map((l, i) => `${String(i + 1).padStart(3)}${i === ls.length - 1 ? '*' : ' '} ${l}`).join('\n') + '\n'); if (/^R/.test(c0)) runStmt(me.last.text, me.last.lines); return; }
   if (/^(PROMPT|PRO)$/.test(c0)) { print(t.slice(w[0].length).trim() + '\n'); return; }
   if (/^(SPOOL|SPO)$/.test(c0)) { sqlSpool(w.slice(1)); return; }
-  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
+  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  (8단계) EXPLAIN PLAN FOR SELECT ...  SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)  DBMS_XPLAN.DISPLAY_CURSOR(\'sql_id\')\n         CREATE INDEX ... [ONLINE]  DROP INDEX  EXEC DBMS_STATS.GATHER_TABLE_STATS(\'APP\', \'ORDER_HIST\')\n         USER_INDEXES, USER_IND_COLUMNS, USER_TAB_STATISTICS (DBA_ 도 있음)\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
   if (/^(PASSWORD|PASSW)$/.test(c0)) { print(note('실습에서는 ALTER USER 이름 IDENTIFIED BY 새암호; 로 암호를 바꿉니다.')); return; }
   print(`SP2-0734: unknown command beginning "${t.slice(0, 10)}..." - rest of line ignored.\n`);
 }
@@ -4170,6 +4181,275 @@ CMDS.unzip = function (argv) {
   S.ev.unzipped = baseOf(abs);
   return ok(q ? '' : `Archive:  ${file}\n` + names.map(n => `  inflating: ${(dest ? dest.replace(/\/$/, '') + '/' : '') + n}`).join('\n') + '\n');
 };
+/* =====================================================================
+   D11. 8단계 SQL 튜닝 입문: 실행 계획(EXPLAIN PLAN, DBMS_XPLAN), 인덱스, 옵티마이저 통계
+       SQL Tuning Guide 19c, PL/SQL Packages and Types Reference 19c(DBMS_XPLAN, DBMS_STATS),
+       SQL Language Reference 19c(EXPLAIN PLAN, CREATE INDEX)를 따랐다.
+       실습의 옵티마이저는 아주 단순한 규칙(인덱스 첫 열에 함수 없는 = 나 범위 조건이 있으면 인덱스)만 흉내 내며,
+       Rows, Bytes, Cost 숫자는 설명용 예시다.
+   ===================================================================== */
+const TSTAT = { // 테이블 통계(예시 값)
+  'APP.ORDER_HIST': { blocks: 32651, len: 35, fts: 8912, ndv: { ORDER_ID: 1843027, CUST_ID: 48906, ORDER_DATE: 1095, AMOUNT: 90412, STATUS: 4 } },
+  'APP.CUSTOMER': { blocks: 412, len: 28, fts: 115, ndv: { CUST_ID: 52817, CUST_NAME: 51990, GRADE: 3 } },
+};
+function idxBase() {
+  return {
+    'APP.ORDER_HIST': [{ name: 'PK_ORDER_HIST', cols: ['ORDER_ID'], uniq: true, leaf: 4120, cf: 32600, created: ago(400, 3, 10) }, { name: 'IX_ORDER_HIST_DATE', cols: ['ORDER_DATE'], uniq: false, leaf: 4890, cf: 33140, created: ago(400, 3, 11) }],
+    'APP.CUSTOMER': [{ name: 'PK_CUSTOMER', cols: ['CUST_ID'], uniq: true, leaf: 110, cf: 405, created: ago(400, 3, 12) }],
+  };
+}
+function idxOf(full) { const db = S.db; if (!db.idx) db.idx = idxBase(); return db.idx[full] || []; }
+function statsOf(full) { const db = S.db; if (!db.tstats) db.tstats = { 'APP.ORDER_HIST': { last: ago(3, 22, 4), stale: false }, 'APP.CUSTOMER': { last: ago(3, 22, 5), stale: false } }; return db.tstats[full]; }
+const kfmt = (n) => { n = Math.round(n); if (n >= 100000000) return Math.round(n / 1048576) + 'M'; if (n >= 100000) return Math.round(n / 1024) + 'K'; return String(n); };
+const secs = (c) => { const s = Math.max(1, Math.round(c * 0.00011)); return `${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(s % 60)}`; };
+/* 조건식을 Oracle 실행 계획의 Predicate Information 모양 글자로 */
+function predTxt(e, qual) {
+  const col = (x) => (qual && x.q ? `"${x.q}".` : qual ? `"${qual(x.c)}".` : '') + `"${x.c}"`;
+  const lit = (v) => v instanceof Date ? `TO_DATE(' ${ymd(v, '-')} ${hms(v)}', 'syyyy-mm-dd hh24:mi:ss')` : typeof v === 'number' ? String(v) : `'${v}'`;
+  const go = (x) => {
+    if (!x) return '';
+    if (x.k === 'col') return col(x);
+    if (x.k === 'lit') return lit(x.v);
+    if (x.k === 'fn') { if (x.fn === 'TO_DATE' && x.args[0] && x.args[0].k === 'lit') return lit(toDateLit(x.args[0].v, x.args[1] && x.args[1].v)); const a = x.args.map(go); if (x.fn === 'TO_CHAR' && x.args[0] && x.args[0].k === 'col' && /DATE/.test(colType(x.args[0]))) a[0] = `INTERNAL_FUNCTION(${a[0]})`; return `${x.fn}(${a.join(',')})`; }
+    if (x.k === 'cmp') return `${go(x.a)}${x.o}${go(x.b)}`;
+    if (x.k === 'and') return `${go(x.a)} AND ${go(x.b)}`;
+    if (x.k === 'or') return `(${go(x.a)} OR ${go(x.b)})`;
+    if (x.k === 'like') return `${go(x.a)} ${x.not ? 'NOT ' : ''}LIKE ${go(x.b)}`;
+    if (x.k === 'isnull') return `${go(x.a)} IS ${x.not ? 'NOT ' : ''}NULL`;
+    if (x.k === 'in') return `(${x.l.map(v => `${go(x.a)}${x.not ? '<>' : '='}${go(v)}`).join(x.not ? ' AND ' : ' OR ')})`;
+    if (x.k === 'bin') return `${go(x.a)}${x.o}${go(x.b)}`;
+    return '?';
+  };
+  return go(e);
+}
+let PLAN_COLTYPE = {};
+const colType = (x) => PLAN_COLTYPE[x.c] || '';
+function toDateLit(s, f) {
+  const m = /^(\d{4})-?(\d{2})-?(\d{2})(?:\s+(\d{2}):(\d{2}):(\d{2}))?/.exec(String(s)); if (!m) throw new SqlErr('ORA-01861: literal does not match format string', 0);
+  void f; return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+}
+const conj = (e) => !e ? [] : e.k === 'and' ? conj(e.a).concat(conj(e.b)) : [e];
+const colsIn = (e, out = []) => { if (!e || typeof e !== 'object') return out; if (e.k === 'col') out.push(e); for (const k of ['a', 'b', 'e']) colsIn(e[k], out); (e.args || []).forEach(x => colsIn(x, out)); (e.l || []).forEach(x => colsIn(x, out)); return out; };
+/* SELECT 문 하나의 실행 계획을 만든다 */
+function makePlan(src, schema) {
+  const q = parseSelect(src);
+  const me = { schema: schema || S.sql.schema };
+  const tabs = q.from.map(f => {
+    let full = f.name; if (!full.includes('.')) full = (me.schema || '') + '.' + full;
+    if (!APP_TABLES[full]) { if (/^(SYS\.)?(V\$|DBA_|USER_|DUAL$)/.test(f.name)) return null; throw new SqlErr('ORA-00942: table or view does not exist', 0); }
+    return { full, name: full.split('.')[1], key: f.alias || full.split('.')[1], alias: f.alias };
+  });
+  if (tabs.some(t => !t)) throw new SqlErr('ORA-00942: table or view does not exist', 0);
+  if (!tabs.length || tabs.length > 2) throw new SqlErr(note('실습에서는 APP.ORDER_HIST, APP.CUSTOMER 테이블 한두 개를 읽는 SELECT의 실행 계획만 만듭니다.'), 0);
+  PLAN_COLTYPE = {}; for (const t of tabs) for (const c of APP_TABLES[t.full]) PLAN_COLTYPE[c[0]] = c[1] === 'd' ? 'DATE' : c[1];
+  const owner = (c) => { const x = c.q ? tabs.find(t => t.key === c.q || t.name === c.q) : tabs.find(t => APP_TABLES[t.full].some(k => k[0] === c.c)); if (!x || !APP_TABLES[x.full].some(k => k[0] === c.c)) throw new SqlErr(`ORA-00904: "${c.q ? c.q + '"."' : ''}${c.c}": invalid identifier`, c.p || 0); return x; };
+  const parts = conj(q.where);
+  const two = tabs.length === 2;
+  const qual = two ? (c) => { const t = tabs.find(t => APP_TABLES[t.full].some(k => k[0] === c)); return t ? (t.alias || t.name) : ''; } : null;
+  const per = new Map(tabs.map(t => [t, []])); const joins = [];
+  for (const p of parts) { const cs = colsIn(p); const ts = [...new Set(cs.map(owner))]; if (ts.length === 1) per.get(ts[0]).push(p); else if (ts.length === 2) joins.push(p); else per.get(tabs[0]).push(p); }
+  for (const it of q.items) if (!it.star) colsIn(it.e).forEach(owner);
+  const access = (t) => {
+    const st = TSTAT[t.full]; const N = (S.db.tables[t.full] || { count: 0 }).count || 1; const preds = per.get(t);
+    let sel = 1; const info = preds.map(p => {
+      const direct = p.k === 'cmp' && p.a.k === 'col' && (p.b.k === 'lit' || p.b.k === 'fn' && p.b.fn === 'TO_DATE') ? p.a : p.k === 'cmp' && p.b.k === 'col' && p.a.k === 'lit' ? p.b : null;
+      const c = direct ? direct.c : null; const eq = p.k === 'cmp' && p.o === '=';
+      const s = c ? (eq ? 1 / (st.ndv[c] || 100) : 0.046) : p.k === 'cmp' && p.o === '=' ? 0.01 : 0.05;
+      sel *= s; return { p, c, eq, range: !!c && ['<', '>', '<=', '>='].includes(p.o), s };
+    });
+    { const lo = info.find(x => x.c && ['>', '>='].includes(x.p.o) && x.p.a.k === 'col'), hi = info.find(x => x.c && x.c === (lo && lo.c) && ['<', '<='].includes(x.p.o) && x.p.a.k === 'col');
+      const dv = (x) => x.p.b.k === 'lit' ? x.p.b.v : x.p.b.k === 'fn' && x.p.b.args[0] ? toDateLit(x.p.b.args[0].v) : null;
+      if (lo && hi && dv(lo) instanceof Date && dv(hi) instanceof Date) { const f = Math.min(1, Math.max(1 / 1095, (dv(hi) - dv(lo)) / 864e5 / 1095)); sel = sel / lo.s / hi.s * f; lo.s = f; hi.s = 1; } }
+    const rows = Math.max(1, Math.round(N * sel));
+    let best = { kind: 'full', cost: st.fts, rows };
+    for (const ix of idxOf(t.full)) {
+      const lead = ix.cols[0]; const hits = info.filter(x => x.c === lead && (x.eq || x.range)); if (!hits.length) continue;
+      const isel = hits.reduce((a, x) => a * x.s, 1);
+      const uniqEq = ix.uniq && hits.some(x => x.eq) && ix.cols.length === 1;
+      const cost = uniqEq ? 2 : Math.ceil(2 + ix.leaf * isel + ix.cf * isel);
+      if (cost < best.cost) best = { kind: uniqEq ? 'unique' : 'range', ix, cost, rows: uniqEq ? 1 : rows, irows: Math.max(1, Math.round(N * isel)), access: hits.map(x => x.p), filter: info.filter(x => !hits.includes(x)).map(x => x.p) };
+    }
+    if (best.kind === 'full') best.filter = preds;
+    best.t = t; best.bytes = best.rows * st.len; return best;
+  };
+  const acc = tabs.map(access);
+  // 계획 줄: [깊이, 작업, 이름, 행, 바이트, 비용, {access, filter}]
+  const lines = [];
+  const emit = (depth, a) => {
+    if (a.kind === 'full') { lines.push({ d: depth, op: 'TABLE ACCESS FULL', name: a.t.name, rows: a.rows, bytes: a.bytes, cost: a.cost, filter: a.filter }); return; }
+    lines.push({ d: depth, op: a.kind === 'unique' ? 'TABLE ACCESS BY INDEX ROWID' : 'TABLE ACCESS BY INDEX ROWID BATCHED', name: a.t.name, rows: a.rows, bytes: a.bytes, cost: a.cost, filter: a.filter });
+    lines.push({ d: depth + 1, op: a.kind === 'unique' ? 'INDEX UNIQUE SCAN' : 'INDEX RANGE SCAN', name: a.ix.name, rows: a.kind === 'unique' ? 1 : a.irows, bytes: null, cost: a.kind === 'unique' ? 1 : Math.ceil(2 + a.ix.leaf * (a.irows / ((S.db.tables[a.t.full] || {}).count || 1))), access: a.access });
+  };
+  const agg = !!q.group || q.items.some(it => !it.star && hasAgg(it.e));
+  let top = []; // 위에서부터 덧붙일 작업
+  if (q.order) top.push('SORT ORDER BY');
+  if (agg) top.push(q.group ? 'HASH GROUP BY' : 'SORT AGGREGATE');
+  const d0 = 1 + top.length;
+  let total;
+  if (!two) { emit(d0, acc[0]); total = acc[0].cost; }
+  else {
+    const jp = joins[0];
+    const [o, i] = acc[0].rows <= acc[1].rows ? [acc[0], acc[1]] : [acc[1], acc[0]];
+    const inner = i.t; const ipk = jp && idxOf(inner.full).find(ix => ix.uniq && colsIn(jp).some(c => owner(c) === inner && c.c === ix.cols[0]));
+    const rows = Math.max(1, Math.min(o.rows, acc[0].rows * acc[1].rows));
+    if (ipk && o.rows <= 2000) {
+      total = o.cost + o.rows * 2;
+      lines.push({ d: d0, op: 'NESTED LOOPS', name: '', rows, bytes: rows * 63, cost: total });
+      lines.push({ d: d0 + 1, op: 'NESTED LOOPS', name: '', rows, bytes: rows * 63, cost: total });
+      emit(d0 + 2, o);
+      lines.push({ d: d0 + 2, op: 'INDEX UNIQUE SCAN', name: ipk.name, rows: 1, bytes: null, cost: 0, access: jp ? [jp] : [] });
+      lines.push({ d: d0 + 1, op: 'TABLE ACCESS BY INDEX ROWID', name: inner.name, rows: 1, bytes: TSTAT[inner.full].len, cost: 1, filter: per.get(inner) });
+    } else {
+      const [b, p] = [o, i]; // 행이 적은 쪽으로 해시 테이블을 만든다
+      const jr = (acc.find(a => a.t.full === 'APP.ORDER_HIST') || p).rows;
+      total = b.cost + p.cost + 40;
+      lines.push({ d: d0, op: 'HASH JOIN', name: '', rows: jr, bytes: jr * 63, cost: total, access: jp ? [jp] : [] });
+      emit(d0 + 1, b); emit(d0 + 1, p);
+    }
+  }
+  const base = lines[0]; let c = total;
+  const ndvOf = (g) => { if (g.k !== 'col') return 100; for (const t of tabs) { const v = TSTAT[t.full].ndv[g.c]; if (v) return v; } return 100; };
+  const grows = q.group ? Math.max(1, Math.min(base.rows, q.group.reduce((a, g) => a * ndvOf(g), 1))) : 1;
+  let cur = base.rows;
+  top.reverse().forEach((op, i) => { c += op === 'SORT AGGREGATE' ? 0 : Math.ceil(cur * 0.0004) + 1; const r = op === 'SORT ORDER BY' ? cur : op === 'HASH GROUP BY' ? grows : 1; cur = r; lines.unshift({ d: top.length - i, op, name: '', rows: r, bytes: Math.round(base.bytes / base.rows * r), cost: c }); });
+  lines.unshift({ d: 0, op: 'SELECT STATEMENT', name: '', rows: lines[0].rows, bytes: lines[0].bytes, cost: lines[0].cost });
+  const qtxt = (x) => predTxt(x, qual);
+  lines.forEach((l, i) => { l.id = i; l.acc = (l.access || []).map(qtxt); l.fil = (l.filter || []).map(qtxt); });
+  const shape = lines.map(l => l.op + l.name).join('|');
+  let h = 2166136261; for (const ch of shape) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  return { lines, hash: h, src: src.replace(/\s+/g, ' ').trim(), usesIndex: lines.find(l => /^INDEX/.test(l.op)) ? lines.find(l => /^INDEX/.test(l.op)).name : null, full: lines.some(l => l.op === 'TABLE ACCESS FULL' && l.name === 'ORDER_HIST'), cost: lines[0].cost };
+}
+function planText(pl, cursor) {
+  const L = pl.lines;
+  const opW = Math.max(9, ...L.map(l => l.d + l.op.length + 1)) + 1, nmW = Math.max(4, ...L.map(l => l.name.length)) + 1;
+  const nc = (x) => /[KM]$/.test(x) ? x.padStart(7) : x.padStart(6) + ' ';
+  const row = (id, op, nm, r, b, c, t) => `|${id} | ${op.padEnd(opW)}| ${nm.padEnd(nmW)}|${nc(r)}|${b ? nc(b) : '       '}|${c.padStart(6)} ${t}`;
+  const cpu = L.some(l => l.op === 'TABLE ACCESS FULL') ? 1 : 0;
+  const head = `| Id  | ${'Operation'.padEnd(opW)}| ${'Name'.padEnd(nmW)}| Rows  | Bytes | Cost (%CPU)| Time     |`;
+  const dash = '-'.repeat(head.length);
+  let o = `Plan hash value: ${pl.hash}\n\n${dash}\n${head}\n${dash}\n`;
+  for (const l of L) {
+    const star = l.acc.length || l.fil.length ? '*' : ' ';
+    if (cursor && l.id === 0) { o += `|${star}${String(l.id).padStart(3)} | ${(' '.repeat(l.d) + l.op).padEnd(opW)}| ${l.name.padEnd(nmW)}|       |       |${String(l.cost).padStart(6)} (100)|          |\n`; continue; }
+    o += row(star + String(l.id).padStart(3), ' '.repeat(l.d) + l.op, l.name, kfmt(l.rows), l.bytes == null ? '' : kfmt(l.bytes), String(l.cost), `  (${cpu})| ${secs(l.cost)} |`) + '\n';
+  }
+  o += `${dash}\n`;
+  const pi = L.filter(l => l.acc.length || l.fil.length);
+  if (pi.length) {
+    o += '\nPredicate Information (identified by operation id):\n---------------------------------------------------\n\n';
+    for (const l of pi) {
+      const items = (l.acc.length ? [['access', l.acc.join(' AND ')]] : []).concat(l.fil.length ? [['filter', l.fil.join(' AND ')]] : []);
+      items.forEach(([k, x], i) => { o += `${i ? '      ' : String(l.id).padStart(4) + ' - '}${k}(${x})\n`; });
+    }
+  }
+  return o;
+}
+const PLAN_NOTE = '실행 계획의 모양(Plan hash value, 표의 열, Predicate Information의 access와 filter)은 SQL Tuning Guide 19c의 DBMS_XPLAN 예시를 따랐습니다. 이 실습의 옵티마이저는 "인덱스 첫 열에 함수 없이 = 나 범위 조건이 있으면 인덱스를 쓴다"는 단순한 규칙만 흉내 내며, Rows, Bytes, Cost, Time 숫자와 Plan hash value는 설명용 예시입니다.';
+/* EXPLAIN PLAN, DBMS_XPLAN, CREATE/DROP INDEX: execSql 맨 앞에서 부른다 */
+function sql8(sql, raw) {
+  const me = S.sql, ev = S.ev, db = S.db; let m;
+  const U = sql.toUpperCase();
+  if ((m = /^EXPLAIN PLAN (?:SET STATEMENT_ID ?= ?'[^']*' )?(?:INTO \w+ )?FOR (SELECT\b[\s\S]*)$/i.exec(sql))) {
+    needOpen();
+    const s0 = raw.replace(/^[\s\S]*?\bFOR\s+(?=select\b)/i, '');
+    const pl = makePlan(s0);
+    me.plan = pl; ev.explain = { index: pl.usesIndex, full: pl.full, cost: pl.cost, sqlU: pl.src.toUpperCase() };
+    return '\nExplained.\n\n';
+  }
+  if (/^EXPLAIN\b/.test(U)) throw new SqlErr('ORA-00905: missing keyword', 0);
+  if ((m = /^SELECT \* FROM TABLE ?\( ?(?:SYS\.)?DBMS_XPLAN\.(DISPLAY|DISPLAY_CURSOR)\b ?(\([^)]*\))? ?\)$/i.exec(sql))) {
+    needOpen();
+    const fn = m[1].toUpperCase(); const args = (m[2] || '').replace(/^\(|\)$/g, '').split(',').map(x => x.trim()).filter(Boolean);
+    unverified('xplan', PLAN_NOTE);
+    let out;
+    if (fn === 'DISPLAY') {
+      if (!me.plan) out = 'Error: cannot fetch last explain plan from PLAN_TABLE\n';
+      else out = planText(me.plan, false);
+      ev.xplan = { fn, plan: me.plan || null };
+    } else {
+      if (!(me.priv === 'SYSDBA' || userHas(me.user, 'DBA'))) { out = 'User has no SELECT privilege on V$SQL_PLAN\n'; ev.xplan = { fn, denied: true }; print(note('DISPLAY_CURSOR는 V$SQL_PLAN 같은 동적 성능 뷰를 읽으므로 그 권한이 필요합니다. 이 오류 문구는 공식 문서로 확인하지 못한 흉내입니다. SYSDBA로 접속해 다시 보세요.')); }
+      else {
+        const id = (args[0] || '').replace(/'/g, '').toLowerCase();
+        const q = id ? PERF.sql.find(x => x.id === id) : me.lastAppSql;
+        if (!q) out = `SQL_ID: ${id || '(none)'}, child number: 0 cannot be found\n\n`;
+        else { const pl = makePlan(q.text.replace(/:B1/g, q.id === 'c7d2kq9x4m1pz' ? '10233' : "'202611'"), 'APP'); const cur = q.id || 'f3k2m8x1q0w9a'; out = `SQL_ID  ${cur}, child number 0\n${'-'.repeat(38)}\n${wrapSql(q.text)}\n\n` + planText(pl, true).replace(/'202611'/g, ':B1').replace(/=10233\b/g, '=:B1'); ev.xplan = { fn, sqlId: cur, plan: pl }; }
+      }
+    }
+    const lines = out.replace(/\n$/, '').split('\n');
+    const w = Math.max(...lines.map(l => l.length), 17);
+    const set = S.sql.set; void w; const n = lines.length;
+    return '\n' + (set.pagesize > 0 && set.heading ? `PLAN_TABLE_OUTPUT\n${'-'.repeat(Math.min(300, set.linesize))}\n` : '') + lines.join('\n') + '\n' + (set.feedback > 0 && n >= set.feedback ? `\n${n} ${n === 1 ? 'row' : 'rows'} selected.\n` : '') + '\n';
+  }
+  if ((m = /^CREATE (UNIQUE )?INDEX (?:(\w+)\.)?(\w+) ON (?:(\w+)\.)?(\w+) ?\(([^)]*)\)((?: \w+(?: \w+)?)*)$/i.exec(sql))) {
+    needOpen();
+    const owner = (m[4] || m[2] || me.schema).toUpperCase(); const full = owner + '.' + m[5].toUpperCase();
+    if (!APP_TABLES[full]) throw new SqlErr('ORA-00942: table or view does not exist', raw.toUpperCase().indexOf(m[5].toUpperCase()));
+    if (owner !== me.schema && !(me.priv === 'SYSDBA' || userHas(me.user, 'DBA'))) throw new SqlErr('ORA-01031: insufficient privileges', 0);
+    const name = m[3].toUpperCase(); const cols = m[6].split(',').map(x => x.trim().toUpperCase());
+    for (const c of cols) if (!APP_TABLES[full].some(k => k[0] === c)) throw new SqlErr(`ORA-00904: "${c}": invalid identifier`, raw.toUpperCase().indexOf(c));
+    if (Object.values(S.db.idx || idxBase()).flat().some(ix => ix.name === name)) throw new SqlErr('ORA-00955: name is already used by an existing object', raw.toUpperCase().indexOf(name));
+    if (idxOf(full).some(ix => ix.cols.join(',') === cols.join(','))) throw new SqlErr('ORA-01408: such column list already indexed', raw.indexOf('(') + 1);
+    const opts = (m[7] || '').toUpperCase();
+    idxOf(full).push({ name, cols, uniq: !!m[1], leaf: cols[0] === 'CUST_ID' ? 3960 : 4400, cf: cols[0] === 'CUST_ID' ? 1790214 : 30000, created: new Date(), online: /ONLINE/.test(opts) });
+    ev.ddl = { kind: 'create-index', name, table: full, cols, online: /ONLINE/.test(opts) };
+    return '\nIndex created.\n\n';
+  }
+  if ((m = /^DROP INDEX (?:(\w+)\.)?(\w+)$/i.exec(sql))) {
+    needOpen();
+    const name = m[2].toUpperCase(); idxOf('APP.ORDER_HIST');
+    for (const [t, list] of Object.entries(S.db.idx)) { const i = list.findIndex(ix => ix.name === name); if (i >= 0) { if (/^PK_/.test(name)) throw new SqlErr('ORA-02429: cannot drop index used for enforcement of unique/primary key', 0); list.splice(i, 1); ev.ddl = { kind: 'drop-index', name, table: t }; return '\nIndex dropped.\n\n'; } }
+    throw new SqlErr('ORA-01418: specified index does not exist', 0);
+  }
+  return undefined;
+}
+function wrapSql(t) { const out = []; let line = ''; for (const w of t.split(' ')) { if ((line + ' ' + w).length > 70 && line) { out.push(line); line = w; } else line = line ? line + ' ' + w : w; } if (line) out.push(line); return out.join('\n'); }
+/* SQL*Plus의 EXEC DBMS_STATS.GATHER_TABLE_STATS: sqlInput 에서 sql6 보다 먼저 부른다 */
+function sql8exec(t) {
+  const U = t.replace(/\s+/g, ' ').trim().toUpperCase().replace(/;$/, '');
+  const m = /^EXEC(?:UTE)? DBMS_STATS\.GATHER_TABLE_STATS ?\( ?(?:OWNNAME ?=> ?)?'(\w+)' ?, ?(?:TABNAME ?=> ?)?'(\w+)'(.*)\)$/.exec(U);
+  if (!m) return false;
+  if (!needConn()) return true;
+  const full = m[1] + '.' + m[2];
+  try {
+    needOpen();
+    if (!APP_TABLES[full]) throw new SqlErr(`ORA-20000: Unable to analyze TABLE "${m[1]}"."${m[2]}", insufficient privileges or does not exist`, 0);
+    const me = S.sql; if (m[1] !== me.schema && !(me.priv === 'SYSDBA' || userHas(me.user, 'DBA'))) throw new SqlErr(`ORA-20000: Unable to analyze TABLE "${m[1]}"."${m[2]}", insufficient privileges or does not exist`, 0);
+    const st = statsOf(full); st.last = new Date(); st.stale = false; for (const ix of idxOf(full)) ix.analyzed = new Date();
+    S.ev.gathered = full;
+    print('\nPL/SQL procedure successfully completed.\n\n');
+  } catch (e) { if (!(e instanceof SqlErr)) throw e; S.ev.sqlErr = e.msg; print(`BEGIN DBMS_STATS.GATHER_TABLE_STATS('${m[1]}', '${m[2]}'); END;\n\n*\nERROR at line 1:\n${e.msg}\nORA-06512: at "SYS.DBMS_STATS", line 40751\nORA-06512: at line 1\n\n`); }
+  return true;
+}
+Object.assign(VIEWS, (() => {
+  const own = () => S.sql && S.sql.schema;
+  const ixRows = (filt) => Object.entries(S.db.idx || (S.db.idx = idxBase())).flatMap(([t, l]) => l.map(ix => ({ ix, t }))).filter(filt);
+  const stat = (t) => statsOf(t) || {};
+  const ixRow = ({ ix, t }) => ({ OWNER: t.split('.')[0], INDEX_NAME: ix.name, TABLE_OWNER: t.split('.')[0], TABLE_NAME: t.split('.')[1], UNIQUENESS: ix.uniq ? 'UNIQUE' : 'NONUNIQUE', STATUS: 'VALID', BLEVEL: 2, LEAF_BLOCKS: ix.leaf, DISTINCT_KEYS: TSTAT[t].ndv[ix.cols[0]], CLUSTERING_FACTOR: ix.cf, NUM_ROWS: (S.db.tables[t] || {}).count, LAST_ANALYZED: ix.analyzed || ix.created });
+  const icRow = ({ ix, t }) => ix.cols.map((c, i) => ({ INDEX_OWNER: t.split('.')[0], INDEX_NAME: ix.name, TABLE_OWNER: t.split('.')[0], TABLE_NAME: t.split('.')[1], COLUMN_NAME: c, COLUMN_POSITION: i + 1 }));
+  const tsRow = (t) => ({ OWNER: t.split('.')[0], TABLE_NAME: t.split('.')[1], NUM_ROWS: (S.db.tables[t] || {}).count, BLOCKS: TSTAT[t].blocks, AVG_ROW_LEN: TSTAT[t].len, LAST_ANALYZED: stat(t).last, STALE_STATS: stat(t).stale ? 'YES' : 'NO' });
+  const ixCols = [C('INDEX_NAME', 128), C('TABLE_NAME', 128), C('UNIQUENESS', 9), C('STATUS', 8), N('BLEVEL'), N('LEAF_BLOCKS'), N('DISTINCT_KEYS'), N('CLUSTERING_FACTOR'), N('NUM_ROWS'), Dt('LAST_ANALYZED')];
+  const icCols = [C('INDEX_NAME', 128), C('TABLE_NAME', 128), C('COLUMN_NAME', 4000), N('COLUMN_POSITION')];
+  const tsCols = [C('TABLE_NAME', 128), N('NUM_ROWS'), N('BLOCKS'), N('AVG_ROW_LEN'), Dt('LAST_ANALYZED'), C('STALE_STATS', 3)];
+  const tabs = () => Object.keys(TSTAT);
+  return {
+    'USER_INDEXES': { pub: true, cols: ixCols, rows: () => ixRows(x => x.t.split('.')[0] === own()).map(ixRow) },
+    'DBA_INDEXES': { cols: [C('OWNER', 128)].concat(ixCols), rows: () => ixRows(() => true).map(ixRow) },
+    'USER_IND_COLUMNS': { pub: true, cols: icCols, rows: () => ixRows(x => x.t.split('.')[0] === own()).flatMap(icRow) },
+    'DBA_IND_COLUMNS': { cols: [C('INDEX_OWNER', 128)].concat(icCols), rows: () => ixRows(() => true).flatMap(icRow) },
+    'USER_TAB_STATISTICS': { pub: true, cols: tsCols, rows: () => tabs().filter(t => t.split('.')[0] === own()).map(tsRow) },
+    'DBA_TAB_STATISTICS': { cols: [C('OWNER', 128)].concat(tsCols), rows: () => tabs().map(tsRow) },
+  };
+})());
+function makeWorld8(lid) {
+  makeWorld6(1);
+  const db = S.db; db.idx = idxBase(); db.tstats = null; statsOf('APP.ORDER_HIST');
+  if (lid === 3) {
+    db.tstats['APP.ORDER_HIST'] = { last: ago(41, 22, 4), stale: true };
+    for (const s of db.sessions.filter(x => x.sqlId === '8wzq2k1ptm6c4')) Object.assign(s, { sqlId: 'c7d2kq9x4m1pz' });
+    PERF.sql.push({ id: 'c7d2kq9x4m1pz', text: 'SELECT ORDER_ID, ORDER_DATE, AMOUNT, STATUS FROM ORDER_HIST WHERE CUST_ID = :B1 ORDER BY ORDER_DATE DESC', exec: 8812, ela: 2211.4e6, cpu: 498.1e6, disk: 287610212, gets: 287720004, rows: 301122, module: 'cs-web' });
+    PERF.sql = PERF.sql.filter(x => x.id !== '8wzq2k1ptm6c4');
+  }
+}
 </script>
 <script>
 'use strict';
@@ -4827,6 +5107,63 @@ LESSONS.push(
     sources: ['optch', 'opsi26', 'regsqlp', 'dbptc'] },
 );
 
+LESSONS.push(
+  { id: 71, stage: 8, title: '느린 SQL의 실행 계획 읽기', short: '실행 계획', start: 'oracle',
+    who: '영업팀 김과장 (전화, 6단계에서 이어짐)',
+    situation: '"월별 주문 조회가 여전히 1분 넘게 걸려요." 6단계에서 찾은 SQL(sql_id 8wzq2k1ptm6c4)은 주문 이력 테이블을 통째로 읽고 있었습니다. 이번에는 옵티마이저가 이 SQL을 어떻게 실행하기로 했는지, 실행 계획을 직접 읽어 봅니다.',
+    tasks: [
+      { text: '앱 계정으로 접속해서 같은 조건의 실행 계획 만들기', hint: "sqlplus app/App#2026@ORCL\nexplain plan for select order_id, order_date, amount from order_hist where to_char(order_date, 'YYYYMM') = '202611';", done: ev => !!ev.explain,
+        why: '<code>Explained.</code> SQL Language Reference 19c: EXPLAIN PLAN은 "Oracle Database가 그 SQL 문을 실행할 계획"을 정해 PLAN_TABLE에 적습니다. SQL을 실제로 실행하지는 않습니다.' },
+      { text: 'DBMS_XPLAN.DISPLAY로 계획 보기', hint: 'set linesize 200\nset pagesize 100\nselect * from table(dbms_xplan.display);', done: ev => ev.xplan && ev.xplan.fn === 'DISPLAY' && ev.xplan.plan,
+        why: '<code>TABLE ACCESS FULL</code>: 테이블 전체를 읽습니다. 맨 아래 Predicate Information의 <code>filter(TO_CHAR(INTERNAL_FUNCTION("ORDER_DATE"),\'YYYYMM\')=\'202611\')</code>은 "읽은 행마다 이 조건을 계산해서 거른다"는 뜻입니다. 표는 안쪽(오른쪽으로 들여 쓴 줄)부터 읽습니다. Id 앞의 <code>*</code>는 그 줄에 조건 정보가 있다는 표시입니다.' },
+      { text: 'ORDER_DATE에 인덱스가 있는지 보기', hint: 'col index_name format a22\ncol column_name format a15\nselect index_name, column_name, column_position from user_ind_columns where table_name = \'ORDER_HIST\';', done: ev => qsel(ev, 'USER_IND_COLUMNS'),
+        why: '<code>IX_ORDER_HIST_DATE</code>가 ORDER_DATE에 있습니다. 인덱스가 있는데도 쓰지 못한 것입니다. SQL Tuning Guide 19c의 "인덱스를 쓰지 못하는 이유" 표: "조건이 인덱스 열에 함수를 적용한다." 함수 기반 인덱스가 아니면 인덱스에는 열 값 그대로가 들어 있어서, <code>TO_CHAR(order_date)</code>로 바꾼 값으로는 찾아갈 수 없습니다.' },
+      { text: 'SYSDBA로 공유 풀에 있는 실제 커서의 계획 보기', hint: "conn / as sysdba\nset linesize 200\nset pagesize 100\nselect * from table(dbms_xplan.display_cursor('8wzq2k1ptm6c4'));", done: ev => ev.xplan && ev.xplan.fn === 'DISPLAY_CURSOR' && ev.xplan.sqlId === '8wzq2k1ptm6c4',
+        why: 'DISPLAY_CURSOR는 실제로 실행된 커서의 계획을 보여 줍니다(PL/SQL Packages and Types Reference 19c: sql_id는 "커서 캐시에 있는 SQL 문의 SQL_ID", 생략하면 "그 세션이 마지막에 실행한 커서"). EXPLAIN PLAN은 "이렇게 하겠다"는 예상이고, 이쪽이 실제입니다. 앱이 보낸 SQL도 <code>TO_CHAR(O.ORDER_DATE,\'YYYYMM\')=:B1</code>이라 ORDER_HIST를 FULL로 읽습니다. 이 화면은 V$SQL_PLAN을 읽기 때문에 권한이 필요합니다.' },
+      { text: 'SQL*Plus에서 나와 원인 메모 남기기', hint: "exit\necho '8wzq2k1ptm6c4: ORDER_DATE에 인덱스(IX_ORDER_HIST_DATE)가 있으나 TO_CHAR(order_date)로 비교해 TABLE ACCESS FULL' > ~/plan_note.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/plan_note.txt') || {}).txt || '') },
+    ],
+    field: '실행 계획은 세 가지만 먼저 보면 됩니다. ① 큰 테이블에 TABLE ACCESS FULL이 있는가 ② 어떤 인덱스를 INDEX RANGE SCAN이나 UNIQUE SCAN으로 쓰는가 ③ Predicate Information에서 그 조건이 access(인덱스로 찾아감)인가 filter(읽고 나서 거름)인가. 숫자(Rows, Cost)는 옵티마이저의 예상이며, 이 실습의 숫자는 설명용 예시입니다.',
+    sources: ['tgxplan', 'tgaccess', 'xplan', 'explain'] },
+
+  { id: 72, stage: 8, title: '조건을 고쳐 인덱스 타게 하기', short: '조건 고치기', start: 'oracle',
+    who: '개발팀 정대리 (메신저)',
+    situation: '"함수 때문에 인덱스를 못 쓴다는 메모 받았어요. 어떻게 고치면 될지 실행 계획으로 확인해 주실 수 있나요? 코드는 저희가 고칠게요."',
+    tasks: [
+      { text: '앱 계정으로 지금 조건의 계획을 다시 보기', hint: "sqlplus app/App#2026@ORCL\nset linesize 200\nset pagesize 100\nexplain plan for select order_id, order_date, amount from order_hist where to_char(order_date, 'YYYYMM') = '202611';\nselect * from table(dbms_xplan.display);", done: ev => ev.xplan && ev.xplan.plan && ev.xplan.plan.full,
+        why: '고치기 전의 계획(TABLE ACCESS FULL)과 Cost를 기억해 둡니다. 고친 뒤와 비교할 기준입니다.' },
+      { text: '열은 그대로 두고 날짜 범위로 바꾼 조건의 계획 보기', hint: "explain plan for select order_id, order_date, amount from order_hist where order_date >= date '2026-11-01' and order_date < date '2026-12-01';\nselect * from table(dbms_xplan.display);", done: ev => ev.xplan && ev.xplan.plan && ev.xplan.plan.usesIndex === 'IX_ORDER_HIST_DATE',
+        why: '<code>INDEX RANGE SCAN IX_ORDER_HIST_DATE</code>와 그 위의 <code>TABLE ACCESS BY INDEX ROWID BATCHED</code>로 바뀌었습니다. 조건이 이제 <code>access("ORDER_DATE"&gt;=...)</code>로, 인덱스로 찾아가는 데 쓰입니다. SQL Tuning Guide 19c: 인덱스 범위 스캔은 "인덱스의 앞쪽 열이 조건에 있을 때" 쓰이고, 옵티마이저는 "선택도가 높은(고르는 행이 적은) 쿼리"에 범위 스캔을 고릅니다. 같은 뜻이지만 열에 함수를 씌우지 않고, 비교할 값 쪽을 바꾼 것입니다.' },
+      { text: '고친 SQL을 실제로 실행해 결과 확인하기', hint: "select order_id, order_date, amount from order_hist where order_date >= date '2026-11-01' and order_date < date '2026-12-01';", done: ev => okSql(ev) && qtab(ev, 'APP.ORDER_HIST') && /ORDER_DATE\s*>=/.test(ev.sqlU),
+        why: '<code>&lt;</code> 다음 달 1일로 끝을 잡으면 11월 30일 23시 59분 같은 마지막 시각의 주문도 빠지지 않습니다. 실습 테이블은 몇 줄만 보여 줍니다.' },
+      { text: '개발팀에 보낼 수정안 남기기', hint: "exit\necho \"수정안: to_char(order_date,'YYYYMM') = :b1  →  order_date >= to_date(:b1,'YYYYMM') and order_date < add_months(to_date(:b1,'YYYYMM'),1). 계획: FULL → INDEX RANGE SCAN IX_ORDER_HIST_DATE\" > ~/sql_fix.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/sql_fix.txt') || {}).txt || ''),
+        why: '바인드 변수(:b1) 그대로 쓸 수 있는 모양으로 넘깁니다. 다른 방법으로 <code>TO_CHAR(order_date,\'YYYYMM\')</code> 식 그대로 함수 기반 인덱스를 만들 수도 있습니다(SQL Language Reference 19c의 CREATE INDEX 예: <code>CREATE INDEX upper_ix ON employees (UPPER(last_name));</code>). 하지만 인덱스가 늘면 입력·수정이 느려지므로, 고칠 수 있는 SQL이면 SQL을 고치는 쪽을 먼저 권합니다.' },
+    ],
+    field: '"인덱스를 만들어 주세요"라는 요청을 받으면, 이미 있는 인덱스를 못 쓰고 있는 것은 아닌지부터 봅니다. 흔한 경우: 인덱스 열에 함수나 계산을 씌움(TO_CHAR, UPPER, 열+1), 형이 다른 값과 비교해 자동 형 변환이 일어남(문서의 예: 숫자 1과 비교해 TO_NUMBER가 붙음), LIKE \'%값\'처럼 앞이 열린 패턴. 모두 SQL Tuning Guide 19c의 "인덱스를 쓰지 못하는 이유" 표에 나옵니다.',
+    sources: ['tgaccess', 'tgxplan', 'crindex', 'xplan'] },
+
+  { id: 73, stage: 8, title: '졸업 미션: 고객별 주문 조회가 느린 아침', short: '졸업 미션', start: 'oracle',
+    who: '고객센터 한팀장',
+    situation: '"고객 번호로 주문 내역을 찾는 화면이 오늘 아침부터 10초씩 걸려요. 상담 대기가 길어지고 있어요." 8단계에서 배운 순서대로 원인 SQL과 계획을 확인하고, 필요하면 인덱스를 만들어 해결한 뒤 ~/tuning_report.txt 에 보고서를 남겨 주세요. 업무 시간이라 인덱스는 DML을 막지 않는 ONLINE으로 만듭니다. 인덱스 추가는 팀장님이 승인했습니다.',
+    tasks: [
+      { text: '느린 SQL 찾기', hint: "sqlplus / as sysdba\nset linesize 200\ncol sql_text format a70\nselect sql_id, executions, round(elapsed_time/1000000) elapsed_s, disk_reads, sql_text from v$sql where module = 'cs-web';", done: ev => qsel(ev, 'V$SQL'),
+        why: '<code>c7d2kq9x4m1pz</code>: <code>WHERE CUST_ID = :B1</code>로 한 고객의 주문을 찾는데, 8,812번 실행에 디스크 읽기가 2억 8천만 블록입니다. 한 번에 약 32,600블록(287,610,212 ÷ 8,812 ≈ 32,638), 테이블 전체 크기만큼 읽습니다.' },
+      { text: '그 커서의 실행 계획 보기', hint: "set pagesize 100\nselect * from table(dbms_xplan.display_cursor('c7d2kq9x4m1pz'));", done: ev => ev.xplan && ev.xplan.sqlId === 'c7d2kq9x4m1pz',
+        why: 'TABLE ACCESS FULL ORDER_HIST, 조건은 filter("CUST_ID"=:B1)입니다. 고객 한 명의 주문 수십 건을 찾으려고 184만 건을 모두 읽습니다.' },
+      { text: 'CUST_ID에 인덱스가 있는지, 통계가 최신인지 보기', hint: "col index_name format a22\ncol column_name format a15\ncol table_name format a12\nselect index_name, column_name from dba_ind_columns where table_name = 'ORDER_HIST';\nselect table_name, num_rows, last_analyzed, stale_stats from dba_tab_statistics where owner = 'APP';", done: ev => qsel(ev, 'DBA_TAB_STATISTICS') || qsel(ev, 'USER_TAB_STATISTICS'),
+        why: 'CUST_ID로 시작하는 인덱스가 없습니다. 그리고 ORDER_HIST의 통계가 41일 전 것이고 STALE_STATS가 YES입니다(그 뒤로 많은 행이 바뀌었다는 뜻). 옵티마이저는 통계를 보고 계획을 고르므로, 통계가 낡으면 계획도 틀어질 수 있습니다.' },
+      { text: 'ORDER_HIST 통계 다시 모으기', hint: "exec dbms_stats.gather_table_stats('APP', 'ORDER_HIST')", done: ev => ev.gathered === 'APP.ORDER_HIST',
+        why: 'SQL Tuning Guide 19c의 예: <code>DBMS_STATS.GATHER_TABLE_STATS (ownname =&gt; \'sh\', tabname =&gt; \'customers\', degree =&gt; 2)</code>. 위치로 넘겨 <code>(\'APP\', \'ORDER_HIST\')</code>처럼 써도 됩니다. 평소에는 자동 통계 수집 작업이 밤마다 모읍니다.' },
+      { text: '업무를 막지 않게 ONLINE으로 CUST_ID 인덱스 만들기', hint: 'create index app.ix_order_hist_cust on app.order_hist (cust_id) online;', done: () => idxOf('APP.ORDER_HIST').some(ix => ix.cols[0] === 'CUST_ID'),
+        why: 'SQL Language Reference 19c: "ONLINE을 지정하면 인덱스를 만드는 동안 테이블에 DML이 허용된다." ONLINE 없이 만들면 만드는 동안 주문 입력이 막힐 수 있습니다. 문서의 기본 예도 같은 모양입니다: <code>CREATE INDEX ord_customer_ix ON orders (customer_id);</code>' },
+      { text: '같은 SQL의 계획이 바뀌었는지 확인하기', hint: 'explain plan for select order_id, order_date, amount, status from app.order_hist where cust_id = 10233 order by order_date desc;\nselect * from table(dbms_xplan.display);', done: ev => ev.xplan && ev.xplan.plan && ev.xplan.plan.usesIndex && /CUST/.test(ev.xplan.plan.usesIndex),
+        why: '<code>INDEX RANGE SCAN IX_ORDER_HIST_CUST</code>와 <code>access("CUST_ID"=10233)</code>입니다. 이미 실행 중인 커서는 다음 하드 파스 때 새 계획을 고릅니다. 앱 화면에서 다시 확인해 달라고 요청합니다.' },
+      { text: '보고서 남기기', hint: "exit\necho '고객별 주문 조회 지연: c7d2kq9x4m1pz(WHERE CUST_ID=:B1) TABLE ACCESS FULL, CUST_ID 인덱스 없음, 통계 41일 경과(STALE). 통계 재수집, IX_ORDER_HIST_CUST(cust_id) ONLINE 생성, 계획 INDEX RANGE SCAN 확인' > ~/tuning_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/tuning_report.txt') || {}).txt || ''),
+        why: '수고했습니다. 8단계 SQL 튜닝 입문을 마쳤습니다. 느린 SQL 찾기(6단계) → 실행 계획 읽기 → 조건 고치기 또는 인덱스 → 다시 계획 확인, 이 순서를 한 번씩 밟아 보았습니다.' },
+    ],
+    field: '인덱스는 공짜가 아닙니다. 테이블에 행을 넣고 고칠 때마다 인덱스도 함께 고쳐야 하므로, 입력이 많은 테이블에 인덱스를 늘리면 입력이 느려집니다. 그래서 운영에서는 ① 정말 그 열로 자주 찾는지 ② 고르는 행이 적은지(선택도) ③ 같은 열로 시작하는 인덱스가 이미 있는지를 확인하고, 업무 시간에는 ONLINE으로 만듭니다.',
+    sources: ['tgaccess', 'tgstats', 'crindex', 'xplan', 'tgxplan'] },
+);
+
 /* =====================================================================
    9. 레슨 진행
    ===================================================================== */
@@ -4840,7 +5177,8 @@ function startLesson(id) {
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
-  if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 3) { makeWorld3(L.id - 20); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -4886,7 +5224,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' }, 8: { name: '8단계 · SQL 튜닝 입문', sub: '8단계 · 실행 계획과 인덱스' } };
 const stageOf = (l) => l.stage || 3;
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
