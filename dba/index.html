@@ -205,8 +205,8 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 </main>
 
 <footer class="foot">
-  <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -217,6 +217,13 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
    1. 출처 목록. 레슨은 번호로 참조한다.
    ===================================================================== */
 const SRC = {
+  dbptc: ['Oracle Database Patch Maintenance, Release 19c and Later (RU 주기, out-of-place 권장, DBA_REGISTRY_SQLPATCH, OPatch 6880880.1)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dbptc/index.html'],
+  opsi26: ['Oracle AI Database 26ai · Single-Instance Maintenance with OPatch (19c판에는 같은 장이 없어 최신판의 절차를 인용)', 'https://docs.oracle.com/en/database/oracle/oracle-database/26/dbpss/opatch-si.pdf'],
+  optch: ['Oracle OPatch User\'s Guide (lsinventory, lspatches, apply, rollback -id)', 'https://docs.oracle.com/en/enterprise-manager/cloud-control/enterprise-manager-cloud-control/13.4/optch/oracle-opatch-users-guide.pdf'],
+  regsqlp: ['Oracle Database 19c Database Reference · DBA_REGISTRY_SQLPATCH', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/DBA_REGISTRY_SQLPATCH.html'],
+  relnum: ['Oracle Database 19c Upgrade Guide · About Oracle Database Release Numbers', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/upgrd/oracle-database-release-numbers.html'],
+  upgtrb: ['Oracle Database 19c Upgrade Guide · Troubleshooting (datapatch -verbose)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/upgrd/troubleshooting-oracle-database-upgrade.html'],
+  cpu: ['Oracle · Critical Patch Updates, Security Alerts and Bulletins (발표 일정)', 'https://www.oracle.com/security-alerts/'],
   tutstart: ['Oracle Database 19c 튜토리얼 · Start up and Shut down the Oracle Database Instance', 'https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-start-oracle/index.html'],
   tutback: ['Oracle Database 19c 튜토리얼 · Manage Backups (LIST BACKUP SUMMARY, CROSSCHECK)', 'https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-manage-back/index.html'],
   rmdel: ['Oracle Database 19c Backup and Recovery Reference · DELETE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/rcmrf/DELETE.html'],
@@ -607,7 +614,7 @@ function binNodes() {
   const R = 'root'; const usrbin = {}, usrsbin = {};
   const SBIN = ['groupadd', 'useradd', 'usermod', 'sysctl'];
   for (const c of Object.keys(CMDS)) {
-    if (['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl', 'ulimit'].includes(c)) continue;
+    if (['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl', 'ulimit', 'opatch', 'datapatch'].includes(c)) continue;
     if (!(CMDS[c] || ['vi', 'vim', 'top', 'ssh', 'su', 'bash', 'sh', 'dnf', 'yum', 'passwd'].includes(c))) continue;
     (SBIN.includes(c) ? usrsbin : usrbin)[c] = F(R, R, c === 'passwd' ? 0o4755 : 0o755, 120 * KB, { bin: c, mt: ago(200, 4, 2) });
   }
@@ -1025,7 +1032,7 @@ const CMDS = {
     if (f.r) ls.reverse();
     return ok(ls.length ? ls.join('\n') + '\n' : '');
   },
-  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
+  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  7단계 패치: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
   whoami() { return ok(S.user + '\n'); },
   hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
@@ -1634,8 +1641,8 @@ function runSeq(cmds, k) {
   const first = c.pipeline[0]; const name = first && first[0];
   S.ev.stages.push(...c.pipeline);
   // 대화형 명령은 단독으로만 실행
-  if (c.pipeline.length === 1 && name && name.includes('/')) { const r = lookup(normPath(name, S.cwd)); if (r && r.node && r.node.bin && INTERACTIVE[r.node.bin] && can(r.node, 1)) { INTERACTIVE[r.node.bin]([r.node.bin].concat(first.slice(1)), () => runSeq(cmds, k + 1)); return; } }
-  if (c.pipeline.length === 1 && INTERACTIVE[name]) { INTERACTIVE[name](first, () => runSeq(cmds, k + 1)); return; }
+  if (c.pipeline.length === 1 && name && name.includes('/')) { const r = lookup(normPath(name, S.cwd)); if (r && r.node && r.node.bin && INTERACTIVE[r.node.bin] && can(r.node, 1) && !(c.redir && CMDS[r.node.bin])) { INTERACTIVE[r.node.bin]([r.node.bin].concat(first.slice(1)), () => runSeq(cmds, k + 1)); return; } }
+  if (c.pipeline.length === 1 && INTERACTIVE[name] && !(typeof PATHBIN !== 'undefined' && PATHBIN.has(name) && (!findInPath(name) || c.redir))) { INTERACTIVE[name](first, () => runSeq(cmds, k + 1)); return; }
   let stdin = ''; let res = { out: '', err: '', code: 0 };
   for (let i = 0; i < c.pipeline.length; i++) {
     const argv = c.pipeline[i]; const last = i === c.pipeline.length - 1;
@@ -1669,6 +1676,7 @@ function execOne(argv, io) {
     if (!r || !r.node) return fail(`-bash: ${name}: No such file or directory\n`, 127);
     if (r.node.t === 'd') return fail(`-bash: ${name}: Is a directory\n`, 126);
     if (!can(r.node, 1) || !dirChain(abs)) { S.ev.execDenied = r.path; return fail(`-bash: ${name}: Permission denied\n`, 126); }
+    if (r.node.bin && typeof PATHBIN !== 'undefined' && PATHBIN.has(r.node.bin) && CMDS[r.node.bin]) return CMDS[r.node.bin]([r.node.bin].concat(argv.slice(1)), io);
     if (r.node.bin) return execOne([r.node.bin].concat(argv.slice(1)), io);
     if (r.node.txt != null) return { out: '', err: '', code: 0, script: { path: r.path, txt: r.node.txt } };
     return ok();
@@ -1676,6 +1684,7 @@ function execOne(argv, io) {
   if ((name === 'bash' || name === 'sh') && argv[1]) { const rf = readFile(argv[1], 'bash'); if (rf.e) return fail(rf.e + '\n', 127); return { out: '', err: '', code: 0, script: { path: rf.abs, txt: rf.txt } }; }
   if (argv.length === 2 && argv[1] === '--help' && Tips.ref(name) && (CMDS[name] || INTERACTIVE[name]) && findInPath(name)) return ok(Tips.manText(name, 'help') + note('실습용 요약입니다. 실제 서버의 --help는 영어로 모든 옵션을 보여 줍니다.'));
   const fn = CMDS[name];
+  if (typeof PATHBIN !== 'undefined' && PATHBIN.has(name) && !findInPath(name)) return fail(`-bash: ${name}: command not found\n`, 127);
   if (fn && (BUILTIN.has(name) || findInPath(name) || name === '__assign')) return fn(argv, io);
   if (name === 'sqlplus' || name === 'lsnrctl') { const p = findInPath(name); if (p) return fn(argv, io); }
   if (INTERACTIVE[name]) return fail(note(`${name}은(는) 파이프 없이 혼자 실행해 주세요.`));
@@ -1991,7 +2000,7 @@ const DBH = '/u02/app/oracle/oradata/ORCL';
 const FRA = OB + '/fast_recovery_area';
 const FRAD = FRA + '/ORCL';
 const DBID = 1650312877;
-const SQLVER = '19.3.0.0.0';
+let SQLVER = '19.3.0.0.0'; // 7단계에서 RU를 적용하면 바뀐다
 const RDBMS_BANNER = 'Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - 64bit Production';
 const MONS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 const p2 = (n) => String(n).padStart(2, '0');
@@ -3911,6 +3920,256 @@ function awrText(B, E) {
   return o;
 }
 
+/* =====================================================================
+   D10. 7단계 패치: OPatch, 분기별 RU, datapatch
+       절차는 Oracle Database Patch Maintenance(19c and Later), Database Reference 19c DBA_REGISTRY_SQLPATCH,
+       OPatch User's Guide, 26ai "Single-Instance Maintenance with OPatch"를 따랐다.
+       OPatch와 datapatch의 화면 예시는 공식 문서에서 찾지 못했으므로 출력은 모두 ⓘ로 알린다.
+       패치 번호, RU 버전(19.29), OPatch 버전 번호는 설명용 예시 값이다.
+   ===================================================================== */
+const RU_NEW = { id: 38291812, ver: '19.29.0.0.0', full: '19.29.0.0.251021', desc: 'Database Release Update : 19.29.0.0.251021 (38291812)', opatchMin: '12.2.0.1.47', build: '251009104455' };
+const RU_BASE = { id: 29517242, ver: '19.3.0.0.0', full: '19.3.0.0.190416', desc: 'Database Release Update : 19.3.0.0.190416 (29517242)', build: '190410122720' };
+const OCW_BASE = { id: 29585399, desc: 'OCW RELEASE UPDATE 19.3.0.0.0 (29585399)' };
+const OPATCH_OLD = '12.2.0.1.17', OPATCH_NEW = '12.2.0.1.47';
+const STAGE = '/u01/stage/RU';
+const PATHBIN = new Set(['opatch', 'datapatch']); // PATH에 없는 오라클 도구: 경로로 실행하거나 PATH에 $ORACLE_HOME/OPatch 를 넣어야 한다
+const verCmp = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
+const opTs = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}_${p2(d.getHours() % 12 || 12)}-${p2(d.getMinutes())}-${p2(d.getSeconds())}${d.getHours() < 12 ? 'AM' : 'PM'}`;
+const opLong = (d) => d.toLocaleString('en-US', { weekday: 'short' }) + ' ' + d.toLocaleString('en-US', { month: 'short' }) + ' ' + p2(d.getDate()) + ' ' + hms(d) + ' KST ' + d.getFullYear();
+
+function opatchDir(ver) {
+  const O = 'oracle', OI = 'oinstall';
+  return D(O, OI, 0o750, {
+    opatch: F(O, OI, 0o750, 48 * KB, { bin: 'opatch' }), datapatch: F(O, OI, 0o750, 2 * KB, { bin: 'datapatch' }),
+    'version.txt': F(O, OI, 0o640, `OPATCH_VERSION:${ver}\n`), docs: D(O, OI, 0o750, {}, { extra: 2 * MB }), jlib: D(O, OI, 0o750, {}, { extra: 60 * MB }),
+  }, { extra: 120 * MB });
+}
+const RU_README = () => `Oracle Database 19c Release Update ${RU_NEW.full} - 실습용 요약 README
+(실제 패치에는 README.html이 들어 있고, 훨씬 자세합니다. 아래 번호와 버전은 실습용 예시입니다.)
+
+패치 번호      : ${RU_NEW.id}
+설명           : ${RU_NEW.desc}
+대상           : Oracle Database 19c, Linux x86-64, 단일 인스턴스
+필요한 OPatch  : ${RU_NEW.opatchMin} 이상 (패치 6880880, My Oracle Support Note 6880880.1)
+
+사전 작업
+  1. 오라클 홈 백업 (out-of-place 패치를 권장)
+  2. opatch lsinventory 결과 저장
+  3. 충돌 검사: 압축을 푼 패치 디렉터리에서
+       $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+  4. 실행 중인 Data Pump 작업이 없는지 확인
+
+적용
+  1. 이 오라클 홈에서 실행 중인 데이터베이스와 리스너를 모두 내린다
+  2. 패치 디렉터리에서 opatch apply
+  3. 데이터베이스를 올린다 (CDB이면 alter pluggable database all open;)
+  4. cd $ORACLE_HOME/OPatch ; ./datapatch -verbose
+  5. DBA_REGISTRY_SQLPATCH 에서 이 패치의 STATUS가 SUCCESS인지 확인
+
+되돌리기
+  opatch rollback -id ${RU_NEW.id} 뒤 데이터베이스를 올리고 datapatch -verbose
+`;
+const ZIPS = {
+  [`p${RU_NEW.id}_190000_Linux-x86-64.zip`]: { size: 1820 * MB, put(dir) { const O = 'oracle', OI = 'oinstall'; dir.c[String(RU_NEW.id)] = D(O, OI, 0o755, { 'README.txt': F(O, OI, 0o644, RU_README()), etc: D(O, OI, 0o755, { config: D(O, OI, 0o755, { 'inventory.xml': F(O, OI, 0o644, 18 * KB), 'actions.xml': F(O, OI, 0o644, 2 * MB) }) }), files: D(O, OI, 0o755, {}, { extra: 3.1 * GB }) }, { mt: new Date() }); return [`${RU_NEW.id}/README.txt`, `${RU_NEW.id}/etc/config/inventory.xml`, `${RU_NEW.id}/etc/config/actions.xml`, `${RU_NEW.id}/files/...`]; } },
+  'p6880880_190000_Linux-x86-64.zip': { size: 124 * MB, put(dir) { dir.c.OPatch = opatchDir(OPATCH_NEW); return ['OPatch/opatch', 'OPatch/datapatch', 'OPatch/version.txt', 'OPatch/jlib/...']; } },
+};
+function patchState() { return S.patch || (S.patch = { bin: RU_BASE, reg: [], logs: 0 }); }
+function opVer() { const r = lookup(OH + '/OPatch/version.txt'); return r && r.node && r.node.txt ? r.node.txt.split(':')[1].trim() : OPATCH_OLD; }
+function opHead(kind) {
+  const d = new Date(); const P = patchState(); P.logs++;
+  const log = `${OH}/cfgtoollogs/opatch/opatch${opTs(d)}_${P.logs}.log`;
+  return { log, txt: `Oracle Interim Patch Installer version ${opVer()}\nCopyright (c) ${opVer() === OPATCH_OLD ? 2019 : 2025}, Oracle Corporation.  All rights reserved.\n\n${kind ? kind + '\n\n' : ''}\nOracle Home       : ${OH}\nCentral Inventory : /u01/app/oraInventory\n   from           : ${OH}/oraInst.loc\nOPatch version    : ${opVer()}\nOUI version       : 12.2.0.7.0\nLog file location : ${log}\n\n` };
+}
+const OP_NOTE = 'OPatch 화면은 실습용으로 줄인 흉내입니다. OPatch 출력의 예시는 공식 문서에서 찾지 못해 실제 화면과 다를 수 있습니다. 패치 번호와 버전 번호는 설명용 예시 값입니다.';
+function installedPatches() { const P = patchState(); return P.bin === RU_NEW ? [RU_NEW, OCW_BASE] : [OCW_BASE, RU_BASE]; }
+function lsinvText(detail) {
+  const P = patchState(); const d = new Date();
+  const base = ago(2, 15, 41), ruAt = P.appliedAt || d;
+  const list = installedPatches().map(p => {
+    const at = p === RU_NEW ? ruAt : new Date(2019, 3, 18, 7, 21, p === OCW_BASE ? 17 : 1);
+    return `Patch  ${p.id}     : applied on ${opLong(at)}\nUnique Patch ID:  ${p === RU_NEW ? 27001455 : p === OCW_BASE ? 22862832 : 22862832 - 3}\nPatch description:  "${p.desc}"\n   Created on ${p === RU_NEW ? '9 Oct 2025, 10:44:55 hrs PST8PDT' : '17 Apr 2019, 23:27:10 hrs PST8PDT'}\n` + (detail ? `   Files Touched:\n     ${p === OCW_BASE ? 'oracle.rdbms.rsf' : 'oracle.rdbms'}, 19.0.0.0.0\n       libserver19.a, libclient19.a  (목록은 실습에서 줄였습니다)\n` : '');
+  }).join('\n');
+  void base;
+  return `Lsinventory Output file location : ${OH}/cfgtoollogs/opatch/lsinv/lsinventory${opTs(d)}.txt\n--------------------------------------------------------------------------------\nLocal Machine Information::\nHostname: dbserver02.example.com\nARU platform id: 226\nARU platform description:: Linux x86-64\n\nInstalled Top-level Products (1):\n\nOracle Database 19c                                                  19.0.0.0.0\nThere are 1 products installed in this Oracle Home.\n\n\nInterim patches (2) :\n\n${list}\n--------------------------------------------------------------------------------\n\nOPatch succeeded.\n`;
+}
+function patchDirHere(ph) {
+  const abs = normPath(ph || '.', S.cwd); const r = lookup(abs + '/etc/config/inventory.xml');
+  return r && r.node && /\/38291812$/.test(abs) ? RU_NEW : null;
+}
+function hostUsesHome() { const db = S.db; return db.state !== 'DOWN' || db.lsnr.up; }
+function activeList() {
+  const db = S.db; const a = [];
+  if (db.state !== 'DOWN') a.push(`${OH}/bin/oracle`);
+  if (db.lsnr.up) a.push(`${OH}/bin/tnslsnr`);
+  return a;
+}
+/* opatch 중 묻지 않는 명령. 리다이렉션(>)으로 파일에 남길 수 있다. */
+CMDS.opatch = function (argv) {
+  const sub = (argv[1] || '').toLowerCase(); const ev = S.ev;
+  ev.opatch = { sub, ok: false };
+  unverified('opatch', OP_NOTE);
+  if (!sub || sub === '-help' || sub === 'help') return ok('Usage: opatch [ -help ] [ -report ] [ command ]\n\n            command := apply\n                       lsinventory\n                       lspatches\n                       prereq\n                       rollback\n                       version\n                       (실습에서 쓰는 명령만 적었습니다)\n\nOPatch succeeded.\n');
+  if (sub === 'version') { ev.opatch.ok = true; ev.opatch.ver = opVer(); return ok(`OPatch Version: ${opVer()}\n\nOPatch succeeded.\n`); }
+  if (sub === 'lspatches') { ev.opatch.ok = true; return ok(installedPatches().map(p => `${p.id};${p.desc}`).join('\n') + '\n\nOPatch succeeded.\n'); }
+  if (sub === 'lsinventory') {
+    const detail = argv.includes('-detail'); ev.opatch.ok = true; ev.opatch.detail = detail;
+    const h = opHead(''); const body = lsinvText(detail);
+    putFile(`${OH}/cfgtoollogs/opatch/lsinv/lsinventory${opTs(new Date())}.txt`, F('oracle', 'oinstall', 0o640, h.txt + body));
+    return ok(h.txt + body);
+  }
+  if (sub === 'prereq') {
+    const what = argv[2] || ''; const i = argv.indexOf('-ph'); const ph = i > 0 ? argv[i + 1] : null;
+    const h = opHead('PREREQ session');
+    if (!/^CheckConflictAgainstOHWithDetail$/i.test(what) || !ph) return fail(h.txt + note('실습에서는 opatch prereq CheckConflictAgainstOHWithDetail -ph ./ 만 흉내 냅니다. 압축을 푼 패치 디렉터리에서 실행하세요.'), 1);
+    const p = patchDirHere(ph);
+    if (!p) return fail(h.txt + `Invoking prereq "checkconflictagainstohwithdetail"\n\nPrereq "checkConflictAgainstOHWithDetail" not executed\nUnable to create Patch Object.\nException occured : Patch ID is null.\n\nOPatch failed with error code 73\n` + note('-ph 에는 압축을 푼 패치 디렉터리(etc/config/inventory.xml 이 있는 곳)를 줍니다. 패치 디렉터리로 cd 한 뒤 -ph ./ 로 실행하세요.'), 73);
+    if (verCmp(opVer(), p.opatchMin) < 0) return fail(h.txt + oldOpatchMsg(p), 135);
+    ev.opatch.ok = true; ev.opatch.prereq = p.id;
+    if (patchState().bin === p) return ok(h.txt + `Invoking prereq "checkconflictagainstohwithdetail"\n\nPrereq "checkConflictAgainstOHWithDetail" passed.\n\nOPatch succeeded.\n` + note('이 패치는 이미 적용되어 있습니다.'));
+    return ok(h.txt + `Invoking prereq "checkconflictagainstohwithdetail"\n\nPrereq "checkConflictAgainstOHWithDetail" passed.\n\nOPatch succeeded.\n`);
+  }
+  if (sub === 'apply' || sub === 'rollback') return fail(note(`opatch ${sub}는 y/n을 묻는 명령이라 파이프나 > 없이 혼자 실행해 주세요.`));
+  return fail(note('실습에서는 opatch version, lspatches, lsinventory, prereq, apply, rollback 만 흉내 냅니다.'), 1);
+};
+function oldOpatchMsg(p) {
+  return `The OPatch being used has version ${opVer()} while the following patch(es) require higher versions:\nPatch ${p.id} requires OPatch version ${p.opatchMin}.\nPlease download latest OPatch from My Oracle Support.\n\nOPatch failed with error code 135\n` + note(`README가 요구하는 OPatch(${p.opatchMin} 이상)보다 낮습니다. 받아 둔 p6880880 압축으로 OPatch를 먼저 바꾸세요. (오류 문구와 코드는 확인하지 못한 흉내입니다.)`);
+}
+INTERACTIVE.opatch = function (argv, done) {
+  const sub = (argv[1] || '').toLowerCase(); const ev = S.ev;
+  if (sub !== 'apply' && sub !== 'rollback') { const r = CMDS.opatch(argv); if (r.err) print(r.err, 'err'); print(r.out); S.lastCode = r.code; ev.out += r.out; done(); return; }
+  ev.opatch = { sub, ok: false }; unverified('opatch', OP_NOTE);
+  const P = patchState();
+  const end = (code) => { S.lastCode = code; S.ev = ev; checkLesson(ev); done(); };
+  const ask = (q, fn) => { print(q + '\n'); mode = { type: 'line', onSubmit(v) { fn(/^y(es)?$/i.test(v.trim())); }, cancel() { print('\n'); end(130); return true; } }; setPrompt(''); };
+  let target;
+  if (sub === 'apply') {
+    target = patchDirHere(argv[2] && !argv[2].startsWith('-') ? argv[2] : '.');
+    const h = opHead('');
+    if (!target) { print(h.txt + 'Verifying environment and performing prerequisite checks...\n\nUtilSession failed: Patch ID is null.\nLog file location: ' + h.log + '\n\nOPatch failed with error code 73\n' + note('패치를 적용하려면 압축을 푼 패치 디렉터리로 cd 한 뒤 opatch apply 를 실행합니다(26ai 문서의 순서).')); end(73); return; }
+    if (verCmp(opVer(), target.opatchMin) < 0) { print(h.txt + oldOpatchMsg(target)); end(135); return; }
+    if (P.bin === target) { print(h.txt + `Verifying environment and performing prerequisite checks...\nThe following patch(es) are duplicate patches with patches installed in the Oracle Home.\n [ ${target.id}]\nYou have already installed same patch(es) with same UPI(s) or different UPI(s).\n\nOPatch failed with error code 73\n` + note('이미 적용된 패치입니다. opatch lspatches 로 확인하세요.')); end(73); return; }
+    print(h.txt + 'Verifying environment and performing prerequisite checks...\n');
+  } else {
+    const i = argv.indexOf('-id'); const id = i > 0 ? +argv[i + 1] : NaN;
+    const h = opHead('');
+    if (!id) { print(h.txt + note('opatch rollback -id 패치번호 로 실행합니다(OPatch User\'s Guide).')); end(1); return; }
+    if (id !== RU_NEW.id || P.bin !== RU_NEW) { print(h.txt + `Patch ID  ${id}\nOPatch failed: patch ${id} is not present in the Oracle Home.\n\nOPatch failed with error code 1\n` + note('이 오라클 홈에 그 번호의 패치가 없습니다. opatch lspatches 로 번호를 확인하세요.')); end(1); return; }
+    target = RU_NEW;
+    print(h.txt + `\nPatches will be rolled back in the following order:\n   ${id}\n`);
+  }
+  const busy = activeList();
+  if (busy.length) {
+    print(`Prerequisite check "CheckActiveFilesAndExecutables" failed.\nThe details are:\n\nFollowing active executables are used by opatch process :\n${busy.join('\n')}\n\nUtilSession failed: Prerequisite check "CheckActiveFilesAndExecutables" failed.\nLog file location: ${OH}/cfgtoollogs/opatch/opatch_latest.log\n\nOPatch failed with error code 73\n` + note(`이 오라클 홈의 ${S.db.state !== 'DOWN' ? '데이터베이스' : ''}${S.db.state !== 'DOWN' && S.db.lsnr.up ? '와 ' : ''}${S.db.lsnr.up ? '리스너' : ''}가 아직 떠 있습니다. 26ai 문서의 1단계처럼 데이터베이스와 리스너를 모두 내린 뒤 다시 실행하세요.`));
+    ev.opatch.busy = true; end(73); return;
+  }
+  const go = () => {
+    print(sub === 'apply' ? `OPatch continues with these patches:   ${target.id}\n` : '');
+    ask('Do you want to proceed? [y|n]', (y1) => {
+      print(`User Responded with: ${y1 ? 'Y' : 'N'}`);
+      if (!y1) { print('\nOPatch stopped on request.\n' + note('n 으로 답해 아무것도 바뀌지 않았습니다.')); end(130); return; }
+      print(`All checks passed.\n\nPlease shutdown Oracle instances running out of this ORACLE_HOME on the local system.\n(Oracle Home = '${OH}')\n\n`);
+      ask('Is the local system ready for patching? [y|n]', (y2) => {
+        print(`User Responded with: ${y2 ? 'Y' : 'N'}`);
+        if (!y2) { print('\nOPatch stopped on request.\n'); end(130); return; }
+        const log = `${OH}/cfgtoollogs/opatch/opatch${opTs(new Date())}_${patchState().logs}.log`;
+        if (sub === 'apply') {
+          print(`Backing up files...\nApplying interim patch '${target.id}' to OH '${OH}'\n\nPatching component oracle.rdbms, 19.0.0.0.0...\n\nPatching component oracle.rdbms.rsf, 19.0.0.0.0...\n\nPatching component oracle.sqlplus, 19.0.0.0.0...\n(구성 요소 목록은 실습에서 줄였습니다)\nPatch ${target.id} successfully applied.\nSub-set patch [${RU_BASE.id}] has become inactive due to the application of a super-set patch [${target.id}].\nPlease refer to Doc ID 2161861.1 for any possible further required actions.\nLog file location: ${log}\n\nOPatch succeeded.\n`);
+          P.bin = target; P.appliedAt = new Date(); SQLVER = target.ver; ev.opatch.ok = true; ev.opatch.applied = target.id;
+          print(note('바이너리(오라클 홈의 프로그램 파일)만 바뀌었습니다. DB 안의 SQL 쪽 변경은 DB를 올린 뒤 datapatch로 적용해야 합니다.'));
+        } else {
+          print(`RollbackSession rolling back interim patch '${target.id}' from OH '${OH}'\n\nPatching component oracle.rdbms, 19.0.0.0.0...\n(구성 요소 목록은 실습에서 줄였습니다)\nRollbackSession removing interim patch '${target.id}' from inventory\nInactive sub-set patch [${RU_BASE.id}] has become active due to the rolling back of a super-set patch [${target.id}].\nPlease refer to Doc ID 2161861.1 for any possible further required actions.\nLog file location: ${log}\n\nOPatch succeeded.\n`);
+          P.bin = RU_BASE; P.appliedAt = null; SQLVER = RU_BASE.ver; ev.opatch.ok = true; ev.opatch.rolledBack = target.id;
+          print(note('바이너리는 19.3으로 돌아갔습니다. DB를 올린 뒤 datapatch -verbose 로 SQL 쪽 변경도 되돌려야 합니다.'));
+        }
+        end(0);
+      });
+    });
+  };
+  go();
+};
+/* datapatch: DB 안에 RU의 SQL 변경을 적용하거나 되돌리고 DBA_REGISTRY_SQLPATCH 에 기록한다 */
+function sqlRu() { const P = patchState(); const r = P.reg.filter(x => x.STATUS === 'SUCCESS' && x.PATCH_TYPE === 'RU'); const last = r[r.length - 1]; return last ? (last.TARGET_VERSION === RU_NEW.ver ? RU_NEW : RU_BASE) : RU_BASE; }
+CMDS.datapatch = function (argv) {
+  const ev = S.ev; const P = patchState(); const db = S.db; const d0 = new Date();
+  const sanity = argv.includes('-sanity_checks'), verbose = argv.includes('-verbose');
+  ev.datapatch = { sanity, verbose, ok: false };
+  unverified('datapatch', 'datapatch 화면은 실습용 흉내입니다. "Log file for this invocation:" 줄과 -sanity_checks, -verbose 옵션은 26ai "Single-Instance Maintenance with OPatch"의 절차에 나오지만, 나머지 출력 예시는 공식 문서에서 찾지 못했습니다.');
+  const dir = `${OB}/cfgtoollogs/sqlpatch/sqlpatch_${S.shellPid + 900 + P.logs}_${ymd(d0, '_')}_${p2(d0.getHours())}_${p2(d0.getMinutes())}_${p2(d0.getSeconds())}`;
+  P.logs++;
+  let o = `SQL Patching tool version ${P.bin.ver} Production on ${dayName(d0)}\nCopyright (c) 2012, ${P.bin === RU_NEW ? 2025 : 2019}, Oracle.  All rights reserved.\n\nLog file for this invocation: ${dir}/sqlpatch_invocation.log\n\nConnecting to database...`;
+  if (!S.env.ORACLE_SID || !S.env.ORACLE_HOME) return fail(o + 'Error: prereq checks failed!\n  Environment variable ORACLE_SID is not set\n' + note('oracle 사용자의 환경 변수(ORACLE_HOME, ORACLE_SID)가 필요합니다.'), 1);
+  if (db.state !== 'OPEN') return fail(o + `Error: prereq checks failed!\n  Database connect failed with: ${db.state === 'DOWN' ? 'ORA-01034: ORACLE not available' : 'ORA-01109: database not open'} (DBD ERROR: OCISessionBegin)\n\nPlease refer to MOS Note 1609718.1 and/or the invocation log\n${dir}/sqlpatch_invocation.log\nfor information on how to resolve the above errors.\n\nSQL Patching tool complete on ${dayName(new Date())}\n` + note('datapatch는 열린(OPEN) 데이터베이스에 접속해 SQL 변경을 적용합니다. 먼저 sqlplus / as sysdba 에서 startup 하세요.'), 1);
+  o += 'OK\n';
+  if (sanity) {
+    ev.datapatch.ok = true;
+    return ok(o + `Gathering database info...done\n\nRunning sanity checks...\nAll checks passed.\n\nSQL Patching tool complete on ${dayName(new Date())}\n` + note('-sanity_checks 는 적용하기 전에 DB가 패치를 받을 준비가 됐는지 점검만 합니다. 실제 점검 항목 목록은 실습에서 줄였습니다.'));
+  }
+  const from = sqlRu(), to = P.bin;
+  o += `Gathering database info...done\nBootstrapping registry and package to current versions...done\nDetermining current state...done\n\nCurrent state of interim SQL patches:\n  No interim patches found\n\nCurrent state of release update SQL patches:\n  Binary registry:\n    ${to.ver} Release_Update ${to.build}: Installed\n  SQL registry:\n    Applied ${from.ver} Release_Update ${from.build} successfully\n\nAdding patches to installation queue and performing prereq checks...done\nInstallation queue:\n  No interim patches need to be rolled back\n`;
+  if (from === to) {
+    ev.datapatch.ok = true; ev.datapatch.nothing = true;
+    return ok(o + `  No release update patches need to be installed\n  No interim patches need to be applied\n\nSQL Patching tool complete on ${dayName(new Date())}\n` + note('바이너리와 DB 안의 SQL 쪽 버전이 같아 할 일이 없습니다.'));
+  }
+  const apply = verCmp(to.ver, from.ver) > 0; const pid = apply ? to.id : from.id; const action = apply ? 'apply' : 'rollback';
+  const logf = `${OB}/cfgtoollogs/sqlpatch/${pid}/${apply ? 27001455 : 27001455}/${pid}_${action}_ORCL_${d0.getFullYear()}${d0.toLocaleString('en-US', { month: 'short' })}${p2(d0.getDate())}_${p2(d0.getHours())}_${p2(d0.getMinutes())}_${p2(d0.getSeconds())}.log`;
+  o += `  Patch ${apply ? to.id : from.id} (${apply ? to.desc : from.desc}):\n    ${apply ? 'Apply' : 'Rollback'} from ${from.ver} Release_Update ${from.build} to ${to.ver} Release_Update ${to.build}\n  No interim patches need to be applied\n\nInstalling patches...\nPatch installation complete.  Total patches installed: 1\n\nValidating logfiles...done\nPatch ${pid} ${action}: SUCCESS\n  logfile: ${logf} (no errors)\nSQL Patching tool complete on ${dayName(new Date())}\n`;
+  P.reg.push({ INSTALL_ID: P.reg.length + 1, PATCH_ID: pid, PATCH_UID: apply ? 27001455 : 22862829, PATCH_TYPE: 'RU', ACTION: apply ? 'APPLY' : 'ROLLBACK', STATUS: 'SUCCESS', ACTION_TIME: new Date(), DESCRIPTION: apply ? to.desc : from.desc, SOURCE_VERSION: from.ver, TARGET_VERSION: to.ver, LOGFILE: logf });
+  putFile(logf, F('oracle', 'oinstall', 0o640, `(실습) ${action} ${pid} 로그: 오류 없음\n`));
+  ev.datapatch.ok = true; ev.datapatch.done = action;
+  return ok(o + (verbose ? '' : note('문서의 절차는 ./datapatch -verbose 입니다. -verbose 는 진행 내용을 더 자세히 보여 줍니다.')));
+};
+Object.assign(VIEWS, {
+  'DBA_REGISTRY_SQLPATCH': { cols: [N('INSTALL_ID'), N('PATCH_ID'), N('PATCH_UID'), C('PATCH_TYPE', 10), C('ACTION', 15), C('STATUS', 25), Dt('ACTION_TIME'), C('DESCRIPTION', 100), C('SOURCE_VERSION', 15), C('TARGET_VERSION', 15), C('LOGFILE', 500)],
+    rows: () => patchState().reg.map(r => Object.assign({}, r)) },
+});
+function makeWorld7(lid) {
+  makeWorld4(0);
+  const O = 'oracle', OI = 'oinstall';
+  const P = S.patch = { bin: RU_BASE, reg: [{ INSTALL_ID: 1, PATCH_ID: RU_BASE.id, PATCH_UID: 22862829, PATCH_TYPE: 'RU', ACTION: 'APPLY', STATUS: 'SUCCESS', ACTION_TIME: ago(2, 16, 12), DESCRIPTION: RU_BASE.desc, SOURCE_VERSION: '19.1.0.0.0', TARGET_VERSION: RU_BASE.ver, LOGFILE: `${OB}/cfgtoollogs/sqlpatch/${RU_BASE.id}/22862829/${RU_BASE.id}_apply_ORCL_2026Nov24_16_12_08.log` }], logs: 0 };
+  const oh = lookup(OH).node.c;
+  oh.OPatch = opatchDir(OPATCH_OLD);
+  oh['oraInst.loc'] = F(O, OI, 0o644, 'inventory_loc=/u01/app/oraInventory\ninst_group=oinstall\n');
+  oh.cfgtoollogs = D(O, OI, 0o750, { opatch: D(O, OI, 0o750, { lsinv: D(O, OI, 0o750) }) });
+  const u01 = lookup('/u01').node.c;
+  u01.stage = D(O, OI, 0o775, { RU: D(O, OI, 0o775, {
+    [`p${RU_NEW.id}_190000_Linux-x86-64.zip`]: F(O, OI, 0o644, ZIPS[`p${RU_NEW.id}_190000_Linux-x86-64.zip`].size, { mt: ago(3, 14, 20), zip: 1 }),
+    'p6880880_190000_Linux-x86-64.zip': F(O, OI, 0o644, ZIPS['p6880880_190000_Linux-x86-64.zip'].size, { mt: ago(3, 14, 22), zip: 1 }),
+  }, { mt: ago(3, 14, 22) }) }, { mt: ago(3, 14, 20) });
+  const ru = lookup(STAGE).node;
+  if (lid >= 2) {
+    ZIPS[`p${RU_NEW.id}_190000_Linux-x86-64.zip`].put(ru);
+    oh.OPatch = opatchDir(OPATCH_NEW); oh[`OPatch_${OPATCH_OLD}`] = opatchDir(OPATCH_OLD);
+    putFile('/home/oracle/lsinv_before.txt', F(O, OI, 0o644, opHead('').txt + lsinvText(true), { mt: ago(1, 15, 2) }));
+  }
+  if (lid === 2) {
+    const n = '/home/oracle/patch_plan.txt';
+    putFile(n, F(O, OI, 0o644, `[정기점검 ${ymd(NOW, '-')} 22:00~24:00] RU ${RU_NEW.ver} 적용 계획 (어제 사전 점검 완료)\n- OPatch ${OPATCH_NEW} 로 교체 완료, 충돌 검사 passed\n- 패치 전 인벤토리: ~/lsinv_before.txt\n- 앱팀 공지 완료, 22:00부터 접속 차단\n순서: DB 종료 → 리스너 종료 → opatch apply → 리스너·DB 기동 → datapatch → 확인\n`, { mt: ago(1, 17, 40) }));
+  }
+  if (lid === 3) {
+    P.bin = RU_NEW; P.appliedAt = ago(0, 22, 31); SQLVER = RU_NEW.ver;
+    if (P.appliedAt > NOW) P.appliedAt = ago(1, 22, 31);
+    P.reg.push({ INSTALL_ID: 2, PATCH_ID: RU_NEW.id, PATCH_UID: 27001455, PATCH_TYPE: 'RU', ACTION: 'APPLY', STATUS: 'SUCCESS', ACTION_TIME: new Date(P.appliedAt.getTime() + 21 * 60000), DESCRIPTION: RU_NEW.desc, SOURCE_VERSION: RU_BASE.ver, TARGET_VERSION: RU_NEW.ver, LOGFILE: `${OB}/cfgtoollogs/sqlpatch/${RU_NEW.id}/27001455/${RU_NEW.id}_apply_ORCL.log` });
+  }
+}
+/* unzip: 실습에 쓰는 패치 압축만 푼다 */
+CMDS.unzip = function (argv) {
+  const q = argv.includes('-q') || argv.includes('-qq'), over = argv.includes('-o');
+  const di = argv.indexOf('-d'); const dest = di > 0 ? argv[di + 1] : null;
+  const file = argv.slice(1).find((a, i) => !a.startsWith('-') && argv[i] !== '-d');
+  if (!file) return ok('UnZip 6.00 of 20 April 2009, by Info-ZIP.  Maintained by C. Spieler.\n\nUsage: unzip [-Z] [-opts[modifiers]] file[.zip] [list] [-x xlist] [-d exdir]\n');
+  const abs = normPath(file, S.cwd); const r = lookup(abs);
+  if (!r || !r.node) return fail(`unzip:  cannot find or open ${file}, ${file}.zip or ${file}.ZIP.\n`, 9);
+  const z = ZIPS[baseOf(abs)];
+  if (!z) return fail(note('실습에서는 /u01/stage/RU 의 패치 압축만 풀 수 있습니다.'), 1);
+  const dabs = normPath(dest || '.', S.cwd); const dr = lookup(dabs);
+  if (!dr || !dr.node || dr.node.t !== 'd') return fail(`checkdir:  cannot create extraction directory: ${dest}\n           No such file or directory\n`, 3);
+  if (!can(dr.node, 2)) return fail(`checkdir error:  cannot create ${dest || '.'}\n                 Permission denied\n`, 50);
+  const top = baseOf(abs).startsWith('p6880880') ? 'OPatch' : String(RU_NEW.id);
+  if (dr.node.c[top] && !over) return fail(`replace ${top}/... ? [y]es, [n]o, [A]ll, [N]one, [r]ename:\n` + note(`${dabs}/${top} 가 이미 있습니다. 실습에서는 덮어쓰지 않습니다. OPatch를 바꿀 때는 먼저 mv 로 옛 디렉터리의 이름을 바꿔 백업한 뒤 푸세요.`), 1);
+  const names = z.put(dr.node); dr.node.mt = new Date();
+  S.ev.unzipped = baseOf(abs);
+  return ok(q ? '' : `Archive:  ${file}\n` + names.map(n => `  inflating: ${(dest ? dest.replace(/\/$/, '') + '/' : '') + n}`).join('\n') + '\n');
+};
 </script>
 <script>
 'use strict';
@@ -4499,6 +4758,75 @@ LESSONS.push(
 );
 
 
+LESSONS.push(
+  { id: 61, stage: 7, title: '패치 전 점검: 지금 버전과 받아 둔 RU 확인', short: '패치 전 점검', start: 'oracle',
+    who: '보안 담당 최과장 (메일)',
+    situation: '"이번 분기 Critical Patch Update가 나왔습니다. 정기점검 때 DB 서버에 최신 19c Release Update(RU)를 적용해 주세요." 선배가 패치 파일을 /u01/stage/RU 에 받아 두었습니다. 내일 밤 점검 전에, DB를 내리지 않고 할 수 있는 사전 점검을 오늘 끝내 둡니다.',
+    tasks: [
+      { text: 'OPatch로 지금 오라클 홈에 적용된 패치 보기', hint: '$ORACLE_HOME/OPatch/opatch lspatches', done: ev => ev.opatch && ev.opatch.sub === 'lspatches' && ev.opatch.ok,
+        why: '설치 때 들어 있던 19.3 RU(Database Release Update : 19.3.0.0.190416)와 OCW RU가 보입니다. OPatch User\'s Guide: "lspatches 명령은 설치된 모든 패치의 요약을 보여 준다." OPatch는 PATH에 들어 있지 않아 <code>$ORACLE_HOME/OPatch/opatch</code>처럼 경로로 실행합니다. 화면의 패치 번호는 설명용 예시입니다.' },
+      { text: '패치 전 인벤토리를 파일로 남기기', hint: '$ORACLE_HOME/OPatch/opatch lsinventory -detail -oh $ORACLE_HOME > ~/lsinv_before.txt\nls -l ~/lsinv_before.txt', done: () => /Interim patches/.test((node('/home/oracle/lsinv_before.txt') || {}).txt || ''),
+        why: '26ai "Single-Instance Maintenance with OPatch"는 패치 전에 <code>opatch lsinventory -detail -oh &lt;ORACLE_HOME&gt;</code>를 실행하고 결과를 저장해 두라고 합니다. 문제가 생겼을 때 "패치 전에는 무엇이 있었는지"를 보여 줄 유일한 기록입니다.' },
+      { text: 'DB 안에 기록된 SQL 패치 이력 보기', hint: 'sqlplus / as sysdba\nset linesize 200\ncol description format a55\nselect patch_id, patch_type, action, status, source_version, target_version, description from dba_registry_sqlpatch;', done: ev => qsel(ev, 'DBA_REGISTRY_SQLPATCH'),
+        why: 'Database Reference 19c: DBA_REGISTRY_SQLPATCH는 "SQL 패치의 설치 정보"를 담고, datapatch가 적용하거나 되돌릴 때마다 한 줄씩 남깁니다. PATCH_TYPE은 INTERIM, RU, RUI, RUR, CU 중 하나, ACTION은 APPLY나 ROLLBACK, STATUS는 SUCCESS나 WITH ERRORS 등입니다. Patch Maintenance 문서도 이 뷰가 "DB에 적용된 SQL 패치를 알려 준다"고 합니다.' },
+      { text: 'SQL*Plus에서 나와 RU 압축을 풀고 README 읽기', hint: 'exit\ncd /u01/stage/RU\nls -l\nunzip -q p38291812_190000_Linux-x86-64.zip\ncat 38291812/README.txt', done: ev => !S.sql && [...ev.read].some(p => /38291812\/README/.test(p)),
+        why: 'Patch Maintenance 문서는 패치 적용 방법을 묻는 질문에 "README를 보라"고 답합니다. 패치마다 필요한 OPatch 버전, 사전 작업, 적용 뒤 할 일이 다르기 때문입니다. 실습의 README는 줄인 요약이고, 실제 패치에는 README.html이 들어 있습니다.' },
+      { text: '지금 OPatch 버전이 README 요구보다 낮은지 확인하기', hint: '$ORACLE_HOME/OPatch/opatch version', done: ev => ev.opatch && ev.opatch.sub === 'version',
+        why: () => `설치 때 들어 있던 OPatch(${opVer()})입니다. README는 ${RU_NEW.opatchMin} 이상을 요구합니다. 26ai 문서도 "최신 OPatch(패치 6880880)를 쓰라"고 권합니다. 오래된 OPatch로 새 RU를 적용하려 하면 OPatch가 거부합니다.` },
+      { text: '옛 OPatch를 백업하고 새 OPatch로 바꾸기', hint: 'mv $ORACLE_HOME/OPatch $ORACLE_HOME/OPatch_12.2.0.1.17\nunzip -q /u01/stage/RU/p6880880_190000_Linux-x86-64.zip -d $ORACLE_HOME\n$ORACLE_HOME/OPatch/opatch version', done: ev => ev.opatch && ev.opatch.sub === 'version' && opVer() === OPATCH_NEW,
+        why: '옛 디렉터리는 지우지 않고 이름만 바꿔 둡니다. 새 OPatch에 문제가 있으면 되돌릴 수 있게 하려는 것입니다. 새 OPatch는 패치 6880880으로 받으며, Patch Maintenance 문서는 최신 OPatch를 찾는 곳으로 My Oracle Support Note 6880880.1을 안내합니다.' },
+      { text: '패치 디렉터리에서 충돌 검사하기', hint: 'cd /u01/stage/RU/38291812\n$ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./', done: ev => ev.opatch && ev.opatch.sub === 'prereq' && ev.opatch.ok,
+        why: '<code>Prereq "checkConflictAgainstOHWithDetail" passed.</code> 이미 들어 있는 패치와 충돌하지 않는다는 뜻입니다. 26ai 문서는 압축을 푼 패치 디렉터리에서 이 명령을 실행하라고 합니다. 충돌이 나오면 점검 전에 오라클 지원(My Oracle Support)에 병합 패치를 요청해야 하므로, 반드시 점검 전날까지 해 둡니다.' },
+    ],
+    field: 'RU는 분기마다 나옵니다. Patch Maintenance 문서: "RU는 분기마다, 1·4·7·10월 셋째 화요일에 나온다." 오라클 보안 공지 페이지도 Critical Patch Update를 같은 날 낸다고 밝힙니다. 버전 19.29.0.0.0에서 둘째 자리가 RU 순서이고, 다섯째 자리(예: 19.7.0.0.200414)는 날짜를 나타낼 수 있습니다(Upgrade Guide 19c). 문서는 모든 패치를 out-of-place(새 오라클 홈에 설치)로 하라고 권하지만, 이 실습은 원리를 익히기 쉽도록 지금 홈에 바로 적용합니다(in-place).',
+    sources: ['dbptc', 'opsi26', 'optch', 'regsqlp', 'relnum', 'cpu'] },
+
+  { id: 62, stage: 7, title: '정기점검: RU 적용하고 datapatch 돌리기', short: 'RU 적용', start: 'oracle',
+    who: '박팀장',
+    situation: () => `정기점검 시간(22:00~24:00)입니다. 앱팀 공지와 접속 차단은 끝났습니다. ~/patch_plan.txt 의 순서대로 RU ${RU_NEW.ver}를 적용해 주세요. 사전 점검은 어제 끝냈습니다.`,
+    tasks: [
+      { text: 'DB를 정상 종료하기', hint: 'cat ~/patch_plan.txt\nsqlplus / as sysdba\nshutdown immediate\nexit', done: () => S.db.state === 'DOWN' && !S.sql,
+        why: '26ai 문서의 1단계는 "데이터베이스와 모든 리스너를 내린다"입니다. 실행 중인 Data Pump 작업이 있다면 먼저 멈춰야 합니다(Patch Maintenance 문서의 주의 사항).' },
+      { text: '리스너 내리기', hint: 'lsnrctl stop', done: () => !S.db.lsnr.up },
+      { text: '이 오라클 홈의 프로세스가 남지 않았는지 보기', hint: 'ps -ef | grep pmon\nps -ef | grep tnslsnr', done: ev => has(ev, 'ps') && S.db.state === 'DOWN' && !S.db.lsnr.up,
+        why: 'grep 자기 자신의 줄만 보이면 남은 프로세스가 없습니다. 하나라도 남아 있으면 OPatch가 "CheckActiveFilesAndExecutables" 점검에서 멈춥니다.' },
+      { text: '패치 디렉터리에서 RU 적용하기 (두 번 묻는 질문에 y)', hint: 'cd /u01/stage/RU/38291812\n$ORACLE_HOME/OPatch/opatch apply\ny\ny', done: () => patchState().bin === RU_NEW,
+        why: '26ai 문서의 2단계: 압축을 푼 패치 디렉터리로 가서 <code>opatch apply</code>를 실행합니다. 이 단계는 오라클 홈의 프로그램 파일만 바꿉니다. 화면의 질문과 결과 문구는 실습용 흉내입니다(ⓘ 참고).' },
+      { text: '적용된 패치 확인하기', hint: '$ORACLE_HOME/OPatch/opatch lspatches', done: ev => ev.opatch && ev.opatch.sub === 'lspatches' && patchState().bin === RU_NEW,
+        why: () => `맨 위에 ${RU_NEW.desc}가 보입니다. 19.3 RU는 새 RU에 포함되어 목록에서 빠졌습니다.` },
+      { text: '리스너와 DB 올리기', hint: 'lsnrctl start\nsqlplus / as sysdba\nstartup\nexit', done: () => S.db.state === 'OPEN' && S.db.lsnr.up && !S.sql,
+        why: () => `SQL*Plus 시작 화면의 버전이 ${RU_NEW.ver}로 바뀌었습니다. 하지만 DB 안의 SQL 쪽 변경(딕셔너리, PL/SQL 패키지)은 아직 19.3 그대로입니다. 이 DB는 CDB가 아니라서 문서의 <code>alter pluggable database all open;</code>은 하지 않습니다.` },
+      { text: 'datapatch 사전 점검 돌리기', hint: 'cd $ORACLE_HOME/OPatch\n./datapatch -sanity_checks', done: ev => ev.datapatch && ev.datapatch.sanity && ev.datapatch.ok,
+        why: '26ai 문서의 적용 후 절차는 <code>./datapatch -sanity_checks</code>로 먼저 점검한 뒤 <code>./datapatch -verbose</code>를 실행하는 순서입니다.' },
+      { text: 'datapatch로 DB 안에 RU의 SQL 변경 적용하기', hint: './datapatch -verbose', done: () => sqlRu() === RU_NEW,
+        why: '"Log file for this invocation:" 줄에 이번 실행의 로그 위치가 나옵니다. 오류가 나면 이 로그부터 봅니다. Upgrade Guide 19c의 문제 해결 절에도 같은 명령(<code>cd $ORACLE_HOME/OPatch; ./datapatch -verbose</code>)이 나옵니다.' },
+      { text: 'DBA_REGISTRY_SQLPATCH와 버전으로 결과 확인하기', hint: "sqlplus / as sysdba\nset linesize 200\ncol description format a55\nselect patch_id, action, status, source_version, target_version, description from dba_registry_sqlpatch order by install_id;\nselect version_full from v$instance;", done: ev => qsel(ev, 'DBA_REGISTRY_SQLPATCH') && sqlRu() === RU_NEW,
+        why: () => `마지막 줄이 PATCH_ID ${RU_NEW.id}, ACTION APPLY, STATUS SUCCESS입니다. 26ai 문서는 "DBA_REGISTRY_SQLPATCH에서 이 APPLY의 STATUS가 SUCCESS인지 확인하라"고 합니다. SUCCESS가 아니면(WITH ERRORS 등) LOGFILE 열의 로그를 열어 봅니다. 수고했습니다. 앱팀에 점검 종료를 알리면 됩니다.` },
+    ],
+    field: 'RU 적용은 두 단계입니다. ① opatch apply: 오라클 홈의 프로그램 파일(바이너리)을 바꿉니다. DB와 리스너가 모두 내려가 있어야 합니다. ② datapatch: DB를 올린 뒤 DB 안의 SQL 쪽 변경을 적용하고 DBA_REGISTRY_SQLPATCH에 남깁니다. ②를 빼먹으면 opatch lspatches에는 새 RU가 보이는데 DB 안은 옛 버전인 어긋난 상태가 됩니다. Oracle GoldenGate를 함께 쓰는 DB라면 패치 전에 GoldenGate 프로세스도 내려야 합니다(Patch Maintenance 문서).',
+    sources: ['opsi26', 'dbptc', 'upgtrb', 'regsqlp', 'optch'] },
+
+  { id: 63, stage: 7, title: '졸업 미션: RU 되돌리기 (롤백)', short: '졸업 미션', start: 'oracle',
+    who: '박팀장',
+    situation: () => `"어젯밤 RU를 적용한 뒤로 정산 배치 하나가 계속 실패해요. 오라클 지원에 문의했더니 원인이 나올 때까지 패치를 되돌리는 것을 권했습니다. 오늘 밤 긴급 점검으로 롤백합시다." 7단계에서 배운 순서를 거꾸로 밟아 ${RU_NEW.id}를 되돌리고, ~/patch_report.txt 에 결과를 남겨 주세요. 점검 공지와 접속 차단은 끝났습니다.`,
+    tasks: [
+      { text: '되돌리기 전 상태를 파일로 남기기', hint: '$ORACLE_HOME/OPatch/opatch lspatches\n$ORACLE_HOME/OPatch/opatch lsinventory -oh $ORACLE_HOME > ~/lsinv_before_rollback.txt', done: () => /Interim patches/.test((node('/home/oracle/lsinv_before_rollback.txt') || {}).txt || ''),
+        why: '되돌릴 때도 바꾸기 전 상태를 먼저 남깁니다. 지원 엔지니어가 가장 먼저 묻는 것이 lsinventory 결과입니다.' },
+      { text: 'DB와 리스너 내리기', hint: 'sqlplus / as sysdba\nshutdown immediate\nexit\nlsnrctl stop', done: () => S.db.state === 'DOWN' && !S.db.lsnr.up && !S.sql },
+      { text: 'RU 롤백하기 (두 번 묻는 질문에 y)', hint: () => `$ORACLE_HOME/OPatch/opatch rollback -id ${RU_NEW.id}\ny\ny`, done: () => patchState().bin === RU_BASE,
+        why: 'OPatch User\'s Guide의 형식은 <code>opatch rollback -id &lt;Patch_ID&gt;</code>입니다. 패치 디렉터리가 아니어도 번호로 되돌립니다. 바이너리는 다시 19.3이 되었습니다.' },
+      { text: '리스너와 DB 올리기', hint: 'lsnrctl start\nsqlplus / as sysdba\nstartup\nexit', done: () => S.db.state === 'OPEN' && S.db.lsnr.up && !S.sql },
+      { text: 'datapatch로 DB 안의 SQL 변경도 되돌리기', hint: 'cd $ORACLE_HOME/OPatch\n./datapatch -verbose', done: () => sqlRu() === RU_BASE && patchState().reg.some(r => r.ACTION === 'ROLLBACK'),
+        why: 'datapatch는 바이너리와 DB 안의 기록을 비교해서, 바이너리가 옛 RU로 돌아갔으면 SQL 쪽 변경을 되돌립니다. 적용할 때와 같은 명령입니다.' },
+      { text: '롤백 기록 확인하기', hint: "sqlplus / as sysdba\nset linesize 200\nselect install_id, patch_id, action, status, source_version, target_version from dba_registry_sqlpatch order by install_id;", done: ev => qsel(ev, 'DBA_REGISTRY_SQLPATCH') && patchState().reg.some(r => r.ACTION === 'ROLLBACK'),
+        why: () => `ACTION이 ROLLBACK, STATUS가 SUCCESS인 줄이 새로 생겼습니다. Database Reference 19c: 이 뷰는 적용과 롤백마다 한 줄씩 남기므로, 줄을 지우지 않고 이력이 쌓입니다.` },
+      { text: '보고서 남기기', hint: () => `exit\necho '긴급 점검: RU ${RU_NEW.id}(${RU_NEW.ver}) 롤백 완료. opatch rollback 후 datapatch -verbose, DBA_REGISTRY_SQLPATCH ROLLBACK SUCCESS 확인. 현재 19.3. 정산 배치 재실행 확인 요청, SR 원인 분석 대기' > ~/patch_report.txt`, done: () => !S.sql && /\S/.test((node('/home/oracle/patch_report.txt') || {}).txt || ''),
+        why: '수고했습니다. 7단계 패치를 마쳤습니다. 패치 전 점검, 적용, 확인, 되돌리기까지 한 번씩 해 보았습니다.' },
+    ],
+    field: '롤백은 적용의 거울입니다. 바이너리는 opatch rollback, DB 안은 datapatch가 맡습니다. 그래서 적용 전에 남긴 lsinventory와 DBA_REGISTRY_SQLPATCH 기록이 중요합니다. Patch Maintenance 문서가 out-of-place 패치를 권하는 이유도 여기에 있습니다. 새 오라클 홈에 패치해 두고 DB만 옮기면, 문제가 생겼을 때 옛 홈으로 다시 옮기기만 하면 되기 때문입니다.',
+    sources: ['optch', 'opsi26', 'regsqlp', 'dbptc'] },
+);
+
 /* =====================================================================
    9. 레슨 진행
    ===================================================================== */
@@ -4511,7 +4839,9 @@ function startLesson(id) {
   Sess.begin(L.id, NOW.getTime());
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
-  if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  SQLVER = '19.3.0.0.0';
+  if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 3) { makeWorld3(L.id - 20); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 2) { makeWorld2(L.id); S.dfRows = () => [['devtmpfs', 15.5 * GB, 0, '/dev'], ['tmpfs', 15.6 * GB, 0, '/dev/shm'], ['tmpfs', 15.6 * GB, 8.5 * MB, '/run'], ['tmpfs', 15.6 * GB, 0, '/sys/fs/cgroup'], ['/dev/mapper/ol-root', 50 * GB, 4.1 * GB, '/'], ['/dev/sda1', 1014 * MB, 233 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', 200 * GB, 1.5 * GB + duOf(lookup('/u01').node), '/u01'], ['/dev/nvme0n1p1', 500 * GB, 3.6 * GB + duOf(lookup('/u02').node), '/u02'], ['tmpfs', 3.2 * GB, 0, '/run/user/0']]; S.user = 'root'; loginEnv('root'); S.cwd = '/root'; }
@@ -4556,7 +4886,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' } };
 const stageOf = (l) => l.stage || 3;
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
@@ -4568,12 +4898,13 @@ function renderTabs() {
   el.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => startLesson(+b.dataset.id)));
   const a = el.querySelector('[aria-current="true"]'); if (a) a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
+function whyOf(t) { return typeof t.why === 'function' ? t.why() : t.why; }
 function hintBody(t) { const h = typeof t.hint === 'function' ? t.hint() : t.hint; return esc(h) + (window.Tips ? Tips.html(h, esc) : ''); }
 function renderMission() {
   const L = cur.L; const el = document.getElementById('mission');
   const items = L.tasks.map((t, i) => {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
-    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
+    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${whyOf(t)}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${whyOf(t)}</details>` : ''}</li>`;
   }).join('');
   const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;

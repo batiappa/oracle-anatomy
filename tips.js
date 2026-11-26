@@ -30,6 +30,10 @@
     recover: ['Backup and Recovery Reference 19c · RECOVER', D19 + 'rcmrf/RECOVER.html'],
     list: ['Backup and Recovery Reference 19c · LIST', D19 + 'rcmrf/LIST.html'],
     report: ['Backup and Recovery Reference 19c · REPORT', D19 + 'rcmrf/REPORT.html'],
+    dbptc: ['Oracle Database Patch Maintenance (19c and Later)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dbptc/index.html'],
+    optch: ['OPatch User\'s Guide', 'https://docs.oracle.com/en/enterprise-manager/cloud-control/enterprise-manager-cloud-control/13.4/optch/oracle-opatch-users-guide.pdf'],
+    opsi: ['26ai · Single-Instance Maintenance with OPatch', 'https://docs.oracle.com/en/database/oracle/oracle-database/26/dbpss/opatch-si.pdf'],
+    regsqlp: ['Database Reference 19c · DBA_REGISTRY_SQLPATCH', D19 + 'refrn/DBA_REGISTRY_SQLPATCH.html'],
     maint: ['Backup and Recovery User\'s Guide 19c · Maintaining RMAN Backups', D19 + 'bradv/maintaining-rman-backups.html'],
     coreutils: ['GNU Coreutils 설명서', 'https://www.gnu.org/software/coreutils/manual/coreutils.html'],
   };
@@ -93,6 +97,7 @@
     passwd: { d: '사용자 암호를 바꿉니다.', syn: 'passwd [사용자]', o: [], tip: ['# 입력한 암호는 화면에 보이지 않습니다. root만 다른 사용자의 암호를 바꿀 수 있습니다'] },
     ssh: { d: '다른 서버에 접속합니다.', syn: 'ssh 사용자@서버', o: [], tip: ['# 처음 접속하는 서버는 호스트 키를 확인하라고 묻습니다 (yes). 끝낼 때는 exit'] },
     lsblk: { d: '블록 장치(디스크) 목록을 보여 줍니다.', syn: 'lsblk', o: [], tip: [] },
+    unzip: { d: 'zip 압축을 풉니다.', syn: 'unzip [옵션] 파일.zip [-d 디렉터리]', o: [['-q', '푸는 파일 목록을 보여 주지 않음'], ['-d 디렉터리', '그 디렉터리에 풂 (없으면 지금 디렉터리)'], ['-l', '풀지 않고 목록만 (실제 서버)'], ['-o', '묻지 않고 덮어씀 (주의)']], tip: ['# 풀기 전에 목록만 보기: unzip -l 파일.zip (실제 서버). 오라클 패치는 받은 그대로의 zip을 보관해 두면 다시 풀 수 있습니다'] },
   };
   REF.more = REF.less; REF.vim = REF.vi; REF.yum = REF.dnf; REF.printenv = REF.env;
 
@@ -107,6 +112,7 @@
     [/^(COL|COLUMN)\b/, 'sql', ['-- 문법: HELP COLUMN', '-- 설정 지우기: COLUMN 열이름 CLEAR, 모두 지우기: CLEAR COLUMNS'], ['column', 'help']],
     [/^SHOW\s+PARAMETER/, 'sql', ['-- 이름 일부만 써도 됩니다: SHOW PARAMETER recovery', '-- 바꾸기 전 값을 파일로 남기기: SPOOL /home/oracle/param_before.txt → SHOW PARAMETER ... → SPOOL OFF'], ['show', 'spool']],
     [/^SHOW\b/, 'sql', ['-- 모든 설정 보기: SHOW ALL, 문법: HELP SHOW'], ['show', 'help']],
+    [/^SELECT\b.*DBA_REGISTRY_SQLPATCH/, 'sql', ['-- 줄이 적용·롤백마다 쌓입니다. ORDER BY install_id 로 보면 순서대로 읽힙니다', '-- STATUS 가 SUCCESS 가 아니면 LOGFILE 열의 로그를 엽니다'], ['regsqlp']],
     [/^SELECT\b.*\b(V\$|DBA_|GV\$)/, 'sql', ['-- 어떤 열이 있는지: DESC 뷰이름 (예: DESC v$session)', '-- 결과를 파일로: SPOOL /home/oracle/result.txt → 쿼리 → SPOOL OFF (확장자를 안 쓰면 .lst)', '-- 열이 잘려 보이면: SET LINESIZE 200, COLUMN 열이름 FORMAT a30'], ['spool', 'sqlqr']],
     [/^SELECT\b/, 'sql', ['-- 결과를 파일로: SPOOL /home/oracle/result.txt → 쿼리 → SPOOL OFF (확장자를 안 쓰면 .lst)', '-- 테이블 구조 보기: DESC 테이블이름'], ['spool', 'sqlqr']],
     [/^CONN(ECT)?\b/, 'sql', ['-- 지금 누구로 접속했는지: SHOW USER', '-- 문법: HELP CONNECT'], ['help']],
@@ -128,6 +134,12 @@
     [/^(LIST)\b/, 'rman', ['# 문법: Backup and Recovery Reference 19c 의 LIST', '# 결과를 파일로 남기려면 rman target / log /home/oracle/rman_list.log 로 시작'], ['list', 'rman']],
     [/^(REPORT)\b/, 'rman', ['# 문법: Backup and Recovery Reference 19c 의 REPORT'], ['report']],
     [/^(DELETE|CROSSCHECK)\b/, 'rman', ['# 지우기 전에 대상 확인: REPORT OBSOLETE;', '# 관리 방법: Backup and Recovery User\'s Guide 19c 의 Maintaining RMAN Backups'], ['maint']],
+    [/(^|\/)OPATCH\s+LSPATCHES\b/, 'sh', ['# 명령 목록: opatch -help, 한 명령의 옵션: opatch lsinventory -help (실제 서버)', '# 기록 남기기: $ORACLE_HOME/OPatch/opatch lspatches > ~/lspatches_before.txt'], ['optch']],
+    [/(^|\/)OPATCH\s+LSINVENTORY\b/, 'sh', ['# OPatch 는 PATH에 없어서 $ORACLE_HOME/OPatch/opatch 처럼 경로로 실행합니다', '# 패치 전후로 > 파일 로 한 부씩 저장해 두세요. 문제가 생기면 지원 엔지니어가 가장 먼저 찾는 기록입니다'], ['optch', 'opsi']],
+    [/(^|\/)OPATCH\s+VERSION\b/, 'sh', ['# 패치 README가 요구하는 OPatch 최소 버전과 비교합니다. 새 OPatch는 패치 6880880 (My Oracle Support Note 6880880.1)'], ['dbptc']],
+    [/(^|\/)OPATCH\s+PREREQ\b/, 'sh', ['# 압축을 푼 패치 디렉터리에서 실행합니다 (-ph ./). 점검 전날까지 해 두세요', '# 결과 저장: ... -ph ./ > ~/prereq_result.txt'], ['opsi']],
+    [/(^|\/)OPATCH\s+(APPLY|ROLLBACK)\b/, 'sh', ['# 실행 전 확인: ps -ef | grep pmon, ps -ef | grep tnslsnr (이 홈의 DB와 리스너가 모두 내려가 있어야 함)', '# 진행 기록은 화면의 Log file location 에 남습니다. 실패하면 그 로그부터 봅니다', '# 미리 보기만: opatch apply -report (실제로 바꾸지 않음, OPatch User\'s Guide)'], ['opsi', 'optch']],
+    [/(^|\/)DATAPATCH\b/, 'sh', ['# DB가 열려 있어야 합니다(startup 먼저). -sanity_checks 로 점검한 뒤 -verbose 로 적용', '# 결과 확인: SELECT patch_id, action, status FROM dba_registry_sqlpatch ORDER BY install_id;', '# 로그 위치는 "Log file for this invocation:" 줄에 나옵니다'], ['opsi', 'regsqlp']],
   ];
 
   const LIN = Object.keys(REF);

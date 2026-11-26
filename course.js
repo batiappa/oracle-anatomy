@@ -1,4 +1,4 @@
-/* 실습 과정 공용 내비게이션: 리눅스 실습실(lab/)과 DBA 실습(dba/)을 1~6단계 한 과정으로 보여 준다.
+/* 실습 과정 공용 내비게이션: 리눅스 실습실(lab/)과 DBA 실습(dba/)을 1~7단계 한 과정으로 보여 준다.
    각 페이지는 이 파일을 불러 Course.render()로 단계 메뉴를 그린다. 진행 상황은 두 페이지가 각자 저장한
    localStorage 값(ohb:lab:done, ohb:dba:done)을 함께 읽어 계산한다. */
 (function () {
@@ -11,6 +11,7 @@
     { st: 4, part: 'dba', group: 'DBA', name: '장애 대응', ids: range(31, 36) },
     { st: 5, part: 'dba', group: 'DBA', name: '고급 복구', ids: range(41, 43) },
     { st: 6, part: 'dba', group: 'DBA', name: '성능 점검', ids: range(51, 53) },
+    { st: 7, part: 'dba', group: 'DBA', name: '패치', ids: range(61, 63) },
   ];
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };
   const progOf = (part) => { try { return JSON.parse(localStorage.getItem(KEY[part]) || '{}') || {}; } catch (e) { return {}; } };
@@ -24,7 +25,7 @@
 .course-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
 .course-head b { color: var(--ink); font-weight: 600; font-size: 12.5px; }
 .course-head .all { font-family: var(--font-mono); font-size: 11.5px; }
-.course-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.course-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(${STAGES.length}, minmax(0, 1fr)); gap: 6px; }
 .course-step { display: grid; grid-template-rows: auto 1fr auto; gap: 3px; height: 100%; box-sizing: border-box; padding: 7px 10px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--muted); text-decoration: none; text-align: left; font: inherit; cursor: pointer; width: 100%; }
 .course-step:hover { border-color: var(--muted); color: var(--ink); }
 .course-step[aria-current="step"] { background: var(--panel); border-color: var(--accent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
