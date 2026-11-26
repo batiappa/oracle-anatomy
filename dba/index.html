@@ -77,10 +77,6 @@ p code, li code, .md code { background: var(--panel-2); border: 1px solid var(--
 .tab.done .n { color: var(--ok); }
 .tab[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .tab[aria-current="true"] .n { color: inherit; }
-.stage-tabs { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.stage-tab { border: 1px solid var(--line); background: var(--panel-2); border-radius: 9px; padding: 4px 11px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
-.stage-tab[aria-pressed="true"] { background: var(--panel); color: var(--ink); border-color: var(--muted); }
-.stage-tab .cnt { font-family: var(--font-mono); font-weight: 400; font-size: 11.5px; margin-left: 5px; }
 
 /* grid */
 .wrap { max-width: 1400px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: 420px minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -111,6 +107,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn:hover { border-color: var(--muted); }
+a.btn { display: inline-block; text-decoration: none; color: inherit; }
 .note-card { padding: 14px 18px; }
 .note-card p { margin: 0 0 8px; font-size: 14px; }
 .note-card ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
@@ -166,7 +163,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 <header class="top">
   <div class="top-in">
     <a class="brand" href="./"><span class="brand-name">DBA 실습</span><span class="brand-sub" id="brandSub">3단계 · Oracle 19c 기본 운영</span></a>
-    <nav class="site-tabs" aria-label="사이트 전환"><a class="site-tab" href="../">Oracle 해부도</a><a class="site-tab" href="../lab/">리눅스 실습실</a><a class="site-tab" aria-current="page" href="./">DBA 실습</a></nav>
+    <nav class="site-tabs" aria-label="사이트 전환"><a class="site-tab" href="../">Oracle 해부도</a><a class="site-tab" aria-current="page" href="./">실습 과정</a></nav>
     <span class="top-spacer"></span>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
@@ -174,7 +171,8 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
   </div>
 </header>
 
-<nav class="tabs-wrap" aria-label="레슨 목록"><div class="stage-tabs" id="stageTabs"></div><div class="tabs" id="tabs"></div></nav>
+<nav class="tabs-wrap" aria-label="실습 과정과 레슨 목록"><div class="course" id="course"></div><div class="tabs" id="tabs"></div></nav>
+<script src="../course.js"></script>
 
 <main class="wrap">
   <div class="side">
@@ -3987,9 +3985,7 @@ const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
 function renderTabs() {
   const st = stageOf(cur.L);
-  const sEl = document.getElementById('stageTabs');
-  sEl.innerHTML = Object.keys(STAGES).map(k => { const ls = stageLessons(+k); const d = ls.filter(l => prog[l.id]).length; return `<button class="stage-tab" type="button" data-stage="${k}" aria-pressed="${+k === st}">${STAGES[k].name}<span class="cnt">${d}/${ls.length}</span></button>`; }).join('');
-  sEl.querySelectorAll('.stage-tab').forEach(b => b.addEventListener('click', () => { const ls = stageLessons(+b.dataset.stage); if (+b.dataset.stage === st) return; startLesson((ls.find(l => !prog[l.id]) || ls[0]).id); }));
+  Course.render(document.getElementById('course'), { here: 'dba', stage: st, prog, onLocal: (k) => { const ls = stageLessons(k); startLesson((ls.find(l => !prog[l.id]) || ls[0]).id); } });
   const el = document.getElementById('tabs');
   el.innerHTML = stageLessons(st).map((l, i) => `<button class="tab${prog[l.id] ? ' done' : ''}" type="button" data-id="${l.id}" aria-current="${cur && cur.L.id === l.id}"><span class="n">${prog[l.id] ? '✓' : i + 1}</span>${l.short}</button>`).join('');
   el.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => startLesson(+b.dataset.id)));
@@ -4001,14 +3997,15 @@ function renderMission() {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
     return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${esc(t.hint)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
   }).join('');
-  const next = LESSONS.find(l => l.id === L.id + 1);
+  const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
+  const away = !next && Course.nextElsewhere('dba', st);
   el.innerHTML = `<div class="eyebrow"><b>${STAGES[st].name}</b> / 레슨 ${lessonNo(L)} / ${cnt}</div>
     <h1>${L.title}</h1>
     <p class="situation"><span class="who">${L.who}</span>${L.situation}</p>
     <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
-    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
-    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
+    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
+    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
   ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; renderMission(); }));
