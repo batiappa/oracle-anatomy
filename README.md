@@ -62,6 +62,30 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 2단계의 패키지 버전은 yum.oracle.com의 Oracle Linux 8 저장소 목록에서, preinstall RPM이 바꾸는 값(커널 파라미터, 자원 제한, 사용자·그룹, THP와 `numa=off` 부팅 옵션, 기록 파일 위치)은 `oracle-database-preinstall-19c-1.0-4.el8` 패키지를 풀어 그 안의 `.param` 파일과 verify 스크립트에서 확인했습니다. 설치 전 커널 기본값, 기본 자원 제한, 디스크 구성은 예시입니다. ORAchk와 설치 프로그램(runInstaller, fixup 스크립트)은 흉내 내지 않고 해설로만 다룹니다.
 - 열 간격, 날짜, 크기, PID, IP, 서버 이름 같은 값은 설명용 예시입니다.
 
+## DBA 실습 (`dba/`)
+
+**주소:** https://batiappa.github.io/oracle-anatomy/dba/
+
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 `#lesson-21`부터 `#lesson-29`입니다.
+
+### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | SQL*Plus로 처음 접속하기(OS 인증) | `sqlplus / as sysdba`, `show user`, `v$instance`, `v$database`, `set linesize`, `col ... format` |
+| 2 | DB 내리고 단계별로 올리기 | `shutdown immediate`, `startup nomount`, `alter database mount/open`, `host ps -ef` |
+| 3 | 리스너 살리고 원격 접속 확인하기 | `lsnrctl status/start/services`, `alter system register`, `sqlplus app/...@ORCL` |
+| 4 | 꽉 찬 테이블스페이스에 공간 늘리기(ORA-1653) | `dba_data_files`, `dba_free_space`, `alter tablespace ... add datafile` |
+| 5 | 조회 전용 사용자 만들고 권한 주기 | `create user`, `grant create session`, `grant select on`, `dba_tab_privs` |
+| 6 | 지워진 암호 파일 다시 만들기 | `orapwd file=... format=12.2`, `v$pwfile_users`, `grant sysbackup` |
+| 7 | 락을 잡고 있는 세션 정리하기 | `v$session.blocking_session`, `v$process.spid`, `alter system kill session 'sid,serial#'` |
+| 8 | 아카이브 모드로 바꾸고 첫 RMAN 백업 받기 | `archive log list`, `alter database archivelog`, `rman target /`, `backup database plus archivelog` |
+| 9 | 졸업 미션: 재부팅 뒤 아침 점검 | 배운 명령 종합, `alter user ... account unlock` |
+
+- SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
+- 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
+- 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
+
 ## 구현
 
 - **외부 라이브러리 없이** HTML, CSS, JavaScript 파일 하나로 동작합니다.
@@ -80,6 +104,7 @@ python3 -m http.server 8000
 ## 로드맵
 
 - 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
+- DBA 실습 4단계: 장애 대응(RMAN 복원·복구 등)
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
 ## 참고
