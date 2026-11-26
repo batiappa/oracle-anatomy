@@ -206,7 +206,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 
 <footer class="foot">
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance, SQL Tuning Guide, PL/SQL Packages and Types Reference)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 8단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 9단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 8단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 9단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -217,6 +217,12 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
    1. 출처 목록. 레슨은 번호로 참조한다.
    ===================================================================== */
 const SRC = {
+  dgbrkex: ['Oracle Data Guard Broker 19c · Examples Using the DGMGRL Utility (SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html'],
+  dgbrkcmd: ['Oracle Data Guard Broker 19c · Oracle Data Guard Broker Commands (CONNECT, VALIDATE DATABASE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-commands.html'],
+  dgstats: ['Oracle Database 19c Reference · V$DATAGUARD_STATS', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATAGUARD_STATS.html'],
+  dgproc: ['Oracle Database 19c Reference · V$DATAGUARD_PROCESS', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATAGUARD_PROCESS.html'],
+  dgapply: ['Oracle Data Guard Concepts and Administration 19c · Redo Apply Services', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html'],
+  dgrole: ['Oracle Data Guard Concepts and Administration 19c · Managing Oracle Data Guard Role Transitions', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-role-transitions.html'],
   tgxplan: ['Oracle Database 19c SQL Tuning Guide · Generating and Displaying Execution Plans', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html'],
   tgaccess: ['Oracle Database 19c SQL Tuning Guide · Optimizer Access Paths (인덱스를 쓰지 못하는 이유, 범위 스캔)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html'],
   tgstats: ['Oracle Database 19c SQL Tuning Guide · Gathering Optimizer Statistics', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/gathering-optimizer-statistics.html'],
@@ -1635,6 +1641,7 @@ function runLine(line) {
   if (!trimmed) { setPrompt(prompt()); return; }
   S.history.push(trimmed);
   if (S.host === 'laptop') return runLaptop(trimmed);
+  if (S.dg && !S.sql) S.db = S.dg.local;
   S.ev = newEv(trimmed);
   const cmds = parseLine(trimmed);
   runSeq(cmds, 0);
@@ -2581,14 +2588,17 @@ function resolveSvc(svc) {
 }
 /* 접속 시도. 성공하면 null, 실패하면 오류 문장을 돌려준다. */
 function tryConnect(c) {
-  const db = S.db; const me = S.sql;
+  let db = S.db; const me = S.sql;
+  if (S.dg) { db = S.dg.local; S.dgTgt = db; }
   let remote = false;
   if (c.svc) {
     const r = resolveSvc(c.svc);
     if (r.err) return r.err;
-    if (!/^(dbserver02|dbserver02\.example\.com|10\.0\.1\.11|localhost)$/i.test(r.host || '') || r.port !== 1521) return 'ORA-12541: TNS:no listener';
+    const h3 = !!S.dg && /^(dbserver03|dbserver03\.example\.com|10\.0\.1\.12)$/i.test(r.host || '');
+    if (h3) { db = S.dg.remote; S.dgTgt = db; }
+    if ((!h3 && !/^(dbserver02|dbserver02\.example\.com|10\.0\.1\.11|localhost)$/i.test(r.host || '')) || r.port !== 1521) return 'ORA-12541: TNS:no listener';
     if (!db.lsnr.up) return 'ORA-12541: TNS:no listener';
-    if (!lsnrServices().some(s => s.name === r.service)) return 'ORA-12514: TNS:listener does not currently know of service requested in connect descriptor';
+    if (!lsnrServices(db).some(s => s.name === r.service)) return 'ORA-12514: TNS:listener does not currently know of service requested in connect descriptor';
     if (db.state !== 'OPEN' && !c.priv) return 'ORA-01033: ORACLE initialization or shutdown in progress';
     remote = true;
   }
@@ -2619,6 +2629,7 @@ function tryConnect(c) {
 function finishConnect(user, priv, remote, os) {
   const me = S.sql;
   sqlDisconnect(true);
+  if (S.dg) S.db = S.dgTgt || S.dg.local;
   me.conn = true; me.user = priv ? (priv === 'SYSDBA' ? 'SYS' : PRIV_USER[priv]) : user; me.priv = priv; me.shownUser = user; me.remote = remote; me.os = os;
   me.schema = priv ? (priv === 'SYSDBA' ? 'SYS' : PRIV_USER[priv]) : user;
   me.idle = S.db.state === 'DOWN';
@@ -2671,7 +2682,7 @@ function sqlLoop(done) {
   const me = S.sql;
   const pr = () => (me.buf.length ? String(me.buf.length + 1).padStart(3) + '  ' : 'SQL> ');
   const next = () => { mode = { type: 'line', hist: S.sqlHist, onSubmit(v) { onLine(v); }, cancel() { me.buf = []; print(''); next(); return true; } }; setPrompt(pr()); };
-  const exit = () => { if (me.conn) print(`Disconnected from ${RDBMS_BANNER}\nVersion ${SQLVER}\n`); sqlDisconnect(); S.sql = null; S.ev = newEv(''); S.ev.type = 'sql-exit'; checkLesson(S.ev); mode = null; done(); };
+  const exit = () => { if (me.conn) print(`Disconnected from ${RDBMS_BANNER}\nVersion ${SQLVER}\n`); sqlDisconnect(); S.sql = null; if (S.dg) S.db = S.dg.local; S.ev = newEv(''); S.ev.type = 'sql-exit'; checkLesson(S.ev); mode = null; done(); };
   me.exit = exit; me.next = next;
   const onLine = (v) => {
     if (v.trim()) S.sqlHist.push(v);
@@ -2744,6 +2755,7 @@ function execSql(sql, raw) {
   let m;
   { const x = sql4(sql, raw); if (x !== undefined) return x; }
   { const x = sql8(sql, raw); if (x !== undefined) return x; }
+  { const x = sql9(sql); if (x !== undefined) return x; }
   if (/^SELECT\b/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     const res = runSelect(raw);
@@ -3043,7 +3055,7 @@ function plusCmd(t) {
   if (/^(R|RUN|L|LIST)$/.test(c0)) { if (!me.last) { print('SP2-0223: No lines in SQL buffer.\n'); return; } const ls = me.last.text.split('\n'); print(ls.map((l, i) => `${String(i + 1).padStart(3)}${i === ls.length - 1 ? '*' : ' '} ${l}`).join('\n') + '\n'); if (/^R/.test(c0)) runStmt(me.last.text, me.last.lines); return; }
   if (/^(PROMPT|PRO)$/.test(c0)) { print(t.slice(w[0].length).trim() + '\n'); return; }
   if (/^(SPOOL|SPO)$/.test(c0)) { sqlSpool(w.slice(1)); return; }
-  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  (8단계) EXPLAIN PLAN FOR SELECT ...  SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)  DBMS_XPLAN.DISPLAY_CURSOR(\'sql_id\')\n         CREATE INDEX ... [ONLINE]  DROP INDEX  EXEC DBMS_STATS.GATHER_TABLE_STATS(\'APP\', \'ORDER_HIST\')\n         USER_INDEXES, USER_IND_COLUMNS, USER_TAB_STATISTICS (DBA_ 도 있음)\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
+  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  (8단계) EXPLAIN PLAN FOR SELECT ...  SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)  DBMS_XPLAN.DISPLAY_CURSOR(\'sql_id\')\n         CREATE INDEX ... [ONLINE]  DROP INDEX  EXEC DBMS_STATS.GATHER_TABLE_STATS(\'APP\', \'ORDER_HIST\')\n         USER_INDEXES, USER_IND_COLUMNS, USER_TAB_STATISTICS (DBA_ 도 있음)\n  (9단계) V$DATAGUARD_STATS  V$DATAGUARD_PROCESS  V$DATABASE의 DATABASE_ROLE, DB_UNIQUE_NAME, PROTECTION_MODE\n         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE [DISCONNECT | CANCEL]  (DGMGRL은 셸에서 dgmgrl /)\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
   if (/^(PASSWORD|PASSW)$/.test(c0)) { print(note('실습에서는 ALTER USER 이름 IDENTIFIED BY 새암호; 로 암호를 바꿉니다.')); return; }
   print(`SP2-0734: unknown command beginning "${t.slice(0, 10)}..." - rest of line ignored.\n`);
 }
@@ -3140,11 +3152,11 @@ function doShutdown(t) {
 /* =====================================================================
    D4. lsnrctl 흉내 (Net Services Reference 19c 와 리스너 튜토리얼의 출력 예시를 따름)
    ===================================================================== */
-function lsnrServices() {
-  const db = S.db;
+function lsnrServices(db = S.db) {
   if (!db.lsnr.up || !db.lsnr.reg || db.state === 'DOWN') return [];
   const st = db.state === 'OPEN' && !db.restrict ? 'READY' : db.state === 'OPEN' ? 'RESTRICTED' : 'BLOCKED';
-  return [{ name: 'orcl', st }, { name: 'orclXDB', st, xdb: true }];
+  const nm = (db.uniq || 'ORCL').toLowerCase();
+  return [{ name: nm, st }, { name: nm + 'XDB', st, xdb: true }];
 }
 function lsnrHead() { return `\nLSNRCTL for Linux: Version 19.0.0.0.0 - Production on ${lsDateTime(new Date())}\n\nCopyright (c) 1991, 2019, Oracle.  All rights reserved.\n\n`; }
 const LSNR_TCP = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=dbserver02.example.com)(PORT=1521)))';
@@ -4450,6 +4462,176 @@ function makeWorld8(lid) {
     PERF.sql = PERF.sql.filter(x => x.id !== '8wzq2k1ptm6c4');
   }
 }
+/* =====================================================================
+   D12. 9단계 Data Guard 기초: 주 DB(dbserver02)와 물리 대기 DB(dbserver03, DB_UNIQUE_NAME orclstby)
+       Data Guard Concepts and Administration 19c, Data Guard Broker 19c, Database Reference 19c를 따랐다.
+       DGMGRL 출력 중 문서 예시에 있는 줄은 그 모양대로 옮기고, 확인하지 못한 줄은 ⓘ로 알린다.
+   ===================================================================== */
+function dgDb(name) { if (!S.dg) return null; const n = String(name || '').replace(/;$/, '').replace(/^['"]|['"]$/g, '').toLowerCase(); return S.dg.dbs[n] || null; }
+function dgPrimary() { return Object.values(S.dg.dbs).find(d => d.role === 'PRIMARY'); }
+function dgStandby() { return Object.values(S.dg.dbs).find(d => d.role === 'PHYSICAL STANDBY'); }
+const ival = (s) => { s = Math.max(0, Math.round(s)); return `+${p2(Math.floor(s / 86400))} ${p2(Math.floor(s / 3600) % 24)}:${p2(Math.floor(s / 60) % 60)}:${p2(s % 60)}`; };
+const dgTime = (d) => `${p2(d.getMonth() + 1)}/${p2(d.getDate())}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+function dgLag() { // 적용을 멈춘 뒤 흐른 시간만큼 적용 지연이 쌓인다. 전송은 계속되므로 전송 지연은 0
+  const g = S.dg;
+  return { transport: 0, apply: g.applyOn ? 0 : Math.max(0, (Date.now() - g.applyOffAt) / 1000) };
+}
+function lagWords(s) {
+  s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60; const w = [];
+  if (h) w.push(`${h} hour${h > 1 ? 's' : ''}`); if (m) w.push(`${m} minute${m > 1 ? 's' : ''}`); if (x || !w.length) w.push(`${x} second${x === 1 ? '' : 's'}`);
+  return w.join(' ');
+}
+function makeWorld9(lid) {
+  makeWorld4(0);
+  const prim = S.db;
+  Object.assign(prim, { role: 'PRIMARY', uniq: 'orcl', prot: 'MAXIMUM PERFORMANCE', dgName: 'orcl', inst: 'ORCL', host: 'dbserver02.example.com' });
+  prim.params.db_unique_name = ['string', 'orcl'];
+  prim.params.log_archive_config = ['string', 'dg_config=(orcl,orclstby)'];
+  prim.params.log_archive_dest_2 = ['string', 'service="orclstby", ASYNC NOAFFIRM db_unique_name="orclstby" valid_for=(online_logfile,all_roles)'];
+  prim.params.dg_broker_start = ['boolean', 'TRUE'];
+  const stb = Object.assign({}, prim, {
+    role: 'PHYSICAL STANDBY', uniq: 'orclstby', dgName: 'orclstby', host: 'dbserver03.example.com', state: 'MOUNTED', sessions: [], startTime: ago(2, 18, 2),
+    params: Object.assign({}, prim.params, { db_unique_name: ['string', 'orclstby'], log_archive_dest_2: ['string', 'service="orcl", ASYNC NOAFFIRM db_unique_name="orcl" valid_for=(online_logfile,all_roles)'] }),
+    lsnr: { up: true, reg: true, start: ago(2, 18, 0), established: 0 },
+  });
+  S.dg = { local: prim, remote: stb, dbs: { orcl: prim, orclstby: stb }, cfg: 'orcl_dg', applyOn: true, applyOffAt: 0 };
+  const tns = lookup(OH + '/network/admin/tnsnames.ora').node;
+  if (!/ORCLSTBY/.test(tns.txt)) tns.txt += `\nORCLSTBY =\n  (DESCRIPTION =\n    (ADDRESS = (PROTOCOL = TCP)(HOST = dbserver03.example.com)(PORT = 1521))\n    (CONNECT_DATA =\n      (SERVER = DEDICATED)\n      (SERVICE_NAME = orclstby)\n    )\n  )\n`;
+  const hosts = lookup('/etc/hosts').node; if (!/dbserver03/.test(hosts.txt)) hosts.txt += '10.0.1.12   dbserver03.example.com dbserver03\n';
+  if (!lookup(OH + '/bin/dgmgrl').node) lookup(OH + '/bin').node.c.dgmgrl = F('oracle', 'oinstall', 0o755, 2 * MB, { bin: 'dgmgrl' });
+  if (lid === 2) { S.dg.applyOn = false; S.dg.applyOffAt = Date.now() - (2 * 3600 + 14 * 60 + 9) * 1000; }
+}
+
+/* V$DATABASE, V$INSTANCE: 지금 접속한 DB(S.db)의 역할과 이름을 보여 준다 */
+VIEWS['V$DATABASE'].cols.push(C('PROTECTION_MODE', 20));
+VIEWS['V$DATABASE'].rows = () => [{ DBID, NAME: 'ORCL', CREATED: S.db.created, LOG_MODE: S.db.logMode, OPEN_MODE: S.db.state === 'OPEN' ? 'READ WRITE' : 'MOUNTED', DATABASE_ROLE: S.db.role || 'PRIMARY', PLATFORM_NAME: 'Linux x86 64-bit', DB_UNIQUE_NAME: S.db.uniq || 'ORCL', CDB: 'NO', PROTECTION_MODE: S.db.prot || 'MAXIMUM PERFORMANCE' }];
+{ const orig = VIEWS['V$INSTANCE'].rows; VIEWS['V$INSTANCE'].rows = () => orig().map(r => S.db.host ? Object.assign(r, { INSTANCE_NAME: S.db.inst, HOST_NAME: S.db.host }) : r); }
+VIEWS['V$DATAGUARD_STATS'] = { fixed: true, cf: true, cols: [N('SOURCE_DBID'), C('SOURCE_DB_UNIQUE_NAME', 30), C('NAME', 32), C('VALUE', 64), C('UNIT', 30), C('TIME_COMPUTED', 30), C('DATUM_TIME', 30), N('CON_ID')],
+  rows: () => {
+    if (!S.dg || S.db.role !== 'PHYSICAL STANDBY') return [];   // Reference 19c: 주 DB에서 조회하면 행이 없다
+    const L = dgLag(), now = new Date(), tc = dgTime(now), dt = dgTime(new Date(now.getTime() - 1000));
+    const b = { SOURCE_DBID: DBID, SOURCE_DB_UNIQUE_NAME: (dgPrimary().uniq || '').toLowerCase(), TIME_COMPUTED: tc, CON_ID: 0 };
+    return [
+      Object.assign({ NAME: 'transport lag', VALUE: ival(L.transport), UNIT: 'day(2) to second(0) interval', DATUM_TIME: dt }, b),
+      Object.assign({ NAME: 'apply lag', VALUE: ival(L.apply), UNIT: 'day(2) to second(0) interval', DATUM_TIME: dt }, b),
+      Object.assign({ NAME: 'apply finish time', VALUE: S.dg.applyOn ? '+00 00:00:00.000' : null, UNIT: 'day(2) to second(3) interval', DATUM_TIME: null }, b),
+      Object.assign({ NAME: 'estimated startup time', VALUE: '9', UNIT: 'second', DATUM_TIME: null }, b),
+    ];
+  } };
+VIEWS['V$DATAGUARD_PROCESS'] = { fixed: true, cf: true, cols: [C('NAME', 5), C('PID', 24), C('ROLE', 24), C('ACTION', 12), N('CLIENT_PID'), C('CLIENT_ROLE', 24), N('SEQUENCE#')],
+  rows: () => {
+    if (!S.dg) return [];
+    const db = S.db, seq = S.db.seq + 1, out = [];
+    const R = (NAME, PID, ROLE, ACTION, CLIENT_PID, CLIENT_ROLE, SQ) => out.push({ NAME, PID: String(PID), ROLE, ACTION, CLIENT_PID, CLIENT_ROLE, 'SEQUENCE#': SQ });
+    const tpid = db === S.dg.local ? 3127 : 4127;
+    if (db.role === 'PRIMARY') { R('ARC0', db === S.dg.local ? 3121 : 4121, 'archive local', 'IDLE', 0, 'none', 0); R('TT00', tpid, 'async ORL single', 'WRITING', 0, 'none', seq); R('TT01', tpid + 2, 'gap manager', 'IDLE', 0, 'none', 0); return out; }
+    const other = db === S.dg.local ? 4127 : 3127;
+    R('ARC0', db === S.dg.local ? 3121 : 4121, 'archive local', 'IDLE', 0, 'none', 0);
+    R('rfs', db === S.dg.local ? 3301 : 4301, 'RFS async', 'IDLE', other, 'async ORL single', seq);
+    if (S.dg.applyOn) { R('MRP0', 4311, 'managed recovery', 'IDLE', 0, 'none', 0); R('PR00', 4313, 'recovery logmerger', 'APPLYING_LOG', 0, 'none', seq); R('PR01', 4315, 'recovery apply slave', 'IDLE', 0, 'none', 0); }
+    return out;
+  } };
+
+/* SQL로 Redo Apply 켜고 끄기 (Concepts and Administration 19c의 문장) */
+function sql9(sql) {
+  if (!S.dg) return undefined;
+  const U = sql.replace(/\s+/g, ' ').trim().toUpperCase();
+  if (!/^ALTER DATABASE RECOVER MANAGED STANDBY DATABASE\b/.test(U)) return undefined;
+  needDba();
+  if (S.db.role !== 'PHYSICAL STANDBY') return '\n' + note('이 명령은 대기 DB에서 실행합니다. 지금 접속한 DB는 주 DB입니다.');
+  if (/ CANCEL$/.test(U)) { if (S.dg.applyOn) { S.dg.applyOn = false; S.dg.applyOffAt = Date.now(); } S.ev.mrp = 'CANCEL'; return '\nDatabase altered.\n\n'; }
+  if (/^ALTER DATABASE RECOVER MANAGED STANDBY DATABASE( USING CURRENT LOGFILE)?( DISCONNECT( FROM SESSION)?)?$/.test(U)) { S.dg.applyOn = true; S.ev.mrp = 'START'; return '\nDatabase altered.\n\n' + note('브로커가 관리하는 구성에서는 Data Guard Broker 19c가 SQL*Plus 대신 DGMGRL로 상태를 바꾸라고 권합니다(EDIT DATABASE ... SET STATE). 브로커의 Intended State와 실제 상태가 어긋나면 브로커 경고가 날 수 있습니다.'); }
+  return undefined;
+}
+
+/* DGMGRL: 이 실습에서 쓰는 명령만 */
+function dgCmd(cmd, ctx) {
+  const t = cmd.replace(/;\s*$/, '').replace(/\s+/g, ' ').trim(); const U = t.toUpperCase(); let m;
+  const ev = S.ev;
+  if (/^HELP\b/.test(U)) return `\nThe following commands are available:\n\n  connect        Connects to an Oracle database instance\n  edit           Edits a configuration or a member\n  exit           Exits the program\n  help           Displays description and syntax for a command\n  quit           Exits the program\n  show           Displays information about a configuration or a member\n  switchover     Switches roles between a primary and standby database\n  validate       Performs an exhaustive set of validations for a member\n\n` + note('도움말 목록은 이 실습에서 쓰는 명령만 줄였습니다. 실제 DGMGRL에는 add, enable, disable, failover, reinstate, convert 등이 더 있습니다(Data Guard Broker 19c, DGMGRL Command Reference).');
+  if ((m = /^CONNECT\s+(.+)$/i.exec(t))) return dgConnect(m[1], ctx);
+  if (!ctx.conn) return '\n' + note('먼저 CONNECT / 로 접속하세요(실습).');
+  if (/^SHOW CONFIGURATION( VERBOSE)?$/.test(U)) {
+    ev.dgShow = 'CONFIGURATION';
+    const p = dgPrimary(), s = dgStandby(); const w = Math.max(p.dgName.length, s.dgName.length);
+    if (!S.dg.applyOn) unverified('dg-lagwarn', '적용을 멈춘 상태에서도 이 실습은 Configuration Status를 SUCCESS로 둡니다. 실제로는 대기 DB의 ApplyLagThreshold 속성 값과 지연 시간에 따라 WARNING이 날 수 있으며, 이 부분은 19c 문서 예시로 확인하지 못했습니다. 그래서 상태 요약만 믿지 말고 SHOW DATABASE의 Apply Lag를 함께 봐야 합니다.');
+    return `\nConfiguration - ${S.dg.cfg}\n\n  Protection Mode: MaxPerformance\n  Members:\n    ${p.dgName.padEnd(w)}  - Primary database\n      ${s.dgName.padEnd(w)}  - Physical standby database\n\nFast-Start Failover: DISABLED\n\nConfiguration Status:\nSUCCESS\n\n`;
+  }
+  if ((m = /^SHOW DATABASE (?:VERBOSE )?(\S+)$/i.exec(t))) {
+    const d = dgDb(m[1]); if (!d) return '\n' + note('브로커 구성에 없는 이름입니다. 이름은 SHOW CONFIGURATION으로 확인합니다(이 실습: orcl, orclstby). 실제 DGMGRL의 오류 문구는 확인하지 못했습니다.');
+    ev.dgShow = 'DATABASE ' + d.dgName.toUpperCase();
+    if (d.role === 'PRIMARY') {
+      unverified('dg-showprim', '주 DB의 SHOW DATABASE 출력은 19c 문서 예시로 확인하지 못해 핵심 줄만 보여 줍니다. 상태 값 TRANSPORT-ON은 Data Guard Broker 19c의 데이터베이스 상태 설명에 있습니다.');
+      return `\nDatabase - ${d.dgName}\n\n  Role:               PRIMARY\n  Intended State:     TRANSPORT-ON\n  Instance(s):\n    ${d.inst}\n\nDatabase Status:\nSUCCESS\n\n`;
+    }
+    const L = dgLag();
+    if (L.apply >= 1) unverified('dg-lagfmt', '지연이 시간 단위일 때의 표시 모양(예: 2 hours 14 minutes 9 seconds)은 19c 문서 예시로 확인하지 못했습니다. 문서 예시는 0 seconds 입니다. 적용을 멈춘 상태의 Apply Rate 줄도 확인하지 못해 뺐습니다.');
+    return `\nDatabase - ${d.dgName}\n\n  Role:               PHYSICAL STANDBY\n  Intended State:     ${S.dg.applyOn ? 'APPLY-ON' : 'APPLY-OFF'}\n  Transport Lag:      ${lagWords(L.transport)} (computed 0 seconds ago)\n  Apply Lag:          ${lagWords(L.apply)} (computed 0 seconds ago)\n` + (S.dg.applyOn ? '  Apply Rate:         1.44 MByte/s\n' : '') + `  Real Time Query:    OFF\n  Instance(s):\n    ${d.inst}\n\nDatabase Status:\nSUCCESS\n\n`;
+  }
+  if ((m = /^VALIDATE DATABASE (?:VERBOSE )?(\S+)$/i.exec(t))) {
+    const d = dgDb(m[1]); if (!d) return '\n' + note('브로커 구성에 없는 이름입니다(이 실습: orcl, orclstby).');
+    ev.dgValidate = d.dgName.toUpperCase();
+    unverified('dg-validate', 'VALIDATE DATABASE의 실제 출력에는 이 밖에도 Flashback 상태, 온라인 리두 로그와 대기 리두 로그 점검 같은 항목이 더 이어집니다. 여기서는 문서 예시에 있는 핵심 줄만 보여 줍니다.');
+    if (d.role === 'PRIMARY') return `\n  Database Role:    Primary database\n\n  Ready for Switchover:  Yes\n\n`;
+    const ok = S.dg.applyOn;
+    return `\n  Database Role:     Physical standby database\n  Primary Database:  ${dgPrimary().dgName}\n\n  Ready for Switchover:  ${ok ? 'Yes' : 'No'}\n  Ready for Failover:    Yes (Primary Running)\n\n` + (ok ? '' : note('실습: 적용(APPLY)이 꺼져 있으면 전환 준비가 안 된 것으로 보여 줍니다. 실제 판정 문구는 확인하지 못했습니다.'));
+  }
+  if ((m = /^EDIT DATABASE (\S+) SET STATE\s*=\s*['"]?([A-Z-]+)['"]?$/i.exec(t))) {
+    const d = dgDb(m[1]); if (!d) return '\n' + note('브로커 구성에 없는 이름입니다(이 실습: orcl, orclstby).');
+    const st = m[2].toUpperCase();
+    if (d.role === 'PHYSICAL STANDBY' && (st === 'APPLY-ON' || st === 'APPLY-OFF')) {
+      if (st === 'APPLY-ON') S.dg.applyOn = true; else if (S.dg.applyOn) { S.dg.applyOn = false; S.dg.applyOffAt = Date.now(); }
+      ev.dgState = d.dgName.toUpperCase() + ' ' + st;
+      return 'Succeeded.\n' + (st === 'APPLY-ON' ? note('실습에서는 적용을 켜는 즉시 지연이 0이 됩니다. 실제로는 쌓인 redo를 다 적용할 때까지 Apply Lag가 조금씩 줄어듭니다.') : '');
+    }
+    return '\n' + note(`이 실습에서는 대기 DB에 APPLY-ON, APPLY-OFF만 다룹니다. ${d.dgName}은(는) 지금 ${d.role === 'PRIMARY' ? '주 DB' : '대기 DB'}입니다.`);
+  }
+  if ((m = /^SWITCHOVER TO (\S+)$/i.exec(t))) {
+    const d = dgDb(m[1]); if (!d) return '\n' + note('브로커 구성에 없는 이름입니다(이 실습: orcl, orclstby).');
+    if (d.role === 'PRIMARY') return '\n' + note(`${d.dgName}은(는) 이미 주 DB입니다.`);
+    if (!S.dg.applyOn) return '\n' + note('실습: 대기 DB의 적용이 꺼져 있습니다. 먼저 EDIT DATABASE ... SET STATE=\'APPLY-ON\' 으로 켜고 VALIDATE DATABASE로 준비를 확인하세요.');
+    const old = dgPrimary();
+    d.role = 'PRIMARY'; d.state = 'OPEN';
+    old.role = 'PHYSICAL STANDBY'; old.state = 'MOUNTED';
+    old.sessions = old.sessions.filter(s => !s.username || s.me);
+    ev.switchover = d.dgName.toUpperCase();
+    return `Performing switchover NOW, please wait...\nOperation requires a connection to instance "${d.inst}" on database "${d.dgName}"\nConnecting to instance "${d.inst}"...\nConnected as SYSDBA.\nNew primary database "${d.dgName}" is opening...\nOperation requires startup of instance "${old.inst}" on database "${old.dgName}"\nStarting instance "${old.inst}"...\nORACLE instance started.\nDatabase mounted.\nSwitchover succeeded, new primary is "${d.dgName}"\n`;
+  }
+  return '\n' + note('알 수 없는 명령입니다. ' + '이 실습의 DGMGRL에서 쓸 수 있는 명령: SHOW CONFIGURATION, SHOW DATABASE 이름, VALIDATE DATABASE 이름, EDIT DATABASE 이름 SET STATE=\'APPLY-ON\', SWITCHOVER TO 이름, HELP, EXIT');
+}
+function dgConnect(spec, ctx) {
+  spec = spec.trim();
+  const ok = (name) => { ctx.conn = true; S.ev.dgConn = true; return `Connected to "${name}"\nConnected as SYSDG.\n`; };
+  if (spec === '/') { if (!USERS[S.user].groups.includes('dba')) return 'ORA-01031: insufficient privileges\n'; return ok(S.dg.local.dgName); }
+  const m = /^(\w+)\/([^@\s]+)(?:@(\S+))?$/.exec(spec);
+  if (m) {
+    if (m[1].toUpperCase() !== 'SYS' || m[2] !== (S.db.pw.sysPass || S.db.users.SYS.pass)) return 'ORA-01017: invalid username/password; logon denied\n';
+    const d = m[3] ? dgDb(m[3]) : S.dg.local; if (!d) return 'ORA-12154: TNS:could not resolve the connect identifier specified\n';
+    return ok(d.dgName);
+  }
+  return '\n' + note('실습에서는 dgmgrl / 또는 CONNECT / 로 접속합니다. 암호를 쓸 때는 CONNECT sys/암호@orclstby 처럼 씁니다.');
+}
+INTERACTIVE.dgmgrl = function (argv, done) {
+  if (!findInPath('dgmgrl') || !S.dg) { print('-bash: dgmgrl: command not found\n'); S.lastCode = 127; done(); return; }
+  const a = argv.slice(1);
+  const ctx = { conn: false };
+  print(`DGMGRL for Linux: Release 19.0.0.0.0 - Production on ${dayName(new Date())}\nVersion ${SQLVER}\n\nCopyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.\n\nWelcome to DGMGRL, type "help" for information.\n`);
+  const conn = a.find(x => !/^-/.test(x));
+  if (conn) print(dgConnect(conn, ctx));
+  S.ev.dgConn = ctx.conn; S.ev.type = 'dgmgrl-start'; checkLesson(S.ev);
+  unverified('dg-banner', 'DGMGRL 시작 줄 가운데 "Welcome to DGMGRL, type "help" for information."과 "Connected to ...", "Connected as SYSDG."는 Data Guard Broker 19c의 CONNECT 예시와 같습니다. 그 위의 판 번호·저작권 줄은 SQL*Plus와 같은 모양으로 둔 것이며 문서 예시로 확인하지 못했습니다.');
+  const rest = a.slice(a.indexOf(conn) + 1).join(' ').replace(/^['"]|['"]$/g, '');
+  if (conn && rest) { S.ev = newEv(rest); S.ev.type = 'dgmgrl'; S.ev.dg = rest.toUpperCase(); print(dgCmd(rest, ctx)); checkLesson(S.ev); done(); return; }
+  const next = () => { mode = { type: 'line', hist: S.sqlHist || (S.sqlHist = []), onSubmit(v) { onLine(v); }, cancel() { next(); return true; } }; setPrompt('DGMGRL> '); };
+  const onLine = (v) => {
+    S.ev = newEv(v); S.ev.type = 'dgmgrl';
+    const t = v.trim();
+    if (/^(exit|quit|bye);?$/i.test(t)) { S.ev.type = 'dgmgrl-exit'; checkLesson(S.ev); mode = null; done(); return; }
+    if (t) { S.ev.dg = t.replace(/;\s*$/, '').replace(/\s+/g, ' ').toUpperCase(); print(dgCmd(t, ctx)); }
+    checkLesson(S.ev); next();
+  };
+  next();
+};
 </script>
 <script>
 'use strict';
@@ -5164,6 +5346,75 @@ LESSONS.push(
     sources: ['tgaccess', 'tgstats', 'crindex', 'xplan', 'tgxplan'] },
 );
 
+const onStby = () => S.dg && S.db === S.dg.remote;
+const onPrimHost = () => S.dg && S.db === S.dg.local;
+const memo9 = (f) => () => !S.sql && !mode && /\S/.test((node('/home/oracle/' + f) || {}).txt || '');
+LESSONS.push(
+  { id: 81, stage: 9, title: '주 DB와 대기 DB 상태 점검', short: '상태 점검', start: 'oracle',
+    who: 'DBA 팀장 (인계)',
+    situation: '"우리 주문 DB(dbserver02)는 Data Guard로 dbserver03에 물리 대기 DB를 하나 두고 있어요. 주 DB가 망가지면 그쪽으로 넘깁니다. 오늘은 두 DB가 잘 맞물려 돌아가는지 보는 방법부터 익혀 두세요. 브로커(DGMGRL)로 한 번, SQL로 한 번 봅니다."',
+    tasks: [
+      { text: 'DGMGRL로 접속해서 구성 전체 보기', hint: 'dgmgrl /\nshow configuration', done: ev => ev.dgShow === 'CONFIGURATION',
+        why: '구성 이름(orcl_dg), 보호 모드(MaxPerformance), 구성원 두 개(orcl은 Primary database, orclstby는 Physical standby database)가 보입니다. Configuration Status가 <code>SUCCESS</code>면 브로커가 보기에 문제가 없다는 뜻입니다. Data Guard Concepts and Administration 19c: 기본 구성은 "비동기 redo 전송과 실시간 적용을 쓰는 최대 성능(maximum performance) 모드"입니다. 출력 모양은 Data Guard Broker 19c의 DGMGRL 예시와 같습니다.' },
+      { text: '대기 DB를 자세히 보기', hint: 'show database orclstby', done: ev => ev.dgShow === 'DATABASE ORCLSTBY',
+        why: '<code>Intended State: APPLY-ON</code>은 받은 redo를 적용하는 상태라는 뜻입니다. <code>Transport Lag</code>은 주 DB에서 만든 redo 가운데 아직 대기 DB에 도착하지 않은 양을, <code>Apply Lag</code>은 도착했지만 아직 적용하지 못한 양을 시간으로 나타냅니다(Database Reference 19c의 V$DATAGUARD_STATS 설명). 둘 다 0 seconds이면 거의 따라잡은 상태입니다. <code>Real Time Query: OFF</code>는 대기 DB가 읽기용으로 열려 있지 않다는 뜻입니다.' },
+      { text: 'DGMGRL에서 나와 SQL*Plus로 대기 DB에 접속하기', hint: 'exit\nsqlplus sys/Oracle#19c@ORCLSTBY as sysdba', done: ev => !!ev.connected && onStby(),
+        why: '대기 DB는 다른 서버(dbserver03)에 있으므로 리스너를 거쳐 SYSDBA로 접속합니다. 그래서 OS 인증(/)이 아니라 암호 파일 인증을 씁니다. tnsnames.ora에 ORCLSTBY 항목이 있습니다(<code>cat $ORACLE_HOME/network/admin/tnsnames.ora</code>).' },
+      { text: '접속한 DB의 이름과 역할, 열린 상태 보기', hint: 'set linesize 200\ncol db_unique_name format a14\nselect name, db_unique_name, database_role, open_mode, protection_mode from v$database;', done: ev => selCols(ev, 'V$DATABASE', 'DATABASE_ROLE') && onStby(),
+        why: 'NAME은 주 DB와 같은 ORCL입니다. 같은 데이터베이스의 복제본이기 때문입니다. 둘을 가르는 것은 <code>DB_UNIQUE_NAME</code>(orclstby)과 <code>DATABASE_ROLE</code>(PHYSICAL STANDBY)입니다. OPEN_MODE가 MOUNTED이므로 이 대기 DB는 열지 않고 마운트 상태로 redo만 적용하고 있습니다. Database Reference 19c: PROTECTION_MODE 값에는 MAXIMUM PROTECTION, MAXIMUM AVAILABILITY, MAXIMUM PERFORMANCE 등이 있습니다.' },
+      { text: '전송 지연과 적용 지연을 숫자로 보기', hint: 'col name format a24\ncol value format a18\ncol unit format a30\ncol datum_time format a20\nselect name, value, unit, datum_time from v$dataguard_stats;', done: ev => qsel(ev, 'V$DATAGUARD_STATS') && onStby(),
+        why: '<code>transport lag</code>, <code>apply lag</code>, <code>apply finish time</code>, <code>estimated startup time</code> 네 줄이 나옵니다. 값 <code>+00 00:00:00</code>은 "0일 0시간 0분 0초" 간격입니다. Database Reference 19c: 이 뷰는 "주 DB에서 조회하면 행을 돌려주지 않는다." 그래서 반드시 대기 DB에 접속해서 봅니다.' },
+      { text: 'Data Guard 프로세스 보기', hint: 'col role format a22\nselect name, role, action, sequence# from v$dataguard_process;', done: ev => qsel(ev, 'V$DATAGUARD_PROCESS') && onStby(),
+        why: '<code>rfs</code>(RFS async)가 주 DB에서 오는 redo를 받고, <code>MRP0</code>(managed recovery)와 <code>PR00</code>(recovery logmerger, APPLYING_LOG)가 그 redo를 적용합니다. Database Reference 19c는 예전의 V$MANAGED_STANDBY 대신 이 뷰를 쓰라고 안내합니다.' },
+      { text: 'SQL*Plus에서 나와 점검 메모 남기기', hint: "exit\necho 'Data Guard 점검: orcl(주) → orclstby(물리 대기, MOUNTED), MaxPerformance, 구성 SUCCESS, transport/apply lag 0, MRP0 적용 중' > ~/dg_check.txt", done: memo9('dg_check.txt'),
+        why: '매일 아침 점검 항목이 하나 늘었습니다. 브로커의 구성 상태, 대기 DB의 두 지연 값, 적용 프로세스(MRP0)가 살아 있는지입니다.' },
+    ],
+    field: '현장에서 Data Guard 점검은 "redo가 가고 있나(전송), 적용되고 있나(적용)" 두 가지로 나눠 봅니다. 전송 지연이 크면 네트워크나 주 DB 쪽 전송 설정을, 적용 지연만 크면 대기 DB 쪽(적용이 꺼져 있거나 느림)을 먼저 의심합니다. 브로커를 쓰는 구성에서는 상태를 바꿀 때도 SQL*Plus보다 DGMGRL을 쓰는 것이 원칙입니다. 브로커는 자기가 기억하는 의도(Intended State)와 실제 상태를 비교해 경고를 내기 때문입니다.',
+    sources: ['dgbrkex', 'dgbrkcmd', 'dgstats', 'dgproc', 'vdb'] },
+
+  { id: 82, stage: 9, title: '적용이 멈춘 대기 DB', short: '적용 멈춤', start: 'oracle',
+    who: '모니터링 담당 (메신저)',
+    situation: '"dbserver03 대기 DB의 Apply Lag가 2시간을 넘었다고 알림이 계속 와요." 어젯밤 작업 기록에는 "대기 DB 점검 때문에 적용을 잠시 멈춤"이라는 한 줄만 있고, 다시 켰다는 기록은 없습니다.',
+    tasks: [
+      { text: 'DGMGRL로 구성 상태 보기', hint: 'dgmgrl /\nshow configuration', done: ev => ev.dgShow === 'CONFIGURATION',
+        why: '구성 요약만 보면 이상이 없어 보일 수 있습니다(이 실습에서는 SUCCESS). 그래서 대기 DB를 따로 자세히 봐야 합니다.' },
+      { text: '대기 DB를 자세히 보고 원인 찾기', hint: 'show database orclstby', done: ev => ev.dgShow === 'DATABASE ORCLSTBY',
+        why: '<code>Intended State: APPLY-OFF</code>입니다. 누군가 적용을 끈 채로 두었습니다. <code>Transport Lag</code>은 0인데 <code>Apply Lag</code>만 2시간이 넘습니다. Data Guard Broker 19c: APPLY-OFF 상태에서도 redo는 계속 받는다. 그래서 redo는 와 있고, 적용만 밀려 있는 것입니다.' },
+      { text: '적용 다시 켜기', hint: "edit database orclstby set state='APPLY-ON';", done: () => S.dg && S.dg.applyOn,
+        why: '<code>Succeeded.</code> Data Guard Broker 19c의 예: <code>EDIT DATABASE \'South_Sales\' SET STATE=\'APPLY-OFF\';</code>로 끄고, 같은 모양으로 APPLY-ON을 주면 다시 켭니다.' },
+      { text: '대기 DB를 다시 보고 지연이 줄었는지 확인하기', hint: 'show database orclstby', done: ev => ev.dgShow === 'DATABASE ORCLSTBY' && S.dg.applyOn,
+        why: 'Intended State가 APPLY-ON으로 바뀌고 Apply Lag가 0 seconds가 되었습니다. 실제로는 2시간 동안 쌓인 redo를 적용하는 동안 지연이 조금씩 줄어듭니다.' },
+      { text: 'SQL로 대기 DB의 적용 지연과 MRP0 확인하기', hint: "exit\nsqlplus sys/Oracle#19c@ORCLSTBY as sysdba\ncol name format a24\ncol value format a18\nselect name, value from v$dataguard_stats where name = 'apply lag';\nselect name, role, action from v$dataguard_process where name like 'MRP%' or name like 'PR%';", done: ev => (qsel(ev, 'V$DATAGUARD_STATS') || qsel(ev, 'V$DATAGUARD_PROCESS')) && onStby() && S.dg.applyOn,
+        why: 'apply lag가 <code>+00 00:00:00</code>이고, 적용 프로세스 MRP0(managed recovery)가 다시 보입니다. 적용이 꺼져 있을 때는 이 줄들이 없었습니다.' },
+      { text: '작업 기록 남기기', hint: "exit\necho '대기 DB orclstby 적용 꺼짐(APPLY-OFF, 전날 작업 후 미복구), apply lag 2시간 14분. EDIT DATABASE orclstby SET STATE=APPLY-ON 으로 재개, lag 0 확인' > ~/dg_apply.txt", done: memo9('dg_apply.txt'),
+        why: '적용을 끈 사람과 다시 켠 사람이 다를 수 있으므로, "끈 이유, 다시 켤 시각"을 작업 기록에 함께 남기는 습관이 중요합니다.' },
+    ],
+    field: '적용이 꺼져 있어도 redo는 계속 대기 DB에 도착하므로, 당장 데이터를 잃는 것은 아닙니다. 하지만 그 상태에서 주 DB가 망가져 대기 DB로 넘겨야 하면, 쌓인 redo를 모두 적용할 때까지 서비스를 열 수 없습니다. V$DATAGUARD_STATS의 apply finish time이 바로 "지금 받은 redo를 다 적용하는 데 걸릴 예상 시간"입니다. 그래서 적용 지연 알림은 "전환이 늦어질 수 있다"는 경고로 받아들입니다.',
+    sources: ['dgbrkex', 'dgbrkcmd', 'dgstats', 'dgproc', 'dgapply'] },
+
+  { id: 83, stage: 9, title: '졸업 미션: 계획된 전환(스위치오버)', short: '졸업 미션', start: 'oracle',
+    who: '인프라팀 (작업 요청)',
+    situation: '"이번 주말 dbserver02의 OS 패치로 서버를 재부팅해야 합니다. 주문 서비스는 멈추면 안 되니까, 작업 전에 대기 DB(orclstby)를 주 DB로 바꿔 주세요." 전환 전에 준비 상태를 확인하고, 전환한 뒤 두 DB의 역할을 직접 확인해서 ~/switchover_report.txt 에 남겨 주세요.',
+    tasks: [
+      { text: 'DGMGRL로 구성 상태 확인하기', hint: 'dgmgrl /\nshow configuration', done: ev => ev.dgShow === 'CONFIGURATION',
+        why: '전환 전에는 구성이 SUCCESS인지부터 봅니다. 경고가 있는 상태에서 전환을 시작하지 않습니다.' },
+      { text: '대기 DB가 전환할 준비가 되었는지 검사하기', hint: 'validate database orclstby', done: ev => ev.dgValidate === 'ORCLSTBY',
+        why: '<code>Ready for Switchover: Yes</code>를 확인합니다. Data Guard Broker 19c: VALIDATE DATABASE는 그 구성원이 역할 전환을 할 준비가 되었는지 여러 항목을 점검합니다.' },
+      { text: '대기 DB로 스위치오버하기', hint: 'switchover to orclstby', done: () => S.dg.dbs.orclstby.role === 'PRIMARY',
+        why: '<code>Switchover succeeded, new primary is "orclstby"</code>. 브로커가 새 주 DB를 열고, 예전 주 DB(orcl)를 대기 DB로 다시 시작해 마운트까지 해 줍니다. Data Guard Concepts and Administration 19c: "스위치오버에서는 데이터 손실이 없다." 같은 문서는 브로커를 쓰는 구성이면 수동 SQL 절차 대신 브로커로 하라고 안내합니다.' },
+      { text: '구성을 다시 보고 역할이 바뀌었는지 확인하기', hint: 'show configuration', done: ev => ev.dgShow === 'CONFIGURATION' && S.dg.dbs.orclstby.role === 'PRIMARY',
+        why: '이제 orclstby가 Primary database, orcl이 Physical standby database입니다. 구성 상태가 SUCCESS인지도 다시 봅니다.' },
+      { text: '이 서버(dbserver02)의 DB가 대기 역할이 되었는지 SQL로 보기', hint: 'exit\nsqlplus / as sysdba\nselect name, db_unique_name, database_role, open_mode from v$database;', done: ev => selCols(ev, 'V$DATABASE', 'DATABASE_ROLE') && onPrimHost() && S.dg.local.role === 'PHYSICAL STANDBY',
+        why: 'DB_UNIQUE_NAME orcl, DATABASE_ROLE <code>PHYSICAL STANDBY</code>, OPEN_MODE <code>MOUNTED</code>입니다. 이 서버는 이제 대기 DB이므로 인프라팀이 재부팅해도 주문 서비스는 dbserver03에서 계속됩니다.' },
+      { text: '새 주 DB(dbserver03)에 접속해 역할 보기', hint: 'conn sys/Oracle#19c@ORCLSTBY as sysdba\nselect name, db_unique_name, database_role, open_mode from v$database;', done: ev => selCols(ev, 'V$DATABASE', 'DATABASE_ROLE') && onStby() && S.dg.remote.role === 'PRIMARY',
+        why: 'DATABASE_ROLE <code>PRIMARY</code>, OPEN_MODE <code>READ WRITE</code>입니다. 이제 V$DATAGUARD_STATS를 보려면 반대로 dbserver02 쪽(새 대기 DB)에 접속해야 합니다.' },
+      { text: '작업 보고서 남기기', hint: "exit\necho '스위치오버: orcl(dbserver02) → orclstby(dbserver03). 사전 VALIDATE Ready for Switchover: Yes, 전환 성공, 새 주 DB orclstby READ WRITE, orcl PHYSICAL STANDBY MOUNTED. 패치 후 원복(switchover to orcl) 예정' > ~/switchover_report.txt", done: memo9('switchover_report.txt'),
+        why: '수고했습니다. 9단계 Data Guard 기초를 마쳤습니다. 상태 점검 → 적용 문제 해결 → 계획된 전환까지, 운영 DBA가 Data Guard에서 가장 자주 하는 세 가지를 한 번씩 해 보았습니다. 패치가 끝나면 같은 순서(show configuration → validate database orcl → switchover to orcl)로 되돌립니다.' },
+    ],
+    field: '스위치오버는 계획된 작업(패치, 장비 교체)에 쓰고, 주 DB가 갑자기 망가졌을 때는 페일오버(FAILOVER)를 씁니다. 스위치오버는 두 DB가 모두 살아 있는 상태에서 역할을 맞바꾸므로 데이터를 잃지 않고 나중에 되돌릴 수 있습니다. 전환 뒤에 꼭 확인할 것은 앱이 새 주 DB로 접속하는지입니다. 접속 문자열이 dbserver02 한 곳만 가리키고 있으면 앱은 대기 DB로 가서 접속에 실패합니다. 그래서 운영에서는 접속 설정에 두 서버를 모두 넣어 두거나, 역할에 따라 켜지는 서비스를 따로 만들어 앱이 그 서비스로 접속하게 합니다.',
+    sources: ['dgbrkex', 'dgbrkcmd', 'dgrole', 'vdb'] },
+);
+
 /* =====================================================================
    9. 레슨 진행
    ===================================================================== */
@@ -5177,7 +5428,8 @@ function startLesson(id) {
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
-  if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 4) { makeWorld4(L.id - 30); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -5224,7 +5476,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' }, 8: { name: '8단계 · SQL 튜닝 입문', sub: '8단계 · 실행 계획과 인덱스' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' }, 8: { name: '8단계 · SQL 튜닝 입문', sub: '8단계 · 실행 계획과 인덱스' }, 9: { name: '9단계 · Data Guard 기초', sub: '9단계 · 주 DB와 물리 대기 DB' } };
 const stageOf = (l) => l.stage || 3;
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;

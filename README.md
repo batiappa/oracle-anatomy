@@ -66,7 +66,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`, 8단계가 `#lesson-71`부터 `#lesson-73`입니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`, 8단계가 `#lesson-71`부터 `#lesson-73`, 9단계가 `#lesson-81`부터 `#lesson-83`입니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -135,6 +135,19 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 근거: SQL Tuning Guide 19c(실행 계획 만들기와 보기, 접근 경로, 인덱스를 쓰지 못하는 이유 표, 통계 수집 예), PL/SQL Packages and Types Reference 19c의 DBMS_XPLAN(DISPLAY, DISPLAY_CURSOR 인수), SQL Language Reference 19c의 EXPLAIN PLAN과 CREATE INDEX(ONLINE, 함수 기반 인덱스 예). "Explained."와 DISPLAY_CURSOR의 `SQL_ID  ..., child number 0` 머리줄, 계획 표의 열 제목은 문서 예시와 같습니다.
 - 실습의 옵티마이저는 "인덱스 첫 열에 함수 없이 = 나 범위 조건이 있으면 인덱스를 쓴다"는 단순한 규칙만 흉내 냅니다. Rows, Bytes, Cost, Time과 Plan hash value는 설명용 예시입니다.
 
+### 9단계 · Data Guard 기초 (주 DB와 물리 대기 DB)
+
+dbserver02의 주 DB(DB_UNIQUE_NAME orcl)와 dbserver03의 물리 대기 DB(orclstby)가 Data Guard 브로커 구성(orcl_dg, MaxPerformance)으로 묶여 있는 상황입니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 주 DB와 대기 DB 상태 점검 | `dgmgrl /`, `show configuration`, `show database orclstby`, `sqlplus sys/...@ORCLSTBY as sysdba`, `v$database`(DATABASE_ROLE, DB_UNIQUE_NAME), `v$dataguard_stats`, `v$dataguard_process` |
+| 2 | 적용이 멈춘 대기 DB | `show database`의 Intended State APPLY-OFF와 Apply Lag, `edit database orclstby set state='APPLY-ON'` |
+| 3 | 졸업 미션: 계획된 전환(스위치오버) | `validate database orclstby`, `switchover to orclstby`, 두 서버의 `v$database` 역할 확인 |
+
+- 근거: Data Guard Broker 19c의 DGMGRL 예시(SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER 출력)와 명령 설명(CONNECT, VALIDATE DATABASE), Data Guard Concepts and Administration 19c의 Redo Apply와 역할 전환(스위치오버는 데이터 손실이 없음, 브로커 사용 권장), Database Reference 19c의 V$DATAGUARD_STATS(주 DB에서는 행이 없음)와 V$DATAGUARD_PROCESS.
+- 적용 지연이 시간 단위일 때의 표시, 주 DB 쪽 SHOW DATABASE, V$DATAGUARD_PROCESS의 프로세스 이름과 PID는 문서 예시로 확인하지 못했습니다. 실습 화면에 ⓘ 줄로 알립니다. 적용을 다시 켜면 실습에서는 지연이 바로 0이 됩니다.
+
 - SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
 - 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
@@ -174,7 +187,7 @@ python3 -m http.server 8000
 ## 로드맵
 
 - 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
-- DBA 실습 다음 후보: Data Guard 기초
+- DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
 ## 참고
