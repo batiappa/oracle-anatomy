@@ -97,7 +97,15 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 .task.done { background: var(--panel-2); }
 .task.done .box { background: var(--ok); border-color: var(--ok); color: #fff; }
 .task.cur { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-.task.todo { opacity: 0.62; }
+.task.todo { cursor: pointer; }
+.task.todo .task-row { opacity: 0.62; }
+.task.todo:hover { border-color: var(--muted); }
+.task.todo .box { border-style: dashed; color: var(--muted); font-size: 10px; }
+.task .lock { flex: none; font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+.task-guide { margin: 0 0 8px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.task-guide b { color: var(--ink); font-weight: 600; }
+.peek { margin: 7px 0 0 27px; font-size: 13.5px; color: var(--ink); }
+.peek .btn { margin-top: 6px; font-size: 13px; padding: 4px 10px; }
 .task .txt { flex: 1; min-width: 0; font-size: 14.5px; }
 .hint-btn { flex: none; border: 1px solid var(--line); background: var(--panel); border-radius: 7px; font-size: 12px; padding: 1px 8px; cursor: pointer; color: var(--muted); }
 .hint { margin: 7px 0 0 27px; font-family: var(--font-mono); font-size: 13px; background: var(--term-bg); color: var(--term-ink); padding: 6px 9px; border-radius: 7px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -2458,9 +2466,11 @@ function renderTabs() {
 function hintBody(t) { const h = typeof t.hint === 'function' ? t.hint() : t.hint; return esc(h) + (window.Tips ? Tips.html(h, esc) : ''); }
 function renderMission() {
   const L = cur.L; const el = document.getElementById('mission');
+  if (cur.peek != null && cur.peek <= cur.idx) cur.peek = null;
   const items = L.tasks.map((t, i) => {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
-    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}</li>`;
+    const peek = st === 'todo' && cur.peek === i ? `<div class="peek">아직 잠겨 있습니다. 할 일은 목록을 눌러서가 아니라 <b>터미널에 명령을 입력</b>해서 마칩니다. 지금 할 일은 ${cur.idx + 1}번 "${L.tasks[cur.idx].text}"이고, 그것을 마치면 다음 할 일이 차례로 열립니다.<br><button class="btn" type="button" data-goto="term">지금 할 일로 가기</button></div>` : '';
+    return `<li class="task ${st}"${st === 'todo' ? ` data-i="${i}" tabindex="0" aria-label="${i + 1}번 할 일, 잠김. 앞의 할 일을 마치면 열립니다"` : ''}><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : st === 'todo' ? i + 1 : ''}</span><span class="txt">${t.text}</span>${st === 'todo' ? '<span class="lock">🔒 잠김</span>' : ''}${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${t.why}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${t.why}</details>` : ''}${peek}</li>`;
   }).join('');
   const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
@@ -2468,7 +2478,7 @@ function renderMission() {
   el.innerHTML = `<div class="eyebrow"><b>${STAGES[st].name}</b> / 레슨 ${lessonNo(L)} / ${cnt}</div>
     <h1>${L.title}</h1>
     <p class="situation"><span class="who">${L.who}</span>${L.situation}</p>
-    <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
+    <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2>${cur.done ? '' : '<p class="task-guide">할 일은 위에서부터 하나씩 열립니다. 목록을 누르는 것이 아니라 <b>터미널에 명령을 입력</b>해서, 테두리가 진한 지금 할 일을 마치면 자동으로 ✓ 표시가 되고 다음 할 일이 열립니다. 막히면 "힌트"를 누르세요.</p>'}<ol class="tasks">${items}</ol></div>
     ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
     <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
     <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥 크롬은 Cmd+Shift+R, 맥 사파리는 Option+Cmd+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
@@ -2477,6 +2487,8 @@ function renderMission() {
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; Sess.hints(cur.hints); renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));
+  el.querySelectorAll('.task.todo').forEach(li => { const tog = (e) => { if (e.target.closest('[data-goto]')) return; cur.peek = cur.peek === +li.dataset.i ? null : +li.dataset.i; renderMission(); const n = el.querySelector(`.task.todo[data-i="${li.dataset.i}"]`); if (n) n.focus({ preventScroll: true }); }; li.addEventListener('click', tog); li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(e); } }); });
+  el.querySelectorAll('[data-goto="term"]').forEach(b => b.addEventListener('click', () => { cur.peek = null; renderMission(); const tc = document.querySelector('.term-card'); if (tc) tc.scrollIntoView({ block: 'start', behavior: 'smooth' }); if (inputEl && !inputEl.closest('[hidden]')) inputEl.focus({ preventScroll: true }); }));
 }
 function renderNotes() {
   const L = cur.L;
