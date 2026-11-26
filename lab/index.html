@@ -17,6 +17,7 @@
 <script>
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
+<script src="../session.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -104,6 +105,7 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 .lesson-done { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--panel)); font-size: 14.5px; }
 .lesson-done b { color: var(--ok); }
 .row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.autosave { margin: 8px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn:hover { border-color: var(--muted); }
@@ -259,7 +261,7 @@ const KB = 1024, MB = KB * 1024, GB = MB * 1024;
 const OB = '/u01/app/oracle';
 const OH = OB + '/product/19.0.0/dbhome_1';
 const TRACE = OB + '/diag/rdbms/orcl/ORCL/trace';
-const NOW = new Date();
+const NOW = new Date(Sess.now()); // 이어서 불러온 세션이면 그 세션을 시작한 페이지의 시각
 function ago(days, h, m) { const d = new Date(NOW); d.setDate(d.getDate() - days); if (h != null) d.setHours(h, m || 0, 0, 0); return d; }
 function ymd(d, sep) { sep = sep == null ? '' : sep; return d.getFullYear() + sep + String(d.getMonth() + 1).padStart(2, '0') + sep + String(d.getDate()).padStart(2, '0'); }
 const THIS_YEAR = NOW.getFullYear(), LAST_YEAR = THIS_YEAR - 1;
@@ -1527,7 +1529,13 @@ termEl.addEventListener('click', () => { if (!window.getSelection().toString()) 
 
 let mode = null; // null | {type:'password', onSubmit} | {type:'wait', onKey}
 let histIdx = -1;
+// 자동 저장(session.js): 결과를 바꾸는 키만 적어 둔다. 글자 입력은 Enter를 누를 때의 입력 줄(v)로 남는다.
 function onKey(e) {
+  const k = e.key, rel = k === 'Enter' || k === 'Tab' || k === 'ArrowUp' || k === 'ArrowDown' || (e.ctrlKey && /^[cClL]$/.test(k)) || (mode && mode.type === 'wait' && (k === 'q' || k === 'Q'));
+  if (!rel) return onKey0(e);
+  return Sess.wrap({ k: 'in', x: k, c: e.ctrlKey ? 1 : 0, v: inputEl.value }, () => onKey0(e));
+}
+function onKey0(e) {
   if (mode && mode.type === 'wait') { e.preventDefault(); if ((e.ctrlKey && e.key === 'c') || e.key === 'q' || e.key === 'Q') mode.stop(e.ctrlKey ? 'ctrlc' : 'q'); return; }
   if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) { e.preventDefault(); echoLine(psEl.textContent, inputEl.value + '^C'); inputEl.value = ''; if (mode) { const m = mode; mode = null; if (m.cancel) m.cancel(); } setPrompt(prompt()); return; }
   if (e.ctrlKey && (e.key === 'l' || e.key === 'L')) { e.preventDefault(); clearTerm(); return; }
@@ -1837,7 +1845,8 @@ function drawVi() {
   viEl.innerHTML = `<div class="vi-body">${html}</div><div class="vi-status">${esc(status)}</div>`;
 }
 function viClamp() { V.y = Math.max(0, Math.min(V.y, V.lines.length - 1)); const L = V.lines[V.y].length; V.x = Math.max(0, Math.min(V.x, V.mode === 'insert' ? L : Math.max(0, L - 1))); }
-function viKey(k) {
+function viKey(k) { return Sess.wrap({ k: 'vk', x: k }, () => viKey0(k)); }
+function viKey0(k) {
   if (!V) return;
   if (V.mode === 'insert') {
     if (k === 'Escape') { V.mode = 'normal'; V.x = Math.max(0, V.x - 1); V.msg = ''; }
@@ -1859,7 +1868,8 @@ function viKey(k) {
   else if (k === 'Enter') { V.y++; V.x = 0; }
   viClamp(); drawVi();
 }
-function viType(ch) {
+function viType(ch) { return Sess.wrap({ k: 'vt', x: ch }, () => viType0(ch)); }
+function viType0(ch) {
   if (!V) return;
   if (V.mode === 'insert') { const l = V.lines[V.y]; V.lines[V.y] = l.slice(0, V.x) + ch + l.slice(V.x); V.x += ch.length; V.dirty = true; viClamp(); drawVi(); return; }
   if (V.mode === 'cmd') { V.cmd += ch; drawVi(); return; }
@@ -1923,8 +1933,10 @@ viCap.addEventListener('input', (e) => { // 휴대폰 자판, 한글 입력
 viCap.addEventListener('compositionend', (e) => { if (!V) return; const v = viCap.value || e.data; viCap.value = ''; if (v) viType(v); });
 
 document.getElementById('escBtn').addEventListener('click', () => { if (V) { viKey('Escape'); viCap.focus(); } });
-document.getElementById('ctrlcBtn').addEventListener('click', () => { if (V) return; if (mode && mode.type === 'wait') { mode.stop('ctrlc'); inputEl.focus(); return; } onKey({ key: 'c', ctrlKey: true, preventDefault() {} }); inputEl.focus(); });
-document.getElementById('clearBtn').addEventListener('click', () => { if (V) return; clearTerm(); inputEl.focus(); });
+function btnCtrlC() { if (V) return; if (mode && mode.type === 'wait') { mode.stop('ctrlc'); return; } onKey0({ key: 'c', ctrlKey: true, preventDefault() {} }); }
+function btnClear() { if (V) return; clearTerm(); }
+document.getElementById('ctrlcBtn').addEventListener('click', () => { Sess.wrap({ k: 'btn', x: 'ctrlc' }, btnCtrlC); if (!V) inputEl.focus(); });
+document.getElementById('clearBtn').addEventListener('click', () => { Sess.wrap({ k: 'btn', x: 'clear' }, btnClear); if (!V) inputEl.focus(); });
 </script>
 <script>
 'use strict';
@@ -2359,6 +2371,7 @@ function saveProg() { try { localStorage.setItem('ohb:lab:done', JSON.stringify(
 
 function startLesson(id) {
   const L = LESSONS.find(l => l.id === id) || LESSONS[0];
+  Sess.begin(L.id, NOW.getTime());
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   if (S.stage === 2) { makeWorld2(L.id); S.dfRows = () => [['devtmpfs', 15.5 * GB, 0, '/dev'], ['tmpfs', 15.6 * GB, 0, '/dev/shm'], ['tmpfs', 15.6 * GB, 8.5 * MB, '/run'], ['tmpfs', 15.6 * GB, 0, '/sys/fs/cgroup'], ['/dev/mapper/ol-root', 50 * GB, 4.1 * GB, '/'], ['/dev/sda1', 1014 * MB, 233 * MB, '/boot'], ['/dev/mapper/vg_u01-lv_u01', 200 * GB, 1.5 * GB + duOf(lookup('/u01').node), '/u01'], ['/dev/nvme0n1p1', 500 * GB, 3.6 * GB + duOf(lookup('/u02').node), '/u02'], ['tmpfs', 3.2 * GB, 0, '/run/user/0']]; S.user = 'root'; loginEnv('root'); S.cwd = '/root'; }
@@ -2375,7 +2388,19 @@ function startLesson(id) {
   document.title = `${S.stage}-${lessonNo(L)}. ${L.title} · 리눅스 실습실`;
   if (location.hash !== '#lesson-' + L.id) history.replaceState(null, '', '#lesson-' + L.id);
   if (matchMedia('(min-width: 961px)').matches) inputEl.focus({ preventScroll: true });
+  Sess.end(REPLAY);
 }
+/* 자동 저장한 입력을 다시 실행할 때 쓰는 손잡이 */
+const REPLAY = {
+  in(e) { inputEl.value = e.v || ''; onKey0({ key: e.x, ctrlKey: !!e.c, preventDefault() {} }); },
+  vk(k) { viKey0(k); }, vt(s) { viType0(s); },
+  btn(n) { if (n === 'ctrlc') btnCtrlC(); else if (n === 'clear') btnClear(); },
+  done(info) {
+    cur.hints = Object.assign({}, info.hints); renderMission();
+    const d = new Date(info.since), z = (n) => String(n).padStart(2, '0');
+    if (!V) print(note(`저장된 작업을 이어서 불러왔습니다(${z(d.getHours())}:${z(d.getMinutes())}에 시작한 레슨, 입력 ${info.count}개). 처음부터 하려면 "레슨 다시 시작"을 누르세요.`));
+  },
+};
 function checkLesson(ev) {
   if (!cur || cur.done) return;
   if (ev.danger) { print(note(`잠깐! ${ev.danger} 는 오라클이 쓰는 파일입니다. 실제 서버였다면 DB가 망가졌을 수 있습니다. 위의 "레슨 다시 시작"으로 되돌리세요.`)); }
@@ -2417,10 +2442,11 @@ function renderMission() {
     <p class="situation"><span class="who">${L.who}</span>${L.situation}</p>
     <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
     ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
-    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>`;
+    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
+    <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥은 Cmd+Shift+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
   ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${esc(t.hint)}</div>` : ''}`;
-  document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; renderMission(); }));
+  document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; Sess.hints(cur.hints); renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));
 }
@@ -2438,7 +2464,7 @@ document.getElementById('themeBtn').addEventListener('click', () => {
 });
 window.addEventListener('hashchange', () => { const m = /^#lesson-(\d+)$/.exec(location.hash); if (m && (!cur || +m[1] !== cur.L.id)) startLesson(+m[1]); });
 const m0 = /^#lesson-(\d+)$/.exec(location.hash);
-startLesson(m0 ? +m0[1] : 1);
+{ const hid = m0 && LESSONS.some(l => l.id === +m0[1]) ? +m0[1] : null; const rid = Sess.lessonToResume(hid); startLesson(rid != null && LESSONS.some(l => l.id === rid) ? rid : hid != null ? hid : 1); }
 </script>
 </body>
 </html>
