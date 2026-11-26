@@ -206,7 +206,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 
 <footer class="foot">
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), "Connected to an idle instance."와 "ORACLE instance started." 및 SGA 줄 이름, lsnrctl status·start·stop·services의 형식, rman 접속 문구, SHOW ALL과 CROSSCHECK의 형식, ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA- 오류 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: "Database mounted/opened/closed/dismounted", "ORACLE instance shut down", DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN BACKUP 진행 줄과 LIST BACKUP SUMMARY·REPORT의 표, 리스너가 없을 때 lsnrctl의 TNS 오류 줄, orapwd의 암호 질문 문구, 레슨에 인용하지 않은 일부 ORA-·SP2- 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, DELETE OBSOLETE 목록, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094 문구, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -217,6 +217,9 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
    1. 출처 목록. 레슨은 번호로 참조한다.
    ===================================================================== */
 const SRC = {
+  tutstart: ['Oracle Database 19c 튜토리얼 · Start up and Shut down the Oracle Database Instance', 'https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-start-oracle/index.html'],
+  tutback: ['Oracle Database 19c 튜토리얼 · Manage Backups (LIST BACKUP SUMMARY, CROSSCHECK)', 'https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-manage-back/index.html'],
+  rmdel: ['Oracle Database 19c Backup and Recovery Reference · DELETE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/rcmrf/DELETE.html'],
   ol8:     ['Oracle Database 19c 설치 가이드(Linux) · Supported Oracle Linux 8 Distributions for x86-64', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/supported-oracle-linux-8-distributions-for-x86-64.html'],
   ofa:     ['Oracle Database 19c 설치 가이드 · Optimal Flexible Architecture File Path Examples', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/optimal-flexible-architecture/optimal-flexible-architecture-file-path-examples.html'],
   inv:     ['Oracle Database 19c 설치 가이드 · About the Oracle Inventory Directory and Installation', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/optimal-flexible-architecture/about-the-oracle-inventory-directory-and-installation.html'],
@@ -3064,10 +3067,10 @@ function sqlSpool(args) {
   let name = args[0].replace(/^['"]|['"]$/g, ''); const opt = (args[1] || '').toUpperCase();
   if (!/\.[^/]+$/.test(name.split('/').pop())) name += '.lst';
   const abs = normPath(name, S.cwd); const r = lookup(abs);
-  if (/^CRE/.test(opt) && r && r.node) { print(`SP2-0771: File "${name}" already exists.\nUse SPOOL filename[.ext] REPLACE or APPEND, or SPOOL filename[.ext] CREATE.\n`); unverified('spool-cre', 'SPOOL CREATE로 이미 있는 파일을 고를 때의 오류 문구는 확인하지 못했습니다.'); return; }
+  if (/^CRE/.test(opt) && r && r.node) { print(`SP2-0771: File "${name}" already exists.\nUse another name or "SPOOL filename[.ext] REPLACE"\n`); return; }
   const prev = /^APP/.test(opt) && r && r.node && r.node.txt != null ? r.node.txt : '';
   const m = mkfile(abs, prev);
-  if (m.err) { print(`SP2-0606: Cannot create SPOOL file "${name}"\n`); unverified('spool-err', 'SPOOL 파일을 만들 수 없을 때의 오류 문구는 확인하지 못했습니다.'); return; }
+  if (m.err) { print(`SP2-0606: Cannot create SPOOL file "${name}"\n`); return; }
   me.spool = { abs, txt: prev }; S.ev.spool = abs;
 }
 const UNV_TOLD = new Set();
@@ -3091,7 +3094,7 @@ function doStartup(t) {
   db.restrict = restrict;
   ev.startup = nomount ? 'NOMOUNT' : mount ? 'MOUNT' : 'OPEN'; ev.dbState = db.state; ev.force = force;
   print(o);
-  unverified('startup', 'STARTUP 출력에서 "Connected to an idle instance."와 "ORACLE instance started."·SGA 줄 이름은 SQL*Plus 19c 문서의 STARTUP 예시에 있는 문구입니다. "Database mounted.", "Database opened."는 확인한 문서 예시에 없어 실제 SQL*Plus 형식을 따랐습니다. SGA 숫자는 예시입니다.');
+  void 0;
 }
 function doShutdown(t) {
   const me = S.sql, db = S.db, ev = S.ev;
@@ -3111,7 +3114,7 @@ function doShutdown(t) {
   shutInstance(how);
   ev.shutdown = how; ev.dbState = 'DOWN';
   print(o);
-  unverified('shutdown', '"Database closed.", "Database dismounted.", "ORACLE instance shut down." 문구는 확인한 19c 문서 예시에 나오지 않아 실제 SQL*Plus 형식을 따랐습니다.');
+  void 0;
 }
 
 /* =====================================================================
@@ -3184,12 +3187,12 @@ CMDS.sqlplus = function () { return fail(note('SQL*Plus 안에서 sqlplus를 또
 CMDS.tnsping = function (argv) {
   const a = argv[1]; if (!a) return ok(note('예: tnsping ORCL'));
   const r = resolveSvc(a);
-  let o = `\nTNS Ping Utility for Linux: Version 19.0.0.0.0 - Production on ${lsDateTime(new Date())}\n\nCopyright (c) 1997, 2019, Oracle.  All rights reserved.\n\nUsed parameter files:\n${OH}/network/admin/sqlnet.ora\n\n`;
-  if (r.err) return { out: o + 'TNS-03505: Failed to resolve name\n', err: '', code: 1 };
-  o += `\nUsed TNSNAMES adapter to resolve the alias\nAttempting to contact (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = ${r.host})(PORT = ${r.port})) (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = ${r.service})))\n`;
-  if (!S.db.lsnr.up) return { out: o + 'TNS-12541: TNS:no listener\n' + note('tnsping은 리스너가 응답하는지만 봅니다. 서비스가 등록됐는지, DB가 열렸는지는 확인하지 않습니다. 이 출력 형식은 공식 문서 예시로 확인하지 못했습니다.'), err: '', code: 1 };
+  let o = `\nTNS Ping Utility for Linux: Version 19.0.0.0.0 - Production on ${oDate(new Date()).replace(/-(\d\d)$/, '-' + new Date().getFullYear())}\n\nCopyright (c) 1997, 2019 Oracle Corporation.  All rights reserved.\n\nUsed parameter files:\n`;
+  if (r.err) return { out: o + '\nTNS-03505: Failed to resolve name\n', err: '', code: 1 };
+  o += `Used TNSNAMES adapter to resolve the alias\nAttempting to contact (DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = ${r.host})(PORT = ${r.port})) (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = ${r.service})))\n`;
+  if (!S.db.lsnr.up) return { out: o + 'TNS-12541: TNS:no listener\n' + note('tnsping은 리스너가 응답하는지만 봅니다. 서비스가 등록됐는지, DB가 열렸는지는 확인하지 않습니다. 출력 형식은 Net Services Administrator\'s Guide 19c의 tnsping 예시와 같고, DESCRIPTION 내용은 tnsnames.ora 항목에 따라 다릅니다.'), err: '', code: 1 };
   S.ev.tnsping = true;
-  return ok(o + 'OK (0 msec)\n' + note('tnsping은 리스너가 응답하는지만 봅니다. 서비스가 등록됐는지, DB가 열렸는지는 확인하지 않습니다. 이 출력 형식은 공식 문서 예시로 확인하지 못했습니다.'));
+  return ok(o + 'OK (0 msec)\n' + note('tnsping은 리스너가 응답하는지만 봅니다. 서비스가 등록됐는지, DB가 열렸는지는 확인하지 않습니다. 출력 형식은 Net Services Administrator\'s Guide 19c의 tnsping 예시와 같고, DESCRIPTION 내용은 tnsnames.ora 항목에 따라 다릅니다.'));
 };
 
 /* =====================================================================
@@ -3235,7 +3238,7 @@ INTERACTIVE.rman = function (argv, done) {
   if (tm) connect(tm[1]);
   S.ev.rmanConn = ctx.conn; checkLesson(S.ev);
   print('');
-  unverified('rman-banner', 'RMAN 시작 문구(Recovery Manager: Release ...)는 공식 문서 예시로 확인하지 못했습니다. "connected to target database: 이름 (DBID=번호)"와 "using target database control file instead of recovery catalog"는 Backup and Recovery User\'s Guide 19c의 예시 문구입니다.');
+  unverified('rman-banner', 'RMAN 시작 문구의 형식(Recovery Manager: Release ... - Production on ..., Copyright 줄)은 Backup and Recovery User\'s Guide 19c의 완전 복구 예시와 같습니다. 다만 그 예시는 12.1 버전 화면이라 19.0.0.0.0 버전 표기 자체는 문서로 확인하지 못했습니다. "connected to target database: 이름 (DBID=번호)"와 "using target database control file instead of recovery catalog"는 Backup and Recovery User\'s Guide 19c의 예시 문구입니다.');
   const pr = () => ctx.buf.length ? `${ctx.buf.length + 1}> ` : 'RMAN> ';
   const next = () => { mode = { type: 'line', hist: S.sqlHist || (S.sqlHist = []), onSubmit(v) { onLine(v); }, cancel() { ctx.buf = []; next(); return true; } }; setPrompt(pr()); };
   const onLine = (v) => {
@@ -3303,7 +3306,7 @@ function rmanCmd(cmd, ctx) {
     if (!rows.length) return pre + 'specification does not match any backup in the repository\n\n';
     let o = pre + '\nList of Backups\n===============\nKey     TY LV S Device Type Completion Time #Pieces #Copies Compressed Tag\n------- -- -- - ----------- --------------- ------- ------- ---------- ---\n';
     for (const b of rows) o += `${String(b.key).padEnd(7)} B  ${b.lv}  ${b.status === 'AVAILABLE' ? 'A' : 'X'} DISK        ${rmanTime(b.done).padEnd(15)} 1       1       NO         ${b.tag}\n`;
-    return o + '\n' + (/SUMMARY/.test(U) ? '' : note('실습에서는 LIST BACKUP도 SUMMARY 형식으로 보여 줍니다. ')) + note('LIST BACKUP SUMMARY 표의 모양은 공식 문서 예시로 확인하지 못했습니다. LV 열의 F는 전체(full), A는 아카이브 로그 백업입니다.');
+    return o + '\n' + (/SUMMARY/.test(U) ? '' : note('실습에서는 LIST BACKUP도 SUMMARY 형식으로 보여 줍니다. ')) + note('LV 열의 F는 전체(full), A는 아카이브 로그 백업입니다. 표의 제목 줄은 Oracle 19c 백업 관리 튜토리얼의 LIST BACKUP SUMMARY 예시와 같습니다.');
   }
   if (/^REPORT NEED BACKUP$/.test(U)) {
     ev.rmanReport = 'need';
@@ -3319,7 +3322,7 @@ function rmanCmd(cmd, ctx) {
   if (/^CROSSCHECK BACKUP$/.test(U)) {
     ev.rmanCross = true; let o = pre + `allocated channel: ORA_DISK_1\nchannel ORA_DISK_1: SID=${SID_SEQ + 3} device type=DISK\n`;
     for (const b of db.backups) { const exists = !!lookup(b.piece); b.status = exists ? 'AVAILABLE' : 'EXPIRED'; o += `crosschecked backup piece: found to be '${b.status}'\nbackup piece handle=${b.piece} RECID=${b.key} STAMP=${b.stamp}\n`; }
-    return o + `Crosschecked ${db.backups.length} objects\n\n` + note('CROSSCHECK 결과 줄은 Backup and Recovery User\'s Guide 19c의 예시 형식을 따랐습니다. 마지막 "Crosschecked n objects" 줄은 문서 예시로 확인하지 못했습니다.');
+    return o + `Crosschecked ${db.backups.length} objects\n\n` + '';
   }
   if (/^(STARTUP|SHUTDOWN|ALTER|SELECT|SQL)\b/.test(U)) return pre + note('RMAN 안에서도 STARTUP, SHUTDOWN, SQL 문을 실행할 수 있지만, 이 실습에서는 SQL*Plus에서 하도록 했습니다.');
   if (/^(RESTORE|RECOVER|VALIDATE)\b/.test(U)) return pre + note('복원과 복구는 4단계 장애 대응에서 실습합니다.');
@@ -3588,7 +3591,7 @@ function rman4(cmd, U, ctx) {
     k = 0; for (const a of ob.arcs) { const r = lookup(a.path); if (r && r.node) delete r.parent.c[baseOf(a.path)]; if (k++ < SHOW) o += `deleted archived log\narchived log file name=${a.path} RECID=${a.seq} STAMP=${stampOf(a.mt)}\n`; n++; }
     db.backups = db.backups.filter(b => b.status !== 'DELETED');
     o += `Deleted ${n} objects\n`; ev.rmanDeleted = n;
-    unverified('delobs', 'DELETE OBSOLETE의 출력 형식은 공식 문서 예시로 확인하지 못했습니다. 보관 정책이 REDUNDANCY 1이면 가장 최근 전체 백업 하나로 복구할 수 있으므로, 그보다 오래된 백업과 그 이전의 아카이브 로그는 "더 이상 필요 없음(obsolete)"이 됩니다.');
+    unverified('delobs', '"deleted backup piece", "backup piece handle=... RECID=... STAMP=...", "Deleted n objects" 줄은 Backup and Recovery Reference 19c의 DELETE 예시와 같습니다. 그 위의 지울 목록 표(Deleting the following obsolete backups and copies: 와 열 제목)는 공식 문서 예시로 확인하지 못했습니다. 보관 정책이 REDUNDANCY 1이면 가장 최근 전체 백업 하나로 복구할 수 있으므로, 그보다 오래된 백업과 그 이전의 아카이브 로그는 "더 이상 필요 없음(obsolete)"이 됩니다.');
     return finish(o + '\n');
   }
   return undefined;
@@ -4025,7 +4028,7 @@ LESSONS.push(
         why: '<code>Shutting down ORACLE instance (immediate)</code>, <code>Starting ORACLE instance (normal)</code>, <code>ALTER DATABASE   MOUNT</code>, <code>Completed: ALTER DATABASE OPEN</code>이 순서대로 남았습니다. 언제 누가 DB를 내렸는지 나중에 확인할 수 있는 곳이 alert log입니다.' },
     ],
     field: '<code>shutdown abort</code>는 전원 코드를 뽑는 것과 비슷합니다. 다음 시작 때 SMON이 인스턴스 복구를 하므로 데이터가 깨지지는 않지만, IMMEDIATE가 오래 걸린다고 습관처럼 쓰지는 않습니다. <code>startup force</code>는 ABORT 뒤 STARTUP을 한 번에 합니다. SQL*Plus 문서 예시도 alert log에 "Shutting down instance (abort)" 뒤 "Starting ORACLE instance (normal)"가 남는다고 보여 줍니다.',
-    sources: ['adstart', 'sqstup', 'vinst', 'vdb', 'errmg', 'errmg2'] },
+    sources: ['adstart', 'sqstup', 'tutstart', 'vinst', 'vdb', 'errmg', 'errmg2'] },
 
   { id: 23, stage: 3, title: '리스너 살리고 원격 접속 확인하기', short: '리스너', start: 'oracle',
     who: '앱 담당 최대리 (전화)',
@@ -4172,14 +4175,14 @@ LESSONS.push(
       { text: '데이터베이스와 아카이브 로그 전체 백업 받기', hint: 'backup database plus archivelog;', done: ev => ev.rmanBackup && ev.rmanBackup.plus,
         why: 'PLUS ARCHIVELOG를 붙이면 아카이브 로그 → 데이터 파일 → 그 사이에 생긴 아카이브 로그 순서로 백업합니다. 마지막에 컨트롤 파일과 SPFILE 자동 백업도 생겼습니다. 백업 조각(piece)은 빠른 복구 영역의 backupset, autobackup 아래에 날짜별로 쌓입니다.' },
       { text: '백업 목록 보기', hint: 'list backup summary;', done: ev => ev.rmanList,
-        why: 'LV가 F(전체)인 백업과 A(아카이브 로그) 백업이 보이고, 상태(S)는 A(AVAILABLE)입니다. 실습의 이 표 모양은 공식 문서 예시로 확인하지 못한 부분이 있습니다(화면의 ⓘ 참고).' },
+        why: 'LV가 F(전체)인 백업과 A(아카이브 로그) 백업이 보이고, 상태(S)는 A(AVAILABLE)입니다. 표의 제목 줄은 Oracle 19c 백업 관리 튜토리얼과 Backup and Recovery User\'s Guide 19c(예 11-1)의 LIST BACKUP SUMMARY 예시와 같습니다.' },
       { text: '아직 백업이 필요한 파일이 남았는지 보기', hint: 'report need backup;', done: ev => ev.rmanReport === 'need',
         why: '목록이 비어 있으면 보관 정책(REDUNDANCY 1)을 만족하는 백업이 모든 데이터 파일에 있다는 뜻입니다. 레슨 4처럼 데이터 파일을 추가한 뒤에 이 명령을 돌리면 새 파일이 목록에 나옵니다.' },
       { text: 'RMAN에서 나와 백업 파일이 생겼는지 보기', hint: 'exit\nfind /u01/app/oracle/fast_recovery_area/ORCL -type f', done: ev => (has(ev, 'ls') || has(ev, 'find')) && !S.sql && ev.stages.some(a => a.some(x => x.includes('fast_recovery_area'))),
         why: 'backupset, autobackup, archivelog 디렉터리 아래에 o1_mf_로 시작하는 파일이 생겼습니다. 오라클이 이름을 정하는 OMF 형식입니다. 이 파일들을 리눅스 rm으로 지우면 RMAN 기록과 맞지 않게 되니, 정리는 RMAN의 DELETE OBSOLETE로 합니다.' },
     ],
     field: '이 백업은 같은 서버의 /u01에 있습니다. 서버나 디스크가 통째로 망가지면 백업도 함께 잃으니, 현장에서는 테이프나 다른 저장소로 한 번 더 보냅니다. 매일 백업은 보통 cron이나 Oracle Scheduler로 돌립니다. Scheduler로 OS 스크립트를 돌리는 "외부 작업"은 CREATE JOB, CREATE EXTERNAL JOB 권한이 필요하고, Administrator\'s Guide는 DBMS_CREDENTIAL로 만든 자격 증명을 쓰라고 권합니다. 자격 증명 없이 SYS가 아닌 사용자의 외부 작업은 <code>$ORACLE_HOME/rdbms/admin/externaljob.ora</code>의 run_user, run_group으로 실행됩니다. 4단계 장애 대응에서 이 백업으로 실제 복구를 해 봅니다.',
-    sources: ['adarch', 'rmstart', 'rmcfg', 'rmbk', 'rmmnt', 'adsch', 'adsch2'] },
+    sources: ['adarch', 'rmstart', 'rmcfg', 'rmbk', 'rmmnt', 'tutback', 'adsch', 'adsch2'] },
 
   { id: 29, stage: 3, title: '졸업 미션: 재부팅 뒤 아침 점검', short: '졸업 미션', start: 'oracle',
     who: '박팀장',
@@ -4318,7 +4321,7 @@ LESSONS.push(
       { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
     ],
     field: '재발을 막으려면 FRA 크기를 하루 아카이브 양과 백업 크기에 맞춰 다시 잡고, 사용률 경보(예: 80%)를 걸고, 백업 스크립트 끝에 <code>DELETE NOPROMPT OBSOLETE</code>를 넣습니다. 오류 도움말은 백업을 테이프 등 다른 장치로 옮기는 것, 보관 정책과 아카이브 로그 삭제 정책을 바꾸는 것도 해결책으로 듭니다. 이 레슨의 관련 절(Responding to a Full Fast Recovery Area)은 18c 문서에서만 확인했습니다.',
-    sources: ['e00257', 'e19809', 'e19815', 'rmcfg', 'maint18'] },
+    sources: ['e00257', 'e19809', 'e19815', 'rmcfg', 'maint18', 'rmdel'] },
 
   { id: 35, stage: 4, title: '실수로 지운 테이블 되살리기', short: 'Flashback Drop', start: 'oracle',
     who: '개발팀 송대리 (메신저)',
