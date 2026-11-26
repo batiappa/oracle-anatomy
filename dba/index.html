@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DBA 실습 · Oracle 해부도</title>
-<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익히고, 4단계에서 데이터 파일·컨트롤 파일 손실, FRA 가득 참, 지운 테이블 같은 장애를 RMAN과 Flashback Drop으로 복구하고, 5단계 시점 복구와 컨트롤 파일 전체 복구, 6단계 대기 이벤트와 AWR 보고서로 성능을 점검합니다.">
+<meta name="description" content="리눅스 실습실 다음 단계. 브라우저 안의 가상 터미널에서 Oracle Database 19c를 SQL*Plus, lsnrctl, RMAN, orapwd로 직접 다루며 시작·종료, 리스너, 테이블스페이스, 사용자와 권한, 암호 파일, 세션 정리, 아카이브 모드와 첫 백업을 익히고, 5단계에서 데이터 파일·컨트롤 파일 손실, FRA 가득 참, 지운 테이블 같은 장애를 RMAN과 Flashback Drop으로 복구하고, 6단계 시점 복구와 컨트롤 파일 전체 복구, 7단계 대기 이벤트와 AWR 보고서로 성능을 점검합니다. 4단계에서는 SQL 문법 기초(SELECT, WHERE, 집계, 조인, INSERT·UPDATE·DELETE, 트랜잭션, CREATE TABLE과 제약 조건)를, 11단계에서는 crsctl·srvctl·olsnodes와 GV$ 뷰로 2노드 RAC를 점검하고 서비스를 옮기는 법을 익힙니다.">
 <meta name="theme-color" content="#e5e9ee">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/dba/">
@@ -97,7 +97,15 @@ h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); le
 .task.done { background: var(--panel-2); }
 .task.done .box { background: var(--ok); border-color: var(--ok); color: #fff; }
 .task.cur { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-.task.todo { opacity: 0.62; }
+.task.todo { cursor: pointer; }
+.task.todo .task-row { opacity: 0.62; }
+.task.todo:hover { border-color: var(--muted); }
+.task.todo .box { border-style: dashed; color: var(--muted); font-size: 10px; }
+.task .lock { flex: none; font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+.task-guide { margin: 0 0 8px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+.task-guide b { color: var(--ink); font-weight: 600; }
+.peek { margin: 7px 0 0 27px; font-size: 13.5px; color: var(--ink); }
+.peek .btn { margin-top: 6px; font-size: 13px; padding: 4px 10px; }
 .task .txt { flex: 1; min-width: 0; font-size: 14.5px; }
 .hint-btn { flex: none; border: 1px solid var(--line); background: var(--panel); border-radius: 7px; font-size: 12px; padding: 1px 8px; cursor: pointer; color: var(--muted); }
 .hint { margin: 7px 0 0 27px; font-family: var(--font-mono); font-size: 13px; background: var(--term-bg); color: var(--term-ink); padding: 6px 9px; border-radius: 7px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -206,8 +214,10 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 
 <footer class="foot">
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance, SQL Tuning Guide, PL/SQL Packages and Types Reference)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 4단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 5·6단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 9단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 4단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 5단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 6단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 8단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 7단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 7단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 9단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
-  <p>SQL 엔진은 실습에 필요한 SELECT(조인, WHERE, GROUP BY, ORDER BY, 집계 함수)와 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 5단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 6·7단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 10단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 5단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 6단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 7단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 9단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 8단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 8단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 10단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>4단계 SQL 기초</b>: 공식 문서로 확인한 것은 ORA-00001·ORA-01400 오류 문구의 형식(Database Concepts 19c 예시), "Table created."와 SET FEEDBACK의 "n rows selected." 동작, SQL*Plus 종료 때 EXITCOMMIT 기본값 ON(커밋), 길이 0인 문자열이 NULL이라는 점과 = NULL이 참이 아니라는 점, COUNT(*)를 뺀 집계 함수가 NULL을 무시한다는 점, 왼쪽 외부 조인이 짝 없는 행을 NULL로 채운다는 점, DDL이 앞뒤로 암묵 커밋한다는 점(SQL Language Reference 19c)입니다. <b>확인하지 못한 것</b>: "1 row created./updated./deleted." 같은 DML 피드백 문구, ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, 01427의 화면 문구 전체, NULL이 정렬에서 놓이는 위치의 화면 표시, 열 폭. 이런 줄에는 터미널에 ⓘ 표시가 붙습니다. STUDY 스키마의 사원·부서 행과 제약 조건 이름(SYS_C...)은 설명용 예시입니다.</p>
+  <p><b>11단계 RAC 기초</b>: 공식 문서로 확인한 것은 crsctl check cluster -all의 노드별 CRS-4537·4529·4533 줄 형식(Clusterware 19c 문서 예시), olsnodes의 -n·-s·-c·-l·-t 옵션과 -n 출력 예시, crsctl stat res -t 표의 구조와 "Instance ... is running on node ..." 문구(21c Private Cloud Appliance 문서 예시), CRSCTL이 Grid 홈 bin에 있고 SRVCTL은 데이터베이스 홈에서 실행한다는 점, SRVCTL이 성공하면 아무것도 출력하지 않는다는 점, stop instance의 -stopoption 값, relocate service의 -oldinst·-newinst 문법, preferred·available 인스턴스의 뜻과 원래 인스턴스로 자동으로 돌아가지 않는다는 점, GV$ 뷰의 INST_ID, gc cr block 2-way·gc current block 2-way 대기 이벤트와 Cluster 대기 클래스(Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c)입니다. <b>확인하지 못한 것</b>: srvctl status·config service와 config database 줄의 정확한 문구, "is not running" 문구, crsctl stat res -t의 열 간격과 서비스 자원 이름(ora.paydb.*.svc), check crs와 query crs activeversion의 화면 문구, olsnodes -s의 대소문자, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 클러스터·노드·DB·서비스 이름, IP, 세션 수와 시각은 설명용 예시입니다.</p>
+  <p>SQL 엔진은 실습에 필요한 SELECT(조인, 외부 조인, 하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수), 실습용 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
 
@@ -217,6 +227,29 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
    1. 출처 목록. 레슨은 번호로 참조한다.
    ===================================================================== */
 const SRC = {
+  sqlselect: ['Oracle Database 19c SQL Language Reference · SELECT (DISTINCT, WHERE, GROUP BY, HAVING, ORDER BY)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/SELECT.html'],
+  sqlqueries: ['Oracle Database 19c SQL Language Reference · SQL Queries and Subqueries', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/SQL-Queries-and-Subqueries.html'],
+  sqlpuserguide: ['SQL*Plus 19c User\'s Guide and Reference · DESCRIBE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/DESCRIBE.html'],
+  sqlnulls: ['Oracle Database 19c SQL Language Reference · Nulls (= NULL은 UNKNOWN, 길이 0인 문자열은 null)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Nulls.html'],
+  sqlagg: ['Oracle Database 19c SQL Language Reference · Aggregate Functions (null 무시, HAVING)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Aggregate-Functions.html'],
+  sqljoins: ['Oracle Database 19c SQL Language Reference · Joins (내부 조인, 외부 조인)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Joins.html'],
+  sqlsubq: ['Oracle Database 19c SQL Language Reference · Using Subqueries', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Using-Subqueries.html'],
+  sqlinsert: ['Oracle Database 19c SQL Language Reference · INSERT', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/INSERT.html'],
+  sqlupdate: ['Oracle Database 19c SQL Language Reference · UPDATE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/UPDATE.html'],
+  sqldelete: ['Oracle Database 19c SQL Language Reference · DELETE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/DELETE.html'],
+  sqlcommit: ['Oracle Database 19c SQL Language Reference · COMMIT (DDL 앞뒤의 자동 커밋)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html'],
+  sqlcreate: ['Oracle Database 19c SQL Language Reference · CREATE TABLE', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/CREATE-TABLE.html'],
+  cncptint: ['Oracle Database 19c Concepts · Data Integrity (ORA-00001, ORA-01400 예시)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-integrity.html'],
+  sqpset: ['SQL*Plus 19c · SET System Variable Summary (EXITCOMMIT 기본값 ON)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/SET-system-variable-summary.html'],
+  refcons: ['Oracle Database 19c Reference · ALL_CONSTRAINTS (CONSTRAINT_TYPE)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/ALL_CONSTRAINTS.html'],
+  crsctl: ['Oracle Clusterware Administration and Deployment Guide 19c · CRSCTL Utility Reference', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/oracle-clusterware-control-crsctl-utility-reference.html'],
+  olsnodes: ['Oracle Clusterware Administration and Deployment Guide 19c · OLSNODES Command Reference', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/olsnodes-command-reference.html'],
+  cwcheck: ['Grid Infrastructure Installation Guide 19c · Confirming Oracle Clusterware Function (crsctl check cluster -all 예시, Windows판)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwwin/confirming-oracle-clusterware-function.html'],
+  srvctl: ['Oracle RAC Administration and Deployment Guide 19c · Server Control Utility Reference', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/server-control-utility-reference.html'],
+  racsvc: ['Oracle RAC Administration and Deployment Guide 19c · Workload Management with Dynamic Database Services (preferred·available, failback)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/workload-management-with-dynamic-database-services.html'],
+  racmon: ['Oracle RAC Administration and Deployment Guide 19c · Monitoring Performance (GV$ 뷰, 글로벌 캐시 대기)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/monitoring-performance.html'],
+  gvviews: ['Oracle Database 19c Reference · About Dynamic Performance Views (GV$ 뷰와 INST_ID)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html'],
+  pcarac: ['Oracle 솔루션 문서 · Deploy Oracle Grid Infrastructure and Oracle RAC Database (21c 예시: crsctl stat res -t, srvctl status db)', 'https://docs.oracle.com/en/solutions/private-cloud-appliance-deploy-rac/deploy-oracle-grid-infrastructure-and-oracle-rac-database.html'],
   dgbrkex: ['Oracle Data Guard Broker 19c · Examples Using the DGMGRL Utility (SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html'],
   dgbrkcmd: ['Oracle Data Guard Broker 19c · Oracle Data Guard Broker Commands (CONNECT, VALIDATE DATABASE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-commands.html'],
   dgstats: ['Oracle Database 19c Reference · V$DATAGUARD_STATS', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATAGUARD_STATS.html'],
@@ -626,7 +659,7 @@ function binNodes() {
   const R = 'root'; const usrbin = {}, usrsbin = {};
   const SBIN = ['groupadd', 'useradd', 'usermod', 'sysctl'];
   for (const c of Object.keys(CMDS)) {
-    if (['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl', 'ulimit', 'opatch', 'datapatch'].includes(c)) continue;
+    if (['cd', 'export', 'echo', 'pwd', 'source', '.', 'exit', 'logout', 'history', 'clear', 'umask', 'unset', 'help', 'kill', 'alias', '__assign', 'll', 'sqlplus', 'lsnrctl', 'ulimit', 'opatch', 'datapatch', 'crsctl', 'srvctl', 'olsnodes'].includes(c)) continue;
     if (!(CMDS[c] || ['vi', 'vim', 'top', 'ssh', 'su', 'bash', 'sh', 'dnf', 'yum', 'passwd'].includes(c))) continue;
     (SBIN.includes(c) ? usrsbin : usrbin)[c] = F(R, R, c === 'passwd' ? 0o4755 : 0o755, 120 * KB, { bin: c, mt: ago(200, 4, 2) });
   }
@@ -1044,7 +1077,7 @@ const CMDS = {
     if (f.r) ls.reverse();
     return ok(ls.length ? ls.join('\n') + '\n' : '');
   },
-  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  7단계 패치: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
+  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  8단계 패치: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  10단계 Data Guard: dgmgrl /\n  11단계 RAC: olsnodes [-n -s -t -l -c], crsctl check cluster -all, crsctl stat res -t, crsctl check crs, srvctl (srvctl help 로 형식 보기)\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
   whoami() { return ok(S.user + '\n'); },
   hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
@@ -2013,7 +2046,7 @@ const DBH = '/u02/app/oracle/oradata/ORCL';
 const FRA = OB + '/fast_recovery_area';
 const FRAD = FRA + '/ORCL';
 const DBID = 1650312877;
-let SQLVER = '19.3.0.0.0'; // 7단계에서 RU를 적용하면 바뀐다
+let SQLVER = '19.3.0.0.0'; // 8단계에서 RU를 적용하면 바뀐다
 const RDBMS_BANNER = 'Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - 64bit Production';
 const MONS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 const p2 = (n) => String(n).padStart(2, '0');
@@ -2239,7 +2272,7 @@ function addBackups(d, plusArch) {
    D2. 작은 SQL 엔진: SELECT 와 DBA 실습에 쓰는 DDL 몇 가지
    ===================================================================== */
 function SqlErr(msg, pos, extra) { this.msg = msg; this.pos = pos; this.extra = extra; }
-const RESERVED = new Set(['FROM', 'WHERE', 'GROUP', 'ORDER', 'BY', 'AND', 'OR', 'NOT', 'AS', 'IS', 'NULL', 'LIKE', 'IN', 'SELECT', 'DISTINCT', 'ASC', 'DESC', 'HAVING', 'UNION', 'BETWEEN']);
+const RESERVED = new Set(['FROM', 'WHERE', 'GROUP', 'ORDER', 'BY', 'AND', 'OR', 'NOT', 'AS', 'IS', 'NULL', 'LIKE', 'IN', 'SELECT', 'DISTINCT', 'ASC', 'DESC', 'HAVING', 'UNION', 'BETWEEN', 'JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'OUTER', 'CROSS', 'ON', 'USING', 'SET', 'VALUES', 'INTO', 'FETCH', 'OFFSET', 'NULLS'])
 function sqlTok(s) {
   const T = []; let i = 0;
   while (i < s.length) {
@@ -2258,6 +2291,7 @@ function sqlTok(s) {
   return T;
 }
 const AGG = new Set(['SUM', 'COUNT', 'MAX', 'MIN', 'AVG']);
+/* SELECT, INSERT, UPDATE, DELETE 문을 나눈다. SQL 기초 단계에서 JOIN ... ON, HAVING, BETWEEN, 서브쿼리, DISTINCT를 더했다. */
 function parseSelect(src) {
   const T = sqlTok(src); let k = 0;
   const isK = (w) => T[k] && T[k].t === 'id' && T[k].v === w;
@@ -2266,22 +2300,25 @@ function parseSelect(src) {
   const eatOp = (o) => { if (isOp(o)) { k++; return true; } return false; };
   const here = () => T[k] ? T[k].p : src.replace(/;\s*$/, '').length;
   const err = (m) => { throw new SqlErr(m, here()); };
+  const subAhead = () => isOp('(') && T[k + 1] && T[k + 1].t === 'id' && T[k + 1].v === 'SELECT';
   function primary() {
     const t = T[k];
     if (!t || (t.t === 'op' && t.v === ';')) err('ORA-00936: missing expression');
     if (t.t === 'num' || t.t === 'str') { k++; return { k: 'lit', v: t.v }; }
     if (t.t === 'id' && t.v === 'DATE' && T[k + 1] && T[k + 1].t === 'str') { k += 2; return { k: 'lit', v: toDateLit(T[k - 1].v) }; }
+    if (subAhead()) { k++; const q = query(); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return { k: 'sub', q, p: t.p }; }
     if (t.t === 'op' && t.v === '(') { k++; const e = expr(); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return e; }
     if (t.t === 'op' && t.v === '-') { k++; return { k: 'neg', e: primary() }; }
+    if (t.t === 'id' && t.v === 'NULL') { k++; return { k: 'lit', v: null }; }
     if (t.t === 'id' || t.t === 'qid') {
       if (t.t === 'id' && RESERVED.has(t.v)) err('ORA-00936: missing expression');
       k++;
       if (t.t === 'id' && isOp('(')) {
-        k++; const args = [];
+        k++; const args = []; let distinct = false;
         if (t.v === 'COUNT' && isOp('*')) { k++; args.push({ k: 'star' }); }
-        else if (!isOp(')')) { eat('DISTINCT'); args.push(expr()); while (eatOp(',')) args.push(expr()); }
+        else if (!isOp(')')) { distinct = eat('DISTINCT'); args.push(expr()); while (eatOp(',')) args.push(expr()); }
         if (!eatOp(')')) err('ORA-00907: missing right parenthesis');
-        return { k: 'fn', fn: t.v, args, p: t.p };
+        return distinct ? { k: 'fn', fn: t.v, args, p: t.p, distinct } : { k: 'fn', fn: t.v, args, p: t.p };
       }
       if (isOp('.')) { k++; const c = T[k]; if (!c || (c.t !== 'id' && c.t !== 'qid')) err('ORA-00936: missing expression'); k++; return { k: 'col', q: t.v, c: c.v, p: t.p }; }
       if (t.t === 'id' && ['SYSDATE', 'USER', 'ROWNUM', 'SYSTIMESTAMP'].includes(t.v)) return { k: 'kw', v: t.v };
@@ -2295,42 +2332,82 @@ function parseSelect(src) {
     const a = add();
     for (const o of ['=', '<>', '<', '>', '<=', '>=']) if (isOp(o)) { k++; return { k: 'cmp', o, a, b: add() }; }
     let not = false;
-    if (isK('NOT') && T[k + 1] && ['LIKE', 'IN'].includes(T[k + 1].v)) { k++; not = true; }
+    if (isK('NOT') && T[k + 1] && ['LIKE', 'IN', 'BETWEEN'].includes(T[k + 1].v)) { k++; not = true; }
     if (eat('LIKE')) return { k: 'like', a, b: add(), not };
-    if (eat('IN')) { if (!eatOp('(')) err('ORA-00906: missing left parenthesis'); const l = [expr()]; while (eatOp(',')) l.push(expr()); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return { k: 'in', a, l, not }; }
+    if (eat('IN')) {
+      if (subAhead()) { k++; const q = query(); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return { k: 'in', a, sub: q, l: [], not }; }
+      if (!eatOp('(')) err('ORA-00906: missing left parenthesis'); const l = [expr()]; while (eatOp(',')) l.push(expr()); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return { k: 'in', a, l, not };
+    }
+    if (eat('BETWEEN')) { const lo = add(); if (!eat('AND')) err('ORA-00905: missing keyword'); const hi = add(); return { k: 'between', a, lo, hi, not }; }
     if (eat('IS')) { const n = eat('NOT'); if (!eat('NULL')) err('ORA-00908: missing NULL keyword'); return { k: 'isnull', a, not: n }; }
     return a;
   }
   function notE() { if (eat('NOT')) return { k: 'not', e: notE() }; return cmp(); }
   function andE() { let a = notE(); while (eat('AND')) a = { k: 'and', a, b: notE() }; return a; }
   function expr() { let a = andE(); while (eat('OR')) a = { k: 'or', a, b: andE() }; return a; }
-  if (!eat('SELECT')) err('ORA-00900: invalid SQL statement');
-  eat('DISTINCT');
-  const items = [];
-  do {
-    if (isOp('*')) { k++; items.push({ star: true }); continue; }
-    if (T[k] && T[k].t === 'id' && T[k + 1] && T[k + 1].v === '.' && T[k + 2] && T[k + 2].v === '*') { items.push({ star: true, q: T[k].v }); k += 3; continue; }
-    const s = k; const e = expr(); const txt = src.slice(T[s].p, T[k - 1].e);
-    let alias = null;
-    if (eat('AS')) { const a = T[k++]; if (!a || (a.t !== 'id' && a.t !== 'qid')) err('ORA-00923: FROM keyword not found where expected'); alias = a.v; }
-    else if (T[k] && (T[k].t === 'qid' || (T[k].t === 'id' && !RESERVED.has(T[k].v)))) alias = T[k++].v;
-    items.push({ e, txt, alias });
-  } while (eatOp(','));
-  if (!eat('FROM')) err('ORA-00923: FROM keyword not found where expected');
-  const from = [];
-  do {
-    const t = T[k++]; if (!t || t.t !== 'id') { k--; err('ORA-00903: invalid table name'); }
+  function tableRef() {
+    const t = T[k++]; if (!t || t.t !== 'id' || RESERVED.has(t.v)) { k--; err('ORA-00903: invalid table name'); }
     let name = t.v; if (isOp('.')) { k++; const u = T[k++]; if (!u || u.t !== 'id') err('ORA-00903: invalid table name'); name += '.' + u.v; }
     let alias = null; if (T[k] && T[k].t === 'id' && !RESERVED.has(T[k].v)) alias = T[k++].v;
-    from.push({ name, alias, p: t.p });
-  } while (eatOp(','));
-  let where = null, group = null, order = null;
-  if (eat('WHERE')) where = expr();
-  if (eat('GROUP')) { if (!eat('BY')) err('ORA-00924: missing BY keyword'); group = [expr()]; while (eatOp(',')) group.push(expr()); }
-  if (eat('ORDER')) { if (!eat('BY')) err('ORA-00924: missing BY keyword'); order = []; do { const e = expr(); const desc = eat('DESC'); if (!desc) eat('ASC'); order.push({ e, desc }); } while (eatOp(',')); }
-  eatOp(';');
-  if (k < T.length) err('ORA-00933: SQL command not properly ended');
-  return { items, from, where, group, order };
+    return { name, alias, p: t.p };
+  }
+  function query() {
+    if (!eat('SELECT')) err('ORA-00900: invalid SQL statement');
+    const distinct = eat('DISTINCT') || eat('UNIQUE');
+    const items = [];
+    do {
+      if (isOp('*')) { k++; items.push({ star: true }); continue; }
+      if (T[k] && T[k].t === 'id' && T[k + 1] && T[k + 1].v === '.' && T[k + 2] && T[k + 2].v === '*') { items.push({ star: true, q: T[k].v }); k += 3; continue; }
+      const s = k; const e = expr(); const txt = src.slice(T[s].p, T[k - 1].e);
+      let alias = null;
+      if (eat('AS')) { const a = T[k++]; if (!a || (a.t !== 'id' && a.t !== 'qid')) err('ORA-00923: FROM keyword not found where expected'); alias = a.v; }
+      else if (T[k] && (T[k].t === 'qid' || (T[k].t === 'id' && !RESERVED.has(T[k].v)))) alias = T[k++].v;
+      items.push({ e, txt, alias });
+    } while (eatOp(','));
+    if (!eat('FROM')) err('ORA-00923: FROM keyword not found where expected');
+    const from = [tableRef()];
+    for (;;) {
+      if (eatOp(',')) { from.push(tableRef()); continue; }
+      let join = null;
+      if (isK('JOIN') || (isK('INNER') && T[k + 1] && T[k + 1].v === 'JOIN')) { eat('INNER'); eat('JOIN'); join = 'inner'; }
+      else if (isK('LEFT')) { k++; eat('OUTER'); if (!eat('JOIN')) err('ORA-00905: missing keyword'); join = 'left'; }
+      else if (isK('RIGHT') || isK('FULL') || isK('CROSS')) err(note('이 실습의 SQL 엔진은 [INNER] JOIN ... ON 과 LEFT [OUTER] JOIN ... ON 만 흉내 냅니다. RIGHT·FULL·CROSS JOIN은 실제 19c에서는 쓸 수 있습니다(SQL Language Reference 19c, SELECT의 join_clause).').replace(/\n$/, ''));
+      if (!join) break;
+      const r = tableRef(); if (!eat('ON')) err('ORA-00905: missing keyword');
+      r.join = join; r.on = expr(); from.push(r);
+    }
+    let where = null, group = null, order = null, having = null;
+    if (eat('WHERE')) where = expr();
+    if (eat('GROUP')) { if (!eat('BY')) err('ORA-00924: missing BY keyword'); group = [expr()]; while (eatOp(',')) group.push(expr()); }
+    if (eat('HAVING')) having = expr();
+    if (eat('ORDER')) { if (!eat('BY')) err('ORA-00924: missing BY keyword'); order = []; do { const e = expr(); const desc = eat('DESC'); if (!desc) eat('ASC'); order.push({ e, desc }); } while (eatOp(',')); }
+    return { items, from, where, group, order, having, distinct };
+  }
+  function finish(r) { eatOp(';'); if (k < T.length) err('ORA-00933: SQL command not properly ended'); return r; }
+  if (isK('INSERT')) {
+    k++; if (!eat('INTO')) err('ORA-00925: missing INTO keyword');
+    const tb = tableRef(); let cols = null;
+    if (isOp('(') && !subAhead()) { k++; cols = []; do { const c = T[k++]; if (!c || (c.t !== 'id' && c.t !== 'qid')) { k--; err('ORA-00928: missing SELECT keyword'); } cols.push({ c: c.v, p: c.p }); } while (eatOp(',')); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); }
+    if (isK('SELECT')) return finish({ dml: 'INSERT', table: tb, cols, select: query() });
+    if (!eat('VALUES')) err('ORA-00926: missing VALUES keyword');
+    if (!eatOp('(')) err('ORA-00906: missing left parenthesis');
+    const vals = [expr()]; while (eatOp(',')) vals.push(expr());
+    if (!eatOp(')')) err('ORA-00907: missing right parenthesis');
+    return finish({ dml: 'INSERT', table: tb, cols, vals });
+  }
+  if (isK('UPDATE')) {
+    k++; const tb = tableRef(); if (!eat('SET')) err('ORA-00971: missing SET keyword');
+    const sets = [];
+    do { const c = T[k++]; if (!c || (c.t !== 'id' && c.t !== 'qid')) { k--; err('ORA-00927: missing equal sign'); } let cn = c.v; if (isOp('.')) { k++; cn = T[k++].v; } if (!eatOp('=')) err('ORA-00927: missing equal sign'); sets.push({ c: cn, p: c.p, e: expr() }); } while (eatOp(','));
+    let where = null; if (eat('WHERE')) where = expr();
+    return finish({ dml: 'UPDATE', table: tb, sets, where });
+  }
+  if (isK('DELETE')) {
+    k++; eat('FROM'); const tb = tableRef();
+    let where = null; if (eat('WHERE')) where = expr();
+    return finish({ dml: 'DELETE', table: tb, where });
+  }
+  return finish(query());
 }
 
 /* ---------- 뷰 정의: [열 이름, 형식('c'|'n'|'d'), 너비] ---------- */
@@ -2385,6 +2462,7 @@ function getView(name, pos) {
   let full = name; if (!name.includes('.') && APP_TABLES[(me.schema || '') + '.' + name]) full = me.schema + '.' + name;
   if (/^(SYS\.)?(V\$|DBA_|DUAL$)/.test(full)) full = full.replace(/^SYS\./, '');
   if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
+  if (db.ut) { const g = utGet(name, pos); if (g) { if (db.state !== 'OPEN') throw new SqlErr('ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only', pos); return { cols: utCols(g.t), rows: g.t.rows.map(r => Object.assign({}, r)) }; } }
   const v = VIEWS[full];
   if (v) {
     if (!me.priv && !v.pub && !userHas(me.user, 'SELECT ANY DICTIONARY')) throw new SqlErr('ORA-00942: table or view does not exist', pos);
@@ -2416,7 +2494,9 @@ function evalE(e, env, grp) {
     case 'bin': { const a = evalE(e.a, env, grp), b = evalE(e.b, env, grp); if (e.o === '||') return (a == null ? '' : fmtVal(a)) + (b == null ? '' : fmtVal(b)); if (a == null || b == null) return null; if (a instanceof Date && typeof b === 'number') return new Date(a.getTime() + (e.o === '-' ? -b : b) * 86400000); if (a instanceof Date && b instanceof Date && e.o === '-') return (a - b) / 86400000; return e.o === '+' ? a + b : e.o === '-' ? a - b : e.o === '*' ? a * b : a / b; }
     case 'cmp': { let a = evalE(e.a, env, grp), b = evalE(e.b, env, grp); if (a == null || b == null) return false; if (a instanceof Date) a = a.getTime(); if (b instanceof Date) b = b.getTime(); if (typeof a === 'number' && typeof b === 'string' && b.trim() !== '' && !isNaN(+b)) b = +b; if (typeof b === 'number' && typeof a === 'string' && a.trim() !== '' && !isNaN(+a)) a = +a; return e.o === '=' ? a === b : e.o === '<>' ? a !== b : e.o === '<' ? a < b : e.o === '>' ? a > b : e.o === '<=' ? a <= b : a >= b; }
     case 'like': { const a = evalE(e.a, env, grp); if (a == null) return false; const r = likeRe(evalE(e.b, env, grp)).test(String(a)); return e.not ? !r : r; }
-    case 'in': { const a = evalE(e.a, env, grp); if (a == null) return false; const r = e.l.some(x => { const v = evalE(x, env, grp); return v === a || (typeof v === 'number' && +a === v); }); return e.not ? !r : r; }
+    case 'in': { const a = evalE(e.a, env, grp); if (a == null) return false; const list = e.sub ? subRows(e).map(r => r[0]) : e.l.map(x => evalE(x, env, grp)); const r = list.some(v => v === a || (typeof v === 'number' && +a === v) || (v instanceof Date && a instanceof Date && +v === +a)); return e.not ? !r : r; }
+    case 'between': { let a = evalE(e.a, env, grp), lo = evalE(e.lo, env, grp), hi = evalE(e.hi, env, grp); if (a == null || lo == null || hi == null) return false; if (a instanceof Date) a = +a; if (lo instanceof Date) lo = +lo; if (hi instanceof Date) hi = +hi; if (typeof a === 'number') { lo = +lo; hi = +hi; } const r = a >= lo && a <= hi; return e.not ? !r : r; }
+    case 'sub': { const rs = subRows(e); if (rs.length > 1) throw new SqlErr('ORA-01427: single-row subquery returns more than one row', e.p); return rs.length ? rs[0][0] : null; }
     case 'isnull': { const a = evalE(e.a, env, grp); const r = a == null || a === ''; return e.not ? !r : r; }
     case 'not': return !evalE(e.e, env, grp);
     case 'and': return evalE(e.a, env, grp) && evalE(e.b, env, grp);
@@ -2426,7 +2506,8 @@ function evalE(e, env, grp) {
       if (AGG.has(f)) {
         if (!grp) throw new SqlErr('ORA-00934: group function is not allowed here', e.p);
         if (f === 'COUNT' && e.args[0].k === 'star') return grp.__count != null ? grp.__count : grp.length;
-        const vals = grp.map(g => evalE(e.args[0], g, null)).filter(v => v != null);
+        let vals = grp.map(g => evalE(e.args[0], g, null)).filter(v => v != null);
+        if (e.distinct) vals = [...new Map(vals.map(v => [v instanceof Date ? +v : v, v])).values()];
         if (f === 'COUNT') return vals.length;
         if (!vals.length) return null;
         if (f === 'SUM') return vals.reduce((a, b) => a + b, 0);
@@ -2442,6 +2523,9 @@ function evalE(e, env, grp) {
       if (f === 'NVL') return a[0] == null ? a[1] : a[0];
       if (f === 'ABS') return a[0] == null ? null : Math.abs(a[0]);
       if (f === 'TO_CHAR') return a[0] == null ? null : a[0] instanceof Date ? toCharDate(a[0], a[1] || 'DD-MON-RR') : String(a[0]);
+      if (f === 'LENGTH') return a[0] == null || a[0] === '' ? null : String(a[0] instanceof Date ? oDate(a[0]) : a[0]).length;
+      if (f === 'CONCAT') return (a[0] == null ? '' : fmtVal(a[0])) + (a[1] == null ? '' : fmtVal(a[1]));
+      if (f === 'INITCAP') return a[0] == null ? null : String(a[0]).toLowerCase().replace(/(^|[^a-z0-9])([a-z])/g, (m, p, c) => p + c.toUpperCase());
       if (f === 'SUBSTR') return a[0] == null ? null : String(a[0]).substr((a[1] || 1) - 1, a[2] == null ? undefined : a[2]);
       throw new SqlErr('ORA-00904: "' + f + '": invalid identifier', e.p);
     }
@@ -2455,46 +2539,72 @@ function fmtVal(v) { if (v instanceof Date) return oDate(v); return String(v); }
 function exprKey(e) { return JSON.stringify(e, (k, v) => k === 'p' ? undefined : v); }
 function hasAgg(e) { if (!e || typeof e !== 'object') return false; if (e.k === 'fn' && AGG.has(e.fn)) return true; return ['a', 'b', 'e'].some(k => hasAgg(e[k])) || (e.args || []).some(hasAgg) || (e.l || []).some(hasAgg); }
 
-function runSelect(src) {
-  const q = parseSelect(src);
+/* 서브쿼리는 한 문장 안에서 한 번만 실행해 결과를 둔다(상관 서브쿼리는 흉내 내지 않는다). */
+function subRows(e) { if (!e._rows) { const r = runQuery(e.sub || e.q); if (e.k === 'sub' && r.cols.length !== 1 || e.k === 'in' && r.cols.length !== 1) throw new SqlErr('ORA-00913: too many values', e.p || 0); e._rows = r.rows; } return e._rows; }
+function runSelect(src) { return runQuery(parseSelect(src)); }
+function runQuery(q) {
+  if (q.dml) throw new SqlErr('ORA-00900: invalid SQL statement', 0);
   const srcs = q.from.map(f => Object.assign({}, f, { v: getView(f.name, f.p), key: f.alias || f.name.split('.').pop() }));
   const colsOf = (s) => s.v.cols.map(c => c[0]);
   const resolver = (env) => (e) => {
-    if (e.q) { const s = srcs.find(x => x.key === e.q || x.name === e.q || x.name.split('.').pop() === e.q); if (!s || !colsOf(s).includes(e.c)) throw new SqlErr(`ORA-00904: "${e.q}"."${e.c}": invalid identifier`, e.p); return env[s.key][e.c]; }
+    if (e.q) { const s = srcs.find(x => x.key === e.q || (!x.alias && (x.name === e.q || x.name.split('.').pop() === e.q))); if (!s || !colsOf(s).includes(e.c)) throw new SqlErr(`ORA-00904: "${e.q}"."${e.c}": invalid identifier`, e.p); const v = (env[s.key] || {})[e.c]; return v === undefined ? null : v; }
     const hit = srcs.filter(s => colsOf(s).includes(e.c));
     if (!hit.length) throw new SqlErr(`ORA-00904: "${e.c}": invalid identifier`, e.p);
     if (hit.length > 1) throw new SqlErr('ORA-00918: column ambiguously defined', e.p);
-    const v = env[hit[0].key][e.c]; return v === undefined ? null : v;
+    const v = (env[hit[0].key] || {})[e.c]; return v === undefined ? null : v;
   };
+  const mk = (o) => { o.__get = resolver(o); return o; };
   let envs = [{}];
-  for (const s of srcs) { const nx = []; for (const en of envs) for (const r of s.v.rows) nx.push(Object.assign({}, en, { [s.key]: r })); envs = nx; }
-  envs.forEach(en => { en.__get = resolver(en); });
+  for (const s of srcs) {
+    const nx = [];
+    for (const en of envs) {
+      if (!s.join) { for (const r of s.v.rows) nx.push(Object.assign({}, en, { [s.key]: r })); continue; }
+      let hit = 0;
+      for (const r of s.v.rows) { const cand = mk(Object.assign({}, en, { [s.key]: r })); if (evalE(s.on, cand, null)) { nx.push(cand); hit++; } }
+      if (!hit && s.join === 'left') nx.push(Object.assign({}, en, { [s.key]: Object.fromEntries(s.v.cols.map(c => [c[0], null])) }));
+    }
+    envs = nx;
+  }
+  envs.forEach(mk);
   // 열 목록
   const outCols = [];
   for (const it of q.items) {
     if (it.star) { for (const s of srcs) { if (it.q && s.key !== it.q) continue; for (const c of s.v.cols) outCols.push({ head: c[0], type: c[1], w: c[2], e: { k: 'col', q: s.key, c: c[0] }, name: c[0] }); } continue; }
     let type = null, w = null, name = it.alias || null;
-    if (it.e.k === 'col') { const s = it.e.q ? srcs.find(x => x.key === it.e.q) : srcs.find(x => colsOf(x).includes(it.e.c)); const c = s && s.v.cols.find(c => c[0] === it.e.c); if (c) { type = c[1]; w = c[2]; } if (!name) name = it.e.c; }
+    if (it.e.k === 'col') { const s = it.e.q ? srcs.find(x => x.key === it.e.q || x.name.split('.').pop() === it.e.q) : srcs.find(x => colsOf(x).includes(it.e.c)); const c = s && s.v.cols.find(c => c[0] === it.e.c); if (c) { type = c[1]; w = c[2]; } if (!name) name = it.e.c; }
     outCols.push({ head: it.alias || (it.e.k === 'col' ? it.e.c : it.txt.replace(/\s+/g, '').toUpperCase()), type, w, e: it.e, name: name || it.txt.replace(/\s+/g, '').toUpperCase() });
   }
   let rn = 0;
   const filtered = [];
   for (const en of envs) { en.__rownum = rn + 1; if (!q.where || evalE(q.where, en, null)) { rn++; filtered.push(en); } }
-  let rows;
-  const agg = q.group || outCols.some(c => hasAgg(c.e));
+  let rows, grps = null;
+  const agg = q.group || outCols.some(c => hasAgg(c.e)) || q.having;
   if (agg) {
     const groups = new Map();
-    for (const en of filtered) { const key = q.group ? JSON.stringify(q.group.map(g => fmtVal(evalE(g, en, null) ?? ''))) : ''; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(en); }
+    for (const en of filtered) { const key = q.group ? JSON.stringify(q.group.map(g => { const v = evalE(g, en, null); return v instanceof Date ? +v : v ?? ''; })) : ''; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(en); }
     if (!q.group && !groups.size) groups.set('', []);
     const single = srcs.length === 1 && srcs[0].v.count != null && !q.where;
-    rows = [...groups.values()].map(g => { if (single) g.__count = srcs[0].v.count; const first = g[0] || { __get: () => null, __rownum: 0 }; return outCols.map(c => { if (!hasAgg(c.e) && q.group && !q.group.some(x => exprKey(x) === exprKey(c.e))) throw new SqlErr('ORA-00979: not a GROUP BY expression', c.e.p || 7); if (!hasAgg(c.e) && !q.group) throw new SqlErr('ORA-00937: not a single-group group function', 7); return evalE(c.e, first, g); }); });
+    grps = [...groups.values()];
+    if (single) grps.forEach(g => { g.__count = srcs[0].v.count; });
+    const firstOf = (g) => g[0] || { __get: () => null, __rownum: 0 };
+    const isGrpExpr = (e) => q.group && q.group.some(x => exprKey(x) === exprKey(e));
+    if (q.having) grps = grps.filter(g => evalE(q.having, firstOf(g), g));
+    rows = grps.map(g => outCols.map(c => { if (!hasAgg(c.e) && c.e.k !== 'lit' && q.group && !isGrpExpr(c.e)) throw new SqlErr('ORA-00979: not a GROUP BY expression', c.e.p || 7); if (!hasAgg(c.e) && c.e.k !== 'lit' && !q.group) throw new SqlErr('ORA-00937: not a single-group group function', 7); return evalE(c.e, firstOf(g), g); }));
+    grps.firstOf = firstOf;
   } else rows = filtered.map(en => outCols.map(c => evalE(c.e, en, null)));
   if (q.order) {
-    const keyOf = (r, i, o) => { if (o.e.k === 'lit' && typeof o.e.v === 'number') return r[o.e.v - 1]; if (o.e.k === 'col' && !o.e.q) { const j = outCols.findIndex(c => (c.head === o.e.c || c.name === o.e.c)); if (j >= 0) return r[j]; } return agg ? null : evalE(o.e, filtered[i], null); };
+    const keyOf = (r, i, o) => {
+      if (o.e.k === 'lit' && typeof o.e.v === 'number') return r[o.e.v - 1];
+      if (o.e.k === 'col' && !o.e.q) { const j = outCols.findIndex(c => (c.head === o.e.c || c.name === o.e.c)); if (j >= 0) return r[j]; }
+      const j = outCols.findIndex(c => exprKey(c.e) === exprKey(o.e)); if (j >= 0) return r[j];
+      return agg ? evalE(o.e, grps.firstOf(grps[i]), grps[i]) : evalE(o.e, filtered[i], null);
+    };
+    const keys = rows.map((r, i) => q.order.map(o => { const v = keyOf(r, i, o); return v instanceof Date ? +v : v; }));
     const idx = rows.map((r, i) => i);
-    idx.sort((x, y) => { for (const o of q.order) { let a = keyOf(rows[x], x, o), b = keyOf(rows[y], y, o); if (a instanceof Date) a = +a; if (b instanceof Date) b = +b; if (a === b) continue; if (a == null) return o.desc ? -1 : 1; if (b == null) return o.desc ? 1 : -1; const c = a < b ? -1 : 1; return o.desc ? -c : c; } return x - y; });
+    idx.sort((x, y) => { for (let n = 0; n < q.order.length; n++) { const o = q.order[n]; const a = keys[x][n], b = keys[y][n]; if (a === b) continue; if (a == null) return o.desc ? -1 : 1; if (b == null) return o.desc ? 1 : -1; const c = a < b ? -1 : 1; return o.desc ? -c : c; } return x - y; });
     rows = idx.map(i => rows[i]);
   }
+  if (q.distinct) { const seen = new Set(); rows = rows.filter(r => { const kx = JSON.stringify(r.map(v => v instanceof Date ? +v : v)); if (seen.has(kx)) return false; seen.add(kx); return true; }); }
   for (const c of outCols) if (!c.type) { const v = rows.map((r) => r[outCols.indexOf(c)]).find(x => x != null); c.type = v instanceof Date ? 'd' : typeof v === 'number' ? 'n' : 'c'; c.w = c.type === 'c' ? Math.max(1, ...rows.map(r => { const x = r[outCols.indexOf(c)]; return x == null ? 0 : String(x).length; })) : c.type === 'd' ? 9 : 22; }
   return { cols: outCols, rows, views: srcs.map(s => s.name) };
 }
@@ -2633,11 +2743,11 @@ function finishConnect(user, priv, remote, os) {
   me.conn = true; me.user = priv ? (priv === 'SYSDBA' ? 'SYS' : PRIV_USER[priv]) : user; me.priv = priv; me.shownUser = user; me.remote = remote; me.os = os;
   me.schema = priv ? (priv === 'SYSDBA' ? 'SYS' : PRIV_USER[priv]) : user;
   me.idle = S.db.state === 'DOWN';
-  if (!me.idle) me.sess = addSession({ username: priv === 'SYSDBA' ? 'SYS' : user === 'PUBLIC' ? 'PUBLIC' : user, program: 'sqlplus@dbserver02 (TNS V1-V3)', status: 'INACTIVE', remote, me: true, cpid: S.shellPid + 40, spid: 31000 + Math.floor(Math.random() * 900) });
+  if (!me.idle) me.sess = addSession({ username: priv === 'SYSDBA' ? 'SYS' : user === 'PUBLIC' ? 'PUBLIC' : user, program: `sqlplus@${S.hn} (TNS V1-V3)`, status: 'INACTIVE', remote, me: true, svc: remote ? 'orcl' : 'SYS$USERS', cpid: S.shellPid + 40, spid: 31000 + Math.floor(Math.random() * 900) });
   S.ev.connected = { user: me.shownUser, priv, remote };
   return null;
 }
-function sqlDisconnect(quiet) { const me = S.sql; if (me && me.sess) { dropSession(me.sess); me.sess = null; } if (me) { me.conn = false; me.user = null; me.priv = null; } }
+function sqlDisconnect(quiet) { const me = S.sql; if (S.db && S.db.ut && S.db.utDirty) { utCommit(); if (S.ev) S.ev.exitCommit = true; } if (me && me.sess) { dropSession(me.sess); me.sess = null; } if (me) { me.conn = false; me.user = null; me.priv = null; } }
 function sqlBanner() { return `\nSQL*Plus: Release 19.0.0.0.0 Production on ${dayName(new Date())}\nVersion ${SQLVER}\n\nCopyright (c) 1982, 2019, Oracle. All rights reserved.\n\n`; }
 function connectedMsg() { return S.sql.idle ? 'Connected to an idle instance.\n' : `Connected to:\n${RDBMS_BANNER}\nVersion ${SQLVER}\n`; }
 
@@ -2756,6 +2866,7 @@ function execSql(sql, raw) {
   { const x = sql4(sql, raw); if (x !== undefined) return x; }
   { const x = sql8(sql, raw); if (x !== undefined) return x; }
   { const x = sql9(sql); if (x !== undefined) return x; }
+  { const x = sql10(sql, raw); if (x !== undefined) return x; }
   if (/^SELECT\b/.test(U)) {
     if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0, 'Process ID: 0\nSession ID: 0 Serial number: 0');
     const res = runSelect(raw);
@@ -3033,6 +3144,8 @@ function plusCmd(t) {
     if (!needConn()) return;
     const nm = (w[1] || '').toUpperCase().replace(/^SYS\./, '');
     if (db.state === 'DOWN') { print('ERROR:\nORA-01034: ORACLE not available\nProcess ID: 0\nSession ID: 0 Serial number: 0\n\n\n'); return; }
+    const ug = db.ut && utGet(nm, 0, true);
+    if (ug) { let o = ' Name                                      Null?    Type\n ----------------------------------------- -------- ----------------------------\n'; for (const [c, ty] of ug.t.cols) o += ` ${c.padEnd(41)} ${(utNN(ug.t, c) ? 'NOT NULL' : '').padEnd(8)} ${ty}\n`; print(o + '\n'); ev.desc = ug.full.split('.')[1]; return; }
     const v = VIEWS[nm]; const at = APP_TABLES[nm] || APP_TABLES[me.schema + '.' + nm];
     if (!v && !at) { print(`ERROR:\nORA-04043: object ${w[1]} does not exist\n\n\n`); return; }
     const cols = v ? v.cols : at; const tdef = at && db.tables[APP_TABLES[nm] ? nm : me.schema + '.' + nm];
@@ -3055,7 +3168,7 @@ function plusCmd(t) {
   if (/^(R|RUN|L|LIST)$/.test(c0)) { if (!me.last) { print('SP2-0223: No lines in SQL buffer.\n'); return; } const ls = me.last.text.split('\n'); print(ls.map((l, i) => `${String(i + 1).padStart(3)}${i === ls.length - 1 ? '*' : ' '} ${l}`).join('\n') + '\n'); if (/^R/.test(c0)) runStmt(me.last.text, me.last.lines); return; }
   if (/^(PROMPT|PRO)$/.test(c0)) { print(t.slice(w[0].length).trim() + '\n'); return; }
   if (/^(SPOOL|SPO)$/.test(c0)) { sqlSpool(w.slice(1)); return; }
-  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  (8단계) EXPLAIN PLAN FOR SELECT ...  SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)  DBMS_XPLAN.DISPLAY_CURSOR(\'sql_id\')\n         CREATE INDEX ... [ONLINE]  DROP INDEX  EXEC DBMS_STATS.GATHER_TABLE_STATS(\'APP\', \'ORDER_HIST\')\n         USER_INDEXES, USER_IND_COLUMNS, USER_TAB_STATISTICS (DBA_ 도 있음)\n  (9단계) V$DATAGUARD_STATS  V$DATAGUARD_PROCESS  V$DATABASE의 DATABASE_ROLE, DB_UNIQUE_NAME, PROTECTION_MODE\n         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE [DISCONNECT | CANCEL]  (DGMGRL은 셸에서 dgmgrl /)\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
+  if (/^(HELP|\?)$/.test(c0)) { sqlHelp(w.slice(1).join(' ').toUpperCase(), '이 실습의 SQL*Plus에서 쓸 수 있는 것:\n  SELECT ... FROM V$INSTANCE, V$DATABASE, V$SESSION, V$PROCESS, V$PARAMETER, V$PWFILE_USERS, V$DATAFILE, V$LOG,\n         V$RECOVERY_FILE_DEST, V$RMAN_BACKUP_JOB_DETAILS, DBA_TABLESPACES, DBA_DATA_FILES, DBA_TEMP_FILES, DBA_FREE_SPACE,\n         DBA_USERS, DBA_SYS_PRIVS, DBA_ROLE_PRIVS, DBA_TAB_PRIVS, DBA_TS_QUOTAS, DUAL, APP.ORDER_HIST, APP.CUSTOMER\n  (9단계) EXPLAIN PLAN FOR SELECT ...  SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY)  DBMS_XPLAN.DISPLAY_CURSOR(\'sql_id\')\n         CREATE INDEX ... [ONLINE]  DROP INDEX  EXEC DBMS_STATS.GATHER_TABLE_STATS(\'APP\', \'ORDER_HIST\')\n         USER_INDEXES, USER_IND_COLUMNS, USER_TAB_STATISTICS (DBA_ 도 있음)\n  (4단계, study 계정) SELECT [DISTINCT] ... FROM EMP, DEPT [JOIN ... ON | LEFT JOIN ... ON] WHERE ... GROUP BY ... HAVING ... ORDER BY ...\n         INSERT INTO ... VALUES  UPDATE ... SET  DELETE FROM  COMMIT  ROLLBACK  CREATE TABLE  ALTER TABLE  DROP TABLE  TRUNCATE TABLE\n         USER_TABLES, USER_CONSTRAINTS, USER_TAB_COLUMNS\n  (11단계 RAC) GV$INSTANCE, GV$SESSION, GV$ACTIVE_SERVICES (INST_ID로 인스턴스 구분), V$SESSION.SERVICE_NAME\n  (10단계) V$DATAGUARD_STATS  V$DATAGUARD_PROCESS  V$DATABASE의 DATABASE_ROLE, DB_UNIQUE_NAME, PROTECTION_MODE\n         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE [DISCONNECT | CANCEL]  (DGMGRL은 셸에서 dgmgrl /)\n  STARTUP [NOMOUNT|MOUNT]  SHUTDOWN [NORMAL|IMMEDIATE|TRANSACTIONAL|ABORT]  ALTER DATABASE MOUNT|OPEN|ARCHIVELOG\n  ALTER TABLESPACE ... ADD DATAFILE  ALTER DATABASE DATAFILE ... RESIZE|AUTOEXTEND  CREATE TABLESPACE\n  CREATE USER  ALTER USER  GRANT  REVOKE  ALTER SYSTEM KILL SESSION|REGISTER|SWITCH LOGFILE\n  SHOW USER|PARAMETER|SGA  SET LINESIZE|PAGESIZE  COLUMN 이름 FORMAT a30  DESC  ARCHIVE LOG LIST\n  CONN[ECT]  DISC  HOST 명령(또는 !명령)  /  EXIT'); return; }
   if (/^(PASSWORD|PASSW)$/.test(c0)) { print(note('실습에서는 ALTER USER 이름 IDENTIFIED BY 새암호; 로 암호를 바꿉니다.')); return; }
   print(`SP2-0734: unknown command beginning "${t.slice(0, 10)}..." - rest of line ignored.\n`);
 }
@@ -3357,7 +3470,7 @@ function rmanCmd(cmd, ctx) {
     return o + `Crosschecked ${db.backups.length} objects\n\n` + '';
   }
   if (/^(STARTUP|SHUTDOWN|ALTER|SELECT|SQL)\b/.test(U)) return pre + note('RMAN 안에서도 STARTUP, SHUTDOWN, SQL 문을 실행할 수 있지만, 이 실습에서는 SQL*Plus에서 하도록 했습니다.');
-  if (/^(RESTORE|RECOVER|VALIDATE)\b/.test(U)) return pre + note('복원과 복구는 4단계 장애 대응에서 실습합니다.');
+  if (/^(RESTORE|RECOVER|VALIDATE)\b/.test(U)) return pre + note('복원과 복구는 5단계 장애 대응에서 실습합니다.');
   return rmanErr('RMAN-00558: error encountered while parsing input commands', `RMAN-01009: syntax error: found "identifier": expecting one of: "allocate, alter, backup, catalog, configure, crosscheck, delete, list, report, restore, recover, run, show, shutdown, startup, sql"`, `RMAN-01008: the bad identifier was: ${cmd.split(' ')[0]}`, 'RMAN-01007: at line 1 column 1 file: standard input') + '\n';
 }
 
@@ -3375,7 +3488,7 @@ function rmanCmd(cmd, ctx) {
 }
 
 /* =====================================================================
-   D7. 4단계 장애 대응: 데이터 파일·컨트롤 파일 손실, 빠른 복구 영역(FRA) 가득 참, 휴지통(Flashback Drop)
+   D7. 5단계 장애 대응: 데이터 파일·컨트롤 파일 손실, 빠른 복구 영역(FRA) 가득 참, 휴지통(Flashback Drop)
        RMAN 복원·복구 흐름은 Backup and Recovery User's Guide 19c "Performing Complete Database Recovery",
        컨트롤 파일 사본 복구는 같은 문서 "User-Managed Recovery: Advanced Scenarios" 37.1과
        Administrator's Guide "Managing Control Files" 10.6을 따랐다.
@@ -3416,7 +3529,7 @@ function obsoleteSet() {
 }
 function obsoleteBytes() { const o = obsoleteSet(); return o.backups.reduce((a, b) => a + b.bytes, 0) + o.arcs.reduce((a, b) => a + b.size, 0); }
 
-/* 4단계 세계: 3단계를 마친 dbserver02. 아카이브 모드, 매일 새벽 1시 30분 RMAN 백업 */
+/* 5단계 세계: 3단계를 마친 dbserver02. 아카이브 모드, 매일 새벽 1시 30분 RMAN 백업 */
 function makeWorld4(lid) {
   makeWorld3(10);
   delete APP_TABLES['APP.CUST_MEMO']; delete TABLE_SAMPLES['APP.CUST_MEMO'];
@@ -3630,7 +3743,7 @@ function rman4(cmd, U, ctx) {
 }
 
 /* =====================================================================
-   D8. 5단계 고급 복구: 시점 복구(DBPITR), 컨트롤 파일 전체 손실
+   D8. 6단계 고급 복구: 시점 복구(DBPITR), 컨트롤 파일 전체 손실
        Backup and Recovery User's Guide 19c "Performing Database Point-in-Time Recovery",
        "Performing Recovery with a Backup Control File", Backup and Recovery Reference 19c
        RESTORE·RECOVER·untilClause 를 따랐다. 문서에 예시가 없는 출력 줄은 ⓘ로 알린다.
@@ -3792,7 +3905,7 @@ function openResetlogs(U) {
 }
 
 /* =====================================================================
-   D9. 6단계 성능 점검: 대기 이벤트, V$SQL, V$SYSTEM_EVENT, DB time, AWR 보고서
+   D9. 7단계 성능 점검: 대기 이벤트, V$SQL, V$SYSTEM_EVENT, DB time, AWR 보고서
        Performance Tuning Guide 19c (Gathering Database Statistics, Instance Tuning Using Performance Views)와
        Database Reference 19c 부록 C(대기 이벤트)를 따랐다.
    ===================================================================== */
@@ -3944,7 +4057,7 @@ function awrText(B, E) {
 }
 
 /* =====================================================================
-   D10. 7단계 패치: OPatch, 분기별 RU, datapatch
+   D10. 8단계 패치: OPatch, 분기별 RU, datapatch
        절차는 Oracle Database Patch Maintenance(19c and Later), Database Reference 19c DBA_REGISTRY_SQLPATCH,
        OPatch User's Guide, 26ai "Single-Instance Maintenance with OPatch"를 따랐다.
        OPatch와 datapatch의 화면 예시는 공식 문서에서 찾지 못했으므로 출력은 모두 ⓘ로 알린다.
@@ -4194,7 +4307,7 @@ CMDS.unzip = function (argv) {
   return ok(q ? '' : `Archive:  ${file}\n` + names.map(n => `  inflating: ${(dest ? dest.replace(/\/$/, '') + '/' : '') + n}`).join('\n') + '\n');
 };
 /* =====================================================================
-   D11. 8단계 SQL 튜닝 입문: 실행 계획(EXPLAIN PLAN, DBMS_XPLAN), 인덱스, 옵티마이저 통계
+   D11. 9단계 SQL 튜닝 입문: 실행 계획(EXPLAIN PLAN, DBMS_XPLAN), 인덱스, 옵티마이저 통계
        SQL Tuning Guide 19c, PL/SQL Packages and Types Reference 19c(DBMS_XPLAN, DBMS_STATS),
        SQL Language Reference 19c(EXPLAIN PLAN, CREATE INDEX)를 따랐다.
        실습의 옵티마이저는 아주 단순한 규칙(인덱스 첫 열에 함수 없는 = 나 범위 조건이 있으면 인덱스)만 흉내 내며,
@@ -4463,7 +4576,7 @@ function makeWorld8(lid) {
   }
 }
 /* =====================================================================
-   D12. 9단계 Data Guard 기초: 주 DB(dbserver02)와 물리 대기 DB(dbserver03, DB_UNIQUE_NAME orclstby)
+   D12. 10단계 Data Guard 기초: 주 DB(dbserver02)와 물리 대기 DB(dbserver03, DB_UNIQUE_NAME orclstby)
        Data Guard Concepts and Administration 19c, Data Guard Broker 19c, Database Reference 19c를 따랐다.
        DGMGRL 출력 중 문서 예시에 있는 줄은 그 모양대로 옮기고, 확인하지 못한 줄은 ⓘ로 알린다.
    ===================================================================== */
@@ -4631,6 +4744,496 @@ INTERACTIVE.dgmgrl = function (argv, done) {
     checkLesson(S.ev); next();
   };
   next();
+};
+/* =====================================================================
+   D13. 4단계 SQL 기초 (내부 단계 키 10): 연습 계정 STUDY의 DEPT, EMP 테이블에 SELECT, 조인, DML, DDL을 직접 실행한다.
+       테이블의 행은 실제로 저장되고 바뀐다. COMMIT·ROLLBACK, DDL의 자동 커밋, SQL*Plus EXIT의 커밋(EXITCOMMIT ON 기본값)을 흉내 낸다.
+       오류 문구는 Database Concepts 19c(데이터 무결성)의 예시와 Error Help를 따랐고, 확인하지 못한 문구는 ⓘ로 알린다.
+       사원 이름, 급여, 입사일 같은 행은 모두 설명용 예시 값이다.
+   ===================================================================== */
+function utType(ty) { // 'NUMBER(8)' → ['n', 22, {p, s}], 'VARCHAR2(30)' → ['c', 30, {n}], 'DATE' → ['d', 9]
+  let m;
+  if ((m = /^NUMBER(?:\((\d+)(?:,(-?\d+))?\))?$/.exec(ty))) return ['n', 22, { p: m[1] ? +m[1] : null, s: m[2] ? +m[2] : 0 }];
+  if ((m = /^(VARCHAR2|CHAR)\((\d+)(?: (BYTE|CHAR))?\)$/.exec(ty))) return ['c', +m[2], { n: +m[2], ch: m[3] === 'CHAR', fixed: m[1] === 'CHAR' }];
+  if (ty === 'DATE') return ['d', 9, {}];
+  return ['c', 30, { n: 4000 }];
+}
+const D8 = (y, m, d) => new Date(y, m - 1, d);
+function utDefault() {
+  const dept = { cols: [['DEPT_ID', 'NUMBER(4)'], ['DEPT_NAME', 'VARCHAR2(30)'], ['LOC', 'VARCHAR2(20)']], nn: { DEPT_NAME: 'SYS_C008117' }, pk: { name: 'PK_DEPT', cols: ['DEPT_ID'] }, fks: [], defs: {},
+    rows: [[10, '인사팀', '서울'], [20, '개발팀', '판교'], [30, '영업팀', '부산'], [40, '고객지원팀', '대전']] };
+  const emp = { cols: [['EMP_ID', 'NUMBER(6)'], ['EMP_NAME', 'VARCHAR2(30)'], ['JOB', 'VARCHAR2(20)'], ['SALARY', 'NUMBER(8)'], ['HIRE_DATE', 'DATE'], ['DEPT_ID', 'NUMBER(4)'], ['MANAGER_ID', 'NUMBER(6)']],
+    nn: { EMP_NAME: 'SYS_C008119', HIRE_DATE: 'SYS_C008120' }, pk: { name: 'PK_EMP', cols: ['EMP_ID'] }, fks: [{ name: 'FK_EMP_DEPT', col: 'DEPT_ID', ref: 'STUDY.DEPT', rcol: 'DEPT_ID' }], defs: {},
+    rows: [
+      [1001, '김민준', '팀장', 7200000, D8(2012, 3, 2), 20, null], [1002, '이서연', '개발', 5400000, D8(2016, 7, 11), 20, 1001], [1003, '박지호', '개발', 4800000, D8(2019, 1, 7), 20, 1001],
+      [1004, '최유나', '개발', 4100000, D8(2022, 9, 1), 20, 1001], [1005, '정하준', '팀장', 6900000, D8(2013, 5, 20), 30, null], [1006, '강수아', '영업', 4300000, D8(2018, 2, 19), 30, 1005],
+      [1007, '조은우', '영업', 3900000, D8(2021, 11, 15), 30, 1005], [1008, '윤지민', '팀장', 6100000, D8(2014, 4, 3), 10, null], [1009, '장도현', '인사', 3700000, D8(2023, 3, 6), 10, 1008],
+      [1010, '한예린', '개발', 3600000, D8(2025, 1, 2), null, 1001],
+    ] };
+  const T = { 'STUDY.DEPT': dept, 'STUDY.EMP': emp };
+  for (const t of Object.values(T)) t.rows = t.rows.map(r => Object.fromEntries(t.cols.map((c, i) => [c[0], r[i]])));
+  return T;
+}
+const utClone = (x) => structuredClone(x);
+function utCommit() { const db = S.db; db.utC = utClone(db.ut); db.utDirty = false; }
+function utRollback() { const db = S.db; db.ut = utClone(db.utC); db.utDirty = false; }
+function utName(name) { const me = S.sql; return name.includes('.') ? name : (me.schema || '') + '.' + name; }
+function utGet(name, pos, quiet) {
+  const db = S.db; if (!db.ut) return null; const full = utName(name); const t = db.ut[full];
+  if (!t) return null;
+  const me = S.sql; const own = full.split('.')[0];
+  if (!me.priv && me.user !== own && !userHas(me.user, 'SELECT ANY TABLE')) { if (quiet) return null; throw new SqlErr('ORA-00942: table or view does not exist', pos); }
+  return { full, t };
+}
+const utCols = (t) => t.cols.map(([n, ty]) => { const [k, w] = utType(ty); return [n, k, w]; });
+const utNN = (t, c) => (t.pk && t.pk.cols.includes(c)) || Object.prototype.hasOwnProperty.call(t.nn, c);
+const q3 = (full, c) => { const [o, n] = full.split('.'); return `"${o}"."${n}"."${c}"`; };
+const bytesOf = (v) => new Blob([String(v)]).size;
+function utCoerce(full, t, col, v) {
+  const ty = t.cols.find(c => c[0] === col)[1]; const [k, , o] = utType(ty);
+  if (v == null || v === '') return null; // Oracle은 길이 0인 문자열을 NULL로 다룬다
+  if (k === 'n') {
+    if (v instanceof Date) throw new SqlErr('ORA-00932: inconsistent datatypes: expected NUMBER got DATE', null);
+    const n = typeof v === 'number' ? v : (String(v).trim() !== '' && !isNaN(+v) ? +v : NaN);
+    if (isNaN(n)) throw new SqlErr('ORA-01722: invalid number', null);
+    const r = o.s ? Math.round(n * Math.pow(10, o.s)) / Math.pow(10, o.s) : (o.p != null ? Math.round(n) : n);
+    if (o.p != null && Math.abs(Math.trunc(r)) >= Math.pow(10, o.p - o.s)) throw new SqlErr('ORA-01438: value larger than specified precision allowed for this column', null);
+    return r;
+  }
+  if (k === 'd') {
+    if (v instanceof Date) return v;
+    if (typeof v === 'number') throw new SqlErr('ORA-00932: inconsistent datatypes: expected DATE got NUMBER', null);
+    const m = /^(\d{1,2})-([A-Z]{3})-(\d{2})$/i.exec(String(v).trim());
+    if (m && MONS.includes(m[2].toUpperCase())) { const y = +m[3]; return new Date(y < 50 ? 2000 + y : 1900 + y, MONS.indexOf(m[2].toUpperCase()), +m[1]); }
+    throw new SqlErr('ORA-01861: literal does not match format string', null);
+  }
+  const sv = v instanceof Date ? oDate(v) : String(v);
+  const len = o.ch ? sv.length : bytesOf(sv);
+  if (len > o.n) throw new SqlErr(`ORA-12899: value too large for column ${q3(full, col)} (actual: ${len}, maximum: ${o.n})`, null);
+  return sv;
+}
+function utRowEnv(full, t, alias, row) {
+  const key = alias || full.split('.')[1]; const names = t.cols.map(c => c[0]);
+  const env = { [key]: row, __rownum: 1 };
+  env.__get = (e) => {
+    if (e.q && e.q !== key && e.q !== full.split('.')[1]) throw new SqlErr(`ORA-00904: "${e.q}"."${e.c}": invalid identifier`, e.p);
+    if (!names.includes(e.c)) throw new SqlErr(`ORA-00904: "${e.q ? e.q + '"."' : ''}${e.c}": invalid identifier`, e.p);
+    const v = row[e.c]; return v === undefined ? null : v;
+  };
+  return env;
+}
+function utCheck(full, t, rows, verb) { // 문장 단위 제약 조건 검사
+  for (const r of rows) for (const [c] of t.cols) if (utNN(t, c) && r[c] == null) throw new SqlErr(verb === 'UPDATE' ? `ORA-01407: cannot update (${q3(full, c)}) to NULL` : `ORA-01400: cannot insert NULL into (${q3(full, c)})`, null);
+  if (t.pk) { const seen = new Set(); for (const r of rows) { const k = JSON.stringify(t.pk.cols.map(c => r[c] instanceof Date ? +r[c] : r[c])); if (seen.has(k)) throw new SqlErr(`ORA-00001: unique constraint (${full.split('.')[0]}.${t.pk.name}) violated`, null); seen.add(k); } }
+  for (const f of t.fks) {
+    const p = S.db.ut[f.ref]; if (!p) continue;
+    const keys = new Set(p.rows.map(r => r[f.rcol]));
+    for (const r of rows) if (r[f.col] != null && !keys.has(r[f.col])) throw new SqlErr(`ORA-02291: integrity constraint (${full.split('.')[0]}.${f.name}) violated - parent key not found`, null);
+  }
+  for (const [cf, ct] of Object.entries(S.db.ut)) for (const f of ct.fks) if (f.ref === full) { // 부모 쪽: 자식이 가리키는 키가 사라지면 안 된다
+    const keys = new Set(rows.map(r => r[f.rcol]));
+    if (ct.rows.some(r => r[f.col] != null && !keys.has(r[f.col]))) throw new SqlErr(`ORA-02292: integrity constraint (${cf.split('.')[0]}.${f.name}) violated - child record found`, null);
+  }
+}
+const UT_UNV = { 'ORA-01407': 1, 'ORA-02291': 1, 'ORA-02292': 1, 'ORA-01438': 1, 'ORA-12899': 1, 'ORA-00932': 1, 'ORA-01722': 1, 'ORA-00955': 1, 'ORA-00902': 1, 'ORA-00957': 1, 'ORA-01758': 1, 'ORA-02449': 1, 'ORA-02266': 1, 'ORA-00947': 1, 'ORA-00913': 1, 'ORA-01427': 1, 'ORA-00904': 0 };
+function utUnv(e) { const code = (/ORA-\d{5}/.exec(e.msg || '') || [])[0]; if (code && UT_UNV[code]) unverified('ut-' + code, `${code}의 문구는 오류 번호와 뜻을 맞추어 적었지만, 이 화면의 문장 그대로인지는 19c 공식 문서 예시로 확인하지 못했습니다.`); }
+const fb = (n, verb) => `\n${n} ${n === 1 ? 'row' : 'rows'} ${verb}.\n\n`;
+function utDml(q, raw) {
+  const db = S.db; needOpen();
+  const tb = q.table; const g = utGet(tb.name, tb.p);
+  if (!g) throw new SqlErr('ORA-00942: table or view does not exist', tb.p);
+  const { full, t } = g; const names = t.cols.map(c => c[0]); const ev = S.ev;
+  if (q.dml === 'INSERT') {
+    const cols = q.cols ? q.cols.map(x => { if (!names.includes(x.c)) throw new SqlErr(`ORA-00904: "${x.c}": invalid identifier`, x.p); return x.c; }) : names;
+    let srcRows;
+    if (q.select) { const r = runQuery(q.select); if (r.cols.length !== cols.length) throw new SqlErr(r.cols.length > cols.length ? 'ORA-00913: too many values' : 'ORA-00947: not enough values', null); srcRows = r.rows; }
+    else { if (q.vals.length !== cols.length) throw new SqlErr(q.vals.length > cols.length ? 'ORA-00913: too many values' : 'ORA-00947: not enough values', null); const env = { __get: (e) => { throw new SqlErr(`ORA-00984: column not allowed here`, e.p); }, __rownum: 1 }; srcRows = [q.vals.map(e => evalE(e, env, null))]; }
+    const add = srcRows.map(vals => { const r = Object.fromEntries(names.map(n => [n, t.defs[n] ? (t.defs[n] === 'SYSDATE' ? new Date() : t.defs[n]) : null])); cols.forEach((c, i) => { r[c] = utCoerce(full, t, c, vals[i]); }); return r; });
+    const all = t.rows.concat(add); utCheck(full, t, all, 'INSERT');
+    t.rows = all; db.utDirty = true; ev.dml = { verb: 'INSERT', table: full, n: add.length };
+    return fb(add.length, 'created');
+  }
+  const alias = tb.alias;
+  const hit = (r) => !q.where || !!evalE(q.where, utRowEnv(full, t, alias, r), null);
+  if (q.dml === 'UPDATE') {
+    for (const s of q.sets) if (!names.includes(s.c)) throw new SqlErr(`ORA-00904: "${s.c}": invalid identifier`, s.p);
+    let n = 0;
+    const next = t.rows.map(r => { if (!hit(r)) return r; n++; const env = utRowEnv(full, t, alias, r); const nr = Object.assign({}, r); for (const s of q.sets) nr[s.c] = utCoerce(full, t, s.c, evalE(s.e, env, null)); return nr; });
+    const save = t.rows; t.rows = next; try { utCheck(full, t, next, 'UPDATE'); } catch (e) { t.rows = save; throw e; }
+    if (n) db.utDirty = true; ev.dml = { verb: 'UPDATE', table: full, n, where: !!q.where };
+    return fb(n, 'updated');
+  }
+  const keep = t.rows.filter(r => !hit(r)); const n = t.rows.length - keep.length;
+  const save = t.rows; t.rows = keep; try { utCheck(full, t, keep, 'DELETE'); } catch (e) { t.rows = save; throw e; }
+  if (n) db.utDirty = true; ev.dml = { verb: 'DELETE', table: full, n, where: !!q.where };
+  return fb(n, 'deleted');
+}
+/* CREATE TABLE: 열 정의, NOT NULL, PRIMARY KEY, REFERENCES, CONSTRAINT 이름, DEFAULT, AS SELECT */
+function utCreate(raw) {
+  const db = S.db, me = S.sql, ev = S.ev; needOpen();
+  const T = sqlTok(raw.replace(/;\s*$/, '')); let k = 2;
+  const err = (m, p) => { throw new SqlErr(m, p != null ? p : (T[k] ? T[k].p : raw.length)); };
+  const id = () => { const x = T[k]; if (!x || (x.t !== 'id' && x.t !== 'qid')) err('ORA-00902: invalid datatype'); k++; return x.v; };
+  const isK = (w) => T[k] && T[k].t === 'id' && T[k].v === w; const eat = (w) => isK(w) ? (k++, true) : false;
+  const isOp = (o) => T[k] && T[k].t === 'op' && T[k].v === o; const eatOp = (o) => isOp(o) ? (k++, true) : false;
+  const nt = T[k]; if (!nt || nt.t !== 'id') err('ORA-00903: invalid table name');
+  let name = id(); if (eatOp('.')) name += '.' + id();
+  const full = utName(name);
+  if (!me.priv && !userHas(me.user, 'DBA') && full.split('.')[0] !== me.user) throw new SqlErr('ORA-01031: insufficient privileges', nt.p);
+  if (!me.priv && !userHas(me.user, 'CREATE TABLE')) throw new SqlErr('ORA-01031: insufficient privileges', nt.p);
+  if (db.ut[full] || APP_TABLES[full]) throw new SqlErr('ORA-00955: name is already used by an existing object', nt.p);
+  const sysc = () => `SYS_C00${db.sysc++}`;
+  if (eat('AS')) {
+    const sel = raw.replace(/;\s*$/, '').slice(T[k].p);
+    const r = runSelect(sel);
+    const srcT = r.views.map(v => db.ut[utName(v)]).filter(Boolean);
+    const cols = r.cols.map(c => [c.alias || c.head, c.type === 'n' ? 'NUMBER' : c.type === 'd' ? 'DATE' : `VARCHAR2(${Math.max(1, c.w)})`]);
+    const nn = {}; for (const c of r.cols) if (c.e && c.e.k === 'col' && srcT.some(st => Object.prototype.hasOwnProperty.call(st.nn, c.e.c) && st.nn[c.e.c])) nn[c.head] = sysc();
+    const t = { cols, nn, pk: null, fks: [], defs: {}, rows: r.rows.map(row => Object.fromEntries(cols.map((c, i) => [c[0], row[i]]))) };
+    for (const st of srcT) for (const c of r.cols) { const def = st.cols.find(x => x[0] === (c.e && c.e.c)); if (def && c.e.k === 'col') { const i = cols.findIndex(x => x[0] === c.head); if (i >= 0) cols[i][1] = def[1]; } }
+    utCommit(); db.ut[full] = t; utCommit(); ev.ddlT = { kind: 'ctas', table: full, n: t.rows.length };
+    return '\nTable created.\n\n';
+  }
+  if (!eatOp('(')) err('ORA-00906: missing left parenthesis');
+  const t = { cols: [], nn: {}, pk: null, fks: [], defs: {}, rows: [] };
+  const consName = () => (eat('CONSTRAINT') ? id() : null);
+  const colList = () => { if (!eatOp('(')) err('ORA-00906: missing left parenthesis'); const l = [id()]; while (eatOp(',')) l.push(id()); if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); return l; };
+  const refs = (col, cn) => { let rt = id(); if (eatOp('.')) rt += '.' + id(); const rfull = utName(rt); const pt = db.ut[rfull]; if (!pt) err('ORA-00942: table or view does not exist', T[k - 1].p); let rc = pt.pk ? pt.pk.cols[0] : null; if (isOp('(')) rc = colList()[0]; if (!pt.pk || !pt.pk.cols.includes(rc)) err('ORA-02270: no matching unique or primary key for this column-list'); t.fks.push({ name: cn || sysc(), col, ref: rfull, rcol: rc }); };
+  do {
+    const cn0 = consName();
+    if (isK('PRIMARY')) { k++; if (!eat('KEY')) err('ORA-00905: missing keyword'); const l = colList(); if (t.pk) err('ORA-02260: table can have only one primary key'); t.pk = { name: cn0 || sysc(), cols: l }; continue; }
+    if (isK('FOREIGN')) { k++; if (!eat('KEY')) err('ORA-00905: missing keyword'); const l = colList(); if (!eat('REFERENCES')) err('ORA-00905: missing keyword'); refs(l[0], cn0); continue; }
+    if (cn0) err('ORA-00904: : invalid identifier');
+    const cp = T[k] ? T[k].p : 0; const cname = id();
+    if (t.cols.some(c => c[0] === cname)) throw new SqlErr('ORA-00957: duplicate column name', cp);
+    const tyTok = T[k]; if (!tyTok || tyTok.t !== 'id') err('ORA-00902: invalid datatype');
+    let ty = tyTok.v; k++;
+    if (ty === 'VARCHAR') ty = 'VARCHAR2'; if (ty === 'INTEGER' || ty === 'INT') ty = 'NUMBER(38)';
+    if (!['NUMBER', 'VARCHAR2', 'CHAR', 'DATE', 'NUMBER(38)'].includes(ty)) throw new SqlErr('ORA-00902: invalid datatype', tyTok.p);
+    if (ty === 'NUMBER' && isOp('(')) { k++; const p = T[k++]; let sc = null; if (eatOp(',')) { const neg = eatOp('-'); sc = (neg ? '-' : '') + T[k++].v; } if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); ty = `NUMBER(${p.v}${sc != null ? ',' + sc : ''})`; }
+    else if (ty === 'VARCHAR2' || ty === 'CHAR') { if (!isOp('(')) { if (ty === 'VARCHAR2') err('ORA-00906: missing left parenthesis'); ty = 'CHAR(1)'; } else { k++; const n = T[k++]; let u = ''; if (eat('BYTE')) u = ''; else if (eat('CHAR')) u = ' CHAR'; if (!eatOp(')')) err('ORA-00907: missing right parenthesis'); ty = `${ty}(${n.v}${u})`; } }
+    t.cols.push([cname, ty]);
+    for (;;) {
+      if (eat('DEFAULT')) { const d = T[k++]; t.defs[cname] = d.t === 'id' && d.v === 'SYSDATE' ? 'SYSDATE' : d.v; continue; }
+      const cn = consName();
+      if (isK('NOT')) { k++; if (!eat('NULL')) err('ORA-00905: missing keyword'); t.nn[cname] = cn || sysc(); continue; }
+      if (eat('NULL')) continue;
+      if (isK('PRIMARY')) { k++; if (!eat('KEY')) err('ORA-00905: missing keyword'); if (t.pk) err('ORA-02260: table can have only one primary key'); t.pk = { name: cn || sysc(), cols: [cname] }; continue; }
+      if (eat('REFERENCES')) { refs(cname, cn); continue; }
+      if (cn) err('ORA-00905: missing keyword');
+      break;
+    }
+  } while (eatOp(','));
+  if (!eatOp(')')) err('ORA-00907: missing right parenthesis');
+  if (k < T.length) err('ORA-00922: missing or invalid option');
+  if (!t.cols.length) err('ORA-00904: : invalid identifier');
+  for (const c of t.pk ? t.pk.cols : []) if (!t.cols.some(x => x[0] === c)) throw new SqlErr(`ORA-00904: "${c}": invalid identifier`, null);
+  utCommit(); db.ut[full] = t; utCommit(); ev.ddlT = { kind: 'create', table: full, pk: !!t.pk, fk: t.fks.length };
+  return '\nTable created.\n\n';
+}
+function utAlter(raw) {
+  const db = S.db, ev = S.ev; needOpen();
+  const sql = raw.replace(/;\s*$/, '').replace(/\s+/g, ' ').trim(); let m;
+  if (!(m = /^ALTER TABLE ([\w.$#]+) (ADD|DROP COLUMN|MODIFY) \(?(.+?)\)?$/i.exec(sql))) return note('실습에서는 ALTER TABLE 이름 ADD (열 형식), ALTER TABLE 이름 MODIFY (열 형식), ALTER TABLE 이름 DROP COLUMN 열 만 흉내 냅니다.');
+  const g = utGet(m[1].toUpperCase(), raw.toUpperCase().indexOf(m[1].toUpperCase())); if (!g) throw new SqlErr('ORA-00942: table or view does not exist', raw.toUpperCase().indexOf(m[1].toUpperCase()));
+  const { full, t } = g; const op = m[2].toUpperCase();
+  utCommit();
+  if (op === 'DROP COLUMN') {
+    const c = m[3].trim().toUpperCase(); if (!t.cols.some(x => x[0] === c)) throw new SqlErr(`ORA-00904: "${c}": invalid identifier`, raw.toUpperCase().lastIndexOf(c));
+    if (t.pk && t.pk.cols.includes(c) || Object.values(db.ut).some(x => x.fks.some(f => f.ref === full && f.rcol === c))) throw new SqlErr('ORA-12992: cannot drop parent key column', null);
+    t.cols = t.cols.filter(x => x[0] !== c); delete t.nn[c]; t.fks = t.fks.filter(f => f.col !== c); for (const r of t.rows) delete r[c];
+    utCommit(); ev.ddlT = { kind: 'drop-col', table: full, col: c }; return '\nTable altered.\n\n';
+  }
+  const parts = m[3].split(/\s*,\s*(?![^(]*\))/);
+  for (const p of parts) {
+    const mm = /^(\w+) (NUMBER(?:\(\d+(?:,\s*-?\d+)?\))?|VARCHAR2\(\d+(?: (?:BYTE|CHAR))?\)|CHAR\(\d+\)|DATE)(?: DEFAULT (\S+))?( NOT NULL)?$/i.exec(p.trim());
+    if (!mm) throw new SqlErr('ORA-00902: invalid datatype', null);
+    const c = mm[1].toUpperCase(), ty = mm[2].toUpperCase().replace(/\s*,\s*/, ',');
+    if (op === 'ADD') {
+      if (t.cols.some(x => x[0] === c)) throw new SqlErr('ORA-01430: column being added already exists in table', null);
+      if (mm[4] && t.rows.length && !mm[3]) throw new SqlErr('ORA-01758: table must be empty to add mandatory (NOT NULL) column', null);
+      t.cols.push([c, ty]); const dv = mm[3] ? (/^SYSDATE$/i.test(mm[3]) ? new Date() : mm[3].replace(/^'|'$/g, '')) : null; if (mm[3]) t.defs[c] = /^SYSDATE$/i.test(mm[3]) ? 'SYSDATE' : dv; for (const r of t.rows) r[c] = dv; if (mm[4]) t.nn[c] = `SYS_C00${db.sysc++}`;
+    } else {
+      const i = t.cols.findIndex(x => x[0] === c); if (i < 0) throw new SqlErr(`ORA-00904: "${c}": invalid identifier`, null);
+      const old = t.cols[i][1]; t.cols[i] = [c, ty];
+      try { for (const r of t.rows) r[c] = utCoerce(full, t, c, r[c]); } catch (e) { t.cols[i] = [c, old]; throw new SqlErr('ORA-01441: cannot decrease column length because some value is too big', null); }
+      if (mm[4]) t.nn[c] = `SYS_C00${db.sysc++}`;
+    }
+  }
+  utCommit(); ev.ddlT = { kind: op.toLowerCase(), table: full }; return '\nTable altered.\n\n';
+}
+function sql10(sql, raw) {
+  const db = S.db; if (!db || !db.ut) return undefined;
+  const U = sql.toUpperCase(); let m;
+  if (/^(COMMIT|ROLLBACK)( WORK)?$/.test(U)) { if (db.state === 'DOWN') throw new SqlErr('ORA-01034: ORACLE not available', 0); if (U[0] === 'C') utCommit(); else utRollback(); S.ev.tx = U[0] === 'C' ? 'COMMIT' : 'ROLLBACK'; return `\n${U[0] === 'C' ? 'Commit' : 'Rollback'} complete.\n\n`; }
+  try {
+    if (/^(INSERT|UPDATE|DELETE)\b/.test(U)) { const q = parseSelect(raw); const tn = q.table && utName(q.table.name); if (!db.ut[tn]) return undefined; return utDml(q, raw); }
+    if (/^CREATE TABLE\b/.test(U)) return utCreate(raw);
+    if (/^ALTER TABLE\b/.test(U)) return utAlter(raw);
+    if ((m = /^(DROP|TRUNCATE) TABLE ([\w.$#]+)( CASCADE CONSTRAINTS)?( PURGE)?$/.exec(U))) {
+      needOpen(); const full = utName(m[2]); const g = utGet(m[2], raw.toUpperCase().indexOf(m[2]));
+      if (!g) { if (APP_TABLES[full]) return undefined; throw new SqlErr('ORA-00942: table or view does not exist', raw.toUpperCase().indexOf(m[2])); }
+      const kids = Object.entries(db.ut).filter(([n, x]) => n !== full && x.fks.some(f => f.ref === full));
+      utCommit();
+      if (m[1] === 'DROP') {
+        if (kids.length && !m[3]) throw new SqlErr('ORA-02449: unique/primary keys in table referenced by foreign keys', null);
+        for (const [, x] of kids) x.fks = x.fks.filter(f => f.ref !== full);
+        delete db.ut[full]; utCommit(); S.ev.ddlT = { kind: 'drop', table: full };
+        if (!m[4]) unverified('ut-recycle', 'PURGE 없이 지운 테이블은 실제 19c에서 휴지통(recycle bin)으로 가고 FLASHBACK TABLE ... TO BEFORE DROP으로 되살릴 수 있습니다(5단계 레슨 5). 이 SQL 기초 실습의 연습 테이블은 휴지통을 흉내 내지 않습니다.');
+        return '\nTable dropped.\n\n';
+      }
+      if (kids.some(([, x]) => x.rows.some(r => x.fks.some(f => f.ref === full && r[f.col] != null)))) throw new SqlErr('ORA-02266: unique/primary keys in table referenced by enabled foreign keys', null);
+      g.t.rows = []; utCommit(); S.ev.ddlT = { kind: 'truncate', table: full }; return '\nTable truncated.\n\n';
+    }
+  } catch (e) { if (e instanceof SqlErr) utUnv(e); throw e; }
+  return undefined;
+}
+/* 사용자 스키마의 데이터 사전 뷰(Database Reference 19c의 USER_TABLES, USER_CONSTRAINTS, USER_TAB_COLUMNS 열 일부) */
+const utMine = () => { const me = S.sql; if (!S.db.ut) return []; return Object.entries(S.db.ut).filter(([n]) => n.split('.')[0] === me.schema); };
+VIEWS['USER_TABLES'] = { pub: true, cols: [C('TABLE_NAME', 128), C('TABLESPACE_NAME', 30), C('STATUS', 8), N('NUM_ROWS'), Dt('LAST_ANALYZED')],
+  rows: () => utMine().map(([n]) => ({ TABLE_NAME: n.split('.')[1], TABLESPACE_NAME: 'USERS', STATUS: 'VALID', NUM_ROWS: null, LAST_ANALYZED: null })) };
+VIEWS['USER_CONSTRAINTS'] = { pub: true, cols: [C('OWNER', 128), C('CONSTRAINT_NAME', 128), C('CONSTRAINT_TYPE', 1), C('TABLE_NAME', 128), C('R_CONSTRAINT_NAME', 128), C('STATUS', 8)],
+  rows: () => { const out = []; for (const [n, t] of utMine()) { const [o, tn] = n.split('.'); for (const c of Object.keys(t.nn)) if (t.nn[c]) out.push({ OWNER: o, CONSTRAINT_NAME: t.nn[c], CONSTRAINT_TYPE: 'C', TABLE_NAME: tn, R_CONSTRAINT_NAME: null, STATUS: 'ENABLED' }); if (t.pk) out.push({ OWNER: o, CONSTRAINT_NAME: t.pk.name, CONSTRAINT_TYPE: 'P', TABLE_NAME: tn, R_CONSTRAINT_NAME: null, STATUS: 'ENABLED' }); for (const f of t.fks) out.push({ OWNER: o, CONSTRAINT_NAME: f.name, CONSTRAINT_TYPE: 'R', TABLE_NAME: tn, R_CONSTRAINT_NAME: (S.db.ut[f.ref].pk || {}).name, STATUS: 'ENABLED' }); } return out; } };
+VIEWS['USER_TAB_COLUMNS'] = { pub: true, cols: [C('TABLE_NAME', 128), C('COLUMN_NAME', 128), C('DATA_TYPE', 128), N('DATA_LENGTH'), C('NULLABLE', 1), N('COLUMN_ID')],
+  rows: () => { const out = []; for (const [n, t] of utMine()) t.cols.forEach(([c, ty], i) => { const [k, w] = utType(ty); out.push({ TABLE_NAME: n.split('.')[1], COLUMN_NAME: c, DATA_TYPE: ty.replace(/\(.*$/, ''), DATA_LENGTH: k === 'n' ? 22 : k === 'd' ? 7 : w, NULLABLE: utNN(t, c) ? 'N' : 'Y', COLUMN_ID: i + 1 }); }); return out; } };
+function makeWorld10(lid) {
+  makeWorld3(1);
+  const db = S.db;
+  db.users.STUDY = Object.assign({}, db.users.APP, { id: 112, created: ago(1, 10, 0), pass: 'Study#2026', privs: new Set(['CREATE SESSION', 'CREATE TABLE', 'CREATE VIEW', 'CREATE SEQUENCE']), roles: new Set(), obj: [], quota: { USERS: 100 * MB } });
+  db.ut = utDefault(); db.sysc = 8121;
+  utCommit();
+  const home = lookup('/home/oracle').node.c;
+  home['study_account.txt'] = F('oracle', 'oinstall', 0o644, `[SQL 연습 계정 안내] 박팀장 → 신입
+
+- 접속: sqlplus study/Study#2026   (원격이면 sqlplus study/Study#2026@ORCL)
+- 테이블: DEPT(부서), EMP(사원). 운영 데이터가 아니라 연습용 예시 데이터입니다.
+- 마음대로 고치고 지워도 됩니다. 단, 운영 계정(APP)의 테이블에는 손대지 마세요.
+`, { mt: ago(1, 10, 2) });
+}
+/* =====================================================================
+   D14. 11단계 RAC 기초 (내부 단계 키 11): 2노드 클러스터 racnode1·racnode2 위의 RAC DB PAYDB(인스턴스 PAYDB1, PAYDB2)
+       Clusterware Administration and Deployment Guide 19c(CRSCTL, OLSNODES), RAC Administration and Deployment Guide 19c(SRVCTL, 서비스),
+       Database Reference 19c(GV$ 뷰)를 따랐다. 출력 가운데 문서 예시로 확인한 것:
+         crsctl check cluster -all 의 노드별 블록과 CRS-4537·CRS-4529·CRS-4533 줄(19c 설치 가이드 예시),
+         olsnodes -n 의 "이름 번호" 모양(19c OLSNODES 예시), srvctl status database 의 "Instance ... is running on node ..." 줄과
+         crsctl stat res -t 의 제목·구역·자원 이름·STABLE·"Open,HOME=..." 모양(Oracle 문서의 21c 클러스터 예시),
+         SRVCTL은 성공하면 아무것도 출력하지 않을 수 있다는 점(RAC 19c SRVCTL 사용 안내).
+       나머지 줄(열 간격, 서비스 상태 문장, config 출력, 꺼진 자원의 State details 등)은 확인하지 못해 ⓘ로 알린다.
+       클러스터 이름, 노드 이름, IP 주소, 서비스 이름, 세션 수는 설명용 예시 값이다.
+   ===================================================================== */
+const GH = '/u01/app/19.0.0/grid';
+function racInst(n) { return S.rac.insts.find(i => i.name === String(n || '').toUpperCase()); }
+function racSvc(n) { return S.rac.svcs.find(s => s.name === String(n || '').toLowerCase()); }
+function makeWorld11(lid) {
+  makeWorld3(1);
+  S.hn = 'racnode1'; S.ip = '10.0.3.11';
+  const db = S.db;
+  Object.assign(db, { dbName: 'PAYDB', uniq: 'paydb', inst: 'PAYDB1', host: 'racnode1.example.com', instNo: 1, rac: true });
+  Object.assign(db.params, { db_name: ['string', 'PAYDB'], db_unique_name: ['string', 'paydb'], instance_name: ['string', 'PAYDB1'], instance_number: ['integer', '1'], thread: ['integer', '1'], cluster_database: ['boolean', 'TRUE'],
+    control_files: ['string', '+DATA/PAYDB/CONTROLFILE/current.261.1180000001'], spfile: ['string', '+DATA/PAYDB/PARAMETERFILE/spfile.272.1180000003'], undo_tablespace: ['string', 'UNDOTBS1'], remote_listener: ['string', 'paycluster-scan.example.com:1521'] });
+  const st = ago(9, 3, 12);
+  S.rac = {
+    cluster: 'paycluster', scan: 'paycluster-scan',
+    nodes: [{ name: 'racnode1', no: 1, up: true }, { name: 'racnode2', no: 2, up: true }],
+    insts: [{ name: 'PAYDB1', no: 1, node: 'racnode1', up: true, start: st }, { name: 'PAYDB2', no: 2, node: 'racnode2', up: true, start: st }],
+    svcs: [{ name: 'pay_oltp', pref: ['PAYDB1', 'PAYDB2'], avail: [], on: ['PAYDB1', 'PAYDB2'] }, { name: 'pay_batch', pref: ['PAYDB2'], avail: ['PAYDB1'], on: ['PAYDB2'] }],
+    scanOn: ['racnode2', 'racnode2', 'racnode1'],
+    sess2: [],
+  };
+  db.startTime = st;
+  if (lid === 3) { // 새벽에 racnode2가 내려갔다가 07:40에 다시 올라왔다. pay_batch는 PAYDB1로 넘어간 채로 남았다.
+    const r2 = racInst('PAYDB2'); r2.start = ago(0, 7, 43);
+    racSvc('pay_batch').on = ['PAYDB1'];
+  }
+  // 프로세스: ORCL → PAYDB1, Grid Infrastructure 데몬
+  for (const p of S.procs) p.cmd = p.cmd.replace(/ORCL/g, 'PAYDB1').replace(/tnslsnr LISTENER -inherit/, 'tnslsnr LISTENER -no_crs_notify -inherit').replace(OH + '/bin/tnslsnr', GH + '/bin/tnslsnr');
+  for (const p of S.procs) if (p.lsnr) p.user = 'grid';
+  let pid = 1402;
+  for (const c of ['/bin/ohasd.bin reboot', '/bin/oraagent.bin', '/bin/orarootagent.bin', '/bin/evmd.bin', '/bin/gpnpd.bin', '/bin/gipcd.bin', '/bin/cssdagent', '/bin/ocssd.bin', '/bin/octssd.bin reboot', '/bin/crsd.bin reboot'])
+    S.procs.push({ user: /ohasd|orarootagent|cssdagent|octssd|crsd/.test(c) ? 'root' : 'grid', pid: pid += 7, ppid: 1, stime: stime(9), tty: '?', time: '00:12:08', cmd: GH + c, cpu: 0.3, mem: 0.2 });
+  S.procs.push({ user: 'grid', pid: pid += 7, ppid: 1, stime: stime(9), tty: '?', time: '00:00:31', cmd: 'asm_pmon_+ASM1', cpu: 0, mem: 0.1 });
+  // 파일: Grid 홈, 접속 정보, hosts
+  const O = 'oracle', OI = 'oinstall';
+  const u01 = lookup('/u01/app').node.c;
+  u01['19.0.0'] = D('root', OI, 0o755, { grid: D('grid', OI, 0o755, { bin: D('grid', OI, 0o755, { crsctl: F('root', OI, 0o755, 9 * KB, { bin: 'crsctl' }), olsnodes: F('grid', OI, 0o755, 9 * KB, { bin: 'olsnodes' }), srvctl: F('grid', OI, 0o755, 9 * KB, { bin: 'srvctl' }), asmcmd: F('grid', OI, 0o755, 9 * KB) }) }, { extra: 9 * GB }) });
+  lookup(OH + '/bin').node.c.srvctl = F(O, OI, 0o755, 9 * KB, { bin: 'srvctl' });
+  const home = lookup('/home/oracle').node.c;
+  home['.bash_profile'].txt = BASH_PROFILE + `umask 022
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=$ORACLE_BASE/product/19.0.0/dbhome_1
+export ORACLE_SID=PAYDB1
+export GRID_HOME=/u01/app/19.0.0/grid
+export PATH=$ORACLE_HOME/bin:$PATH:$GRID_HOME/bin
+`;
+  delete home['handover.txt'];
+  home['rac_handover.txt'] = F(O, OI, 0o644, `[인수인계 메모] 결제 시스템 RAC (박팀장 → 신입)
+
+1. 클러스터: paycluster (Oracle Grid Infrastructure 19c, 노드 2대)
+   - racnode1 (10.0.3.11), racnode2 (10.0.3.12)   ← 지금 접속한 서버는 racnode1
+   - Grid 홈: ${GH}  (grid 계정 소유, crsctl·olsnodes는 여기 bin에 있음)
+   - DB 홈:   ${OH}  (oracle 계정 소유, DB를 다룰 srvctl은 이 홈의 것을 씀)
+2. DB: PAYDB (RAC, 관리자 관리형). 인스턴스 PAYDB1@racnode1, PAYDB2@racnode2. 데이터 파일은 ASM 디스크 그룹 +DATA
+3. 접속 주소: SCAN paycluster-scan.example.com:1521 (DNS에 주소 3개)
+4. 서비스(앱은 서비스 이름으로 접속):
+   - pay_oltp  : 결제 화면. 두 인스턴스 모두에서 실행(PAYDB1, PAYDB2가 preferred)
+   - pay_batch : 정산 배치. 평소 PAYDB2에서만 실행(preferred PAYDB2, available PAYDB1)
+5. 실습용 암호: SYS Oracle#19c (실제 운영에서는 이렇게 파일에 적어 두면 안 됩니다.)
+`, { mt: ago(0, 8, 50) });
+  const etc = lookup('/etc').node.c;
+  etc.hostname = F('root', 'root', 0o644, 'racnode1\n');
+  etc.hosts = F('root', 'root', 0o644, `127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+# public
+10.0.3.11   racnode1.example.com racnode1
+10.0.3.12   racnode2.example.com racnode2
+# virtual IP (Clusterware가 관리)
+10.0.3.21   racnode1-vip.example.com racnode1-vip
+10.0.3.22   racnode2-vip.example.com racnode2-vip
+# private interconnect
+192.168.10.11   racnode1-priv
+192.168.10.12   racnode2-priv
+# SCAN(paycluster-scan.example.com)은 hosts가 아니라 DNS에 주소 3개로 등록
+`);
+  // 세션: 앱 접속은 서비스 이름을 달고 있다
+  db.sessions = db.sessions.filter(s => !s.username || s.me);
+  const app = (inst, sid, svc, o) => { const s = Object.assign({ sid, serial: 1000 + sid * 7, username: 'PAYAPP', status: 'INACTIVE', osuser: svc === 'pay_batch' ? 'batch' : 'tomcat', machine: svc === 'pay_batch' ? 'batch01' : (sid % 2 ? 'was01' : 'was02'), terminal: 'unknown', program: svc === 'pay_batch' ? 'JDBC Thin Client' : 'JDBC Thin Client', logon: ago(0, 6, 5), lastCall: 3 + sid % 40, svc, remote: true, event: 'SQL*Net message from client' }, o || {}); if (inst === 1) addSession(s); else S.rac.sess2.push(s); };
+  for (let i = 0; i < 8; i++) { app(1, 40 + i * 9, 'pay_oltp'); app(2, 44 + i * 9, 'pay_oltp'); }
+  if (lid === 3) for (let i = 0; i < 12; i++) app(1, 150 + i * 4, 'pay_batch', { status: 'ACTIVE', logon: ago(0, 8, 0), lastCall: 2, event: i % 3 ? (i % 2 ? 'gc cr block 2-way' : 'gc current block 2-way') : 'db file sequential read' });
+  for (const s of db.sessions) if (!s.svc) s.svc = s.username ? 'SYS$USERS' : 'SYS$BACKGROUND';
+  SID_SEQ = 300;
+}
+/* ---------- GV$ 뷰: 살아 있는 인스턴스의 V$ 정보를 모으고 INST_ID 열을 붙인다(Database Reference 19c) ---------- */
+{ const o = VIEWS['V$INSTANCE'].rows; VIEWS['V$INSTANCE'].rows = () => o().map(r => S.db.rac ? Object.assign(r, { INSTANCE_NUMBER: S.db.instNo, PARALLEL: 'YES', 'THREAD#': S.db.instNo }) : r); }
+{ const o = VIEWS['V$DATABASE'].rows; VIEWS['V$DATABASE'].rows = () => o().map(r => S.db.dbName ? Object.assign(r, { NAME: S.db.dbName, DB_UNIQUE_NAME: S.db.uniq.toUpperCase() === 'PAYDB' ? 'paydb' : r.DB_UNIQUE_NAME }) : r); }
+VIEWS['V$SESSION'].cols.push(C('SERVICE_NAME', 64));
+{ const o = VIEWS['V$SESSION'].rows; VIEWS['V$SESSION'].rows = () => { const m = new Map(S.db.sessions.map(s => [s.sid, s])); return o().map(r => Object.assign(r, { SERVICE_NAME: (m.get(r.SID) || {}).svc || (r.USERNAME ? 'SYS$USERS' : 'SYS$BACKGROUND') })); }; }
+const racOnly = (fn) => () => { if (!S.rac) throw new SqlErr('ORA-00942: table or view does not exist', 0); return fn(); };
+VIEWS['GV$INSTANCE'] = { fixed: true, nomount: true, cols: [N('INST_ID')].concat(VIEWS['V$INSTANCE'].cols), rows: racOnly(() => {
+  const base = VIEWS['V$INSTANCE'].rows()[0];
+  return S.rac.insts.filter(i => i.up).map(i => Object.assign({}, base, { INST_ID: i.no, INSTANCE_NUMBER: i.no, INSTANCE_NAME: i.name, HOST_NAME: i.node + '.example.com', STARTUP_TIME: i.start, 'THREAD#': i.no, STATUS: 'OPEN' }));
+}) };
+VIEWS['GV$SESSION'] = { fixed: true, nomount: true, cols: [N('INST_ID')].concat(VIEWS['V$SESSION'].cols), rows: racOnly(() => {
+  const loc = VIEWS['V$SESSION'].rows().map(r => Object.assign({ INST_ID: 1 }, r));
+  if (!racInst('PAYDB2').up) return loc;
+  const rem = S.rac.sess2.map(s => ({ INST_ID: 2, SID: s.sid, 'SERIAL#': s.serial, PADDR: null, USERNAME: s.username, STATUS: s.status, SERVER: 'DEDICATED', OSUSER: s.osuser, PROCESS: null, MACHINE: s.machine, TERMINAL: s.terminal, PROGRAM: s.program, TYPE: 'USER', SQL_ID: null, LOGON_TIME: s.logon, LAST_CALL_ET: s.lastCall, BLOCKING_SESSION: null, EVENT: s.event, WAIT_CLASS: 'Idle', STATE: 'WAITING', SECONDS_IN_WAIT: s.lastCall, SERVICE_NAME: s.svc }));
+  const bg = [1, 2, 3, 4, 5].map(i => ({ INST_ID: 2, SID: i, 'SERIAL#': 1, USERNAME: null, STATUS: 'ACTIVE', SERVER: 'DEDICATED', OSUSER: 'oracle', MACHINE: 'racnode2.example.com', PROGRAM: `oracle@racnode2.example.com (${['PMON', 'CLMN', 'PSP0', 'VKTM', 'GEN0'][i - 1]})`, TYPE: 'BACKGROUND', LOGON_TIME: racInst('PAYDB2').start, SERVICE_NAME: 'SYS$BACKGROUND', EVENT: 'rdbms ipc message', WAIT_CLASS: 'Idle', STATE: 'WAITING' }));
+  return loc.concat(bg, rem);
+}) };
+VIEWS['GV$ACTIVE_SERVICES'] = { fixed: true, cols: [N('INST_ID'), N('SERVICE_ID'), C('NAME', 64), C('NETWORK_NAME', 512), Dt('CREATION_DATE')], rows: racOnly(() => {
+  const out = [];
+  for (const i of S.rac.insts.filter(x => x.up)) {
+    const svc = [['SYS$BACKGROUND', null], ['SYS$USERS', null], ['paydb', 'paydb']].concat(S.rac.svcs.filter(s => s.on.includes(i.name)).map(s => [s.name, s.name]));
+    svc.forEach(([n, nn], j) => out.push({ INST_ID: i.no, SERVICE_ID: j + 1, NAME: n, NETWORK_NAME: nn, CREATION_DATE: ago(40, 10, 0) }));
+  }
+  return out;
+}) };
+/* ---------- olsnodes, crsctl, srvctl: 이 실습에서 쓰는 형식만 ---------- */
+function racNote(key, msg) { if (UNV_TOLD.has(key)) return ''; UNV_TOLD.add(key); return note(msg); }
+CMDS.olsnodes = function (argv) {
+  if (!S.rac) return fail('-bash: olsnodes: command not found\n', 127);
+  const { f, rest: a } = opts(argv);
+  if (f.c) return ok(S.rac.cluster + '\n');
+  let ns = S.rac.nodes; if (f.l) ns = ns.filter(n => n.name === S.hn); if (a[0]) ns = ns.filter(n => n.name === a[0]);
+  S.ev.olsnodes = { n: !!f.n, s: !!f.s };
+  const out = ns.map(n => [n.name].concat(f.n ? [String(n.no)] : [], f.s ? [n.up ? 'Active' : 'Inactive'] : [], f.t ? ['Unpinned'] : []).join('\t')).join('\n') + '\n';
+  return ok(out + (f.s || f.t ? racNote('ols-s', 'olsnodes -n 의 "이름  번호" 모양은 19c OLSNODES 예시와 같습니다. -s 의 상태 글자(Active, Inactive)와 -t 의 Unpinned 표시는 문서 예시가 없어 확인하지 못했습니다. 문서의 설명: -s 는 노드 상태가 active인지 inactive인지 보여 준다.') : ''));
+};
+const CRS_ONLINE = ['CRS-4537: Cluster Ready Services is online', 'CRS-4529: Cluster Synchronization Services is online', 'CRS-4533: Event Manager is online'];
+function crsTable() {
+  const R = S.rac, L = '-'.repeat(80);
+  const row = (num, tgt, st, srv, det) => ((num == null ? '' : String(num)).padStart(6) + ' '.repeat(9) + tgt.padEnd(8) + st.padEnd(13) + (srv || '').padEnd(25) + det).replace(/\s+$/, '');
+  const on = (n) => R.nodes.find(x => x.name === n).up;
+  const local = (name) => [name].concat(R.nodes.map(n => row(null, 'ONLINE', on(n.name) ? 'ONLINE' : 'OFFLINE', n.name, 'STABLE')));
+  const one = (name, srv, det = 'STABLE') => [name, row(1, 'ONLINE', 'ONLINE', srv, det)];
+  const two = (name, det = (n) => 'STABLE') => [name].concat(R.nodes.map((n, i) => row(i + 1, 'ONLINE', on(n.name) ? 'ONLINE' : 'OFFLINE', n.name, det(n))));
+  const dbLines = ['ora.paydb.db'].concat(R.insts.map(i => i.up ? row(i.no, i.tgtOff ? 'OFFLINE' : 'ONLINE', 'ONLINE', i.node, `Open,HOME=${OH},STABLE`) : row(i.no, i.tgtOff ? 'OFFLINE' : 'ONLINE', 'OFFLINE', i.tgtOff ? '' : i.node, i.tgtOff ? 'Instance Shutdown,STABLE' : 'STABLE')));
+  const svcLines = R.svcs.flatMap(s => ['ora.paydb.' + s.name + '.svc'].concat(s.pref.concat(s.avail).filter(x => s.on.includes(x)).map((x, i) => row(i + 1, 'ONLINE', 'ONLINE', racInst(x).node, 'STABLE'))));
+  const lines = [L, 'Name           Target  State        Server                   State details', L, 'Local Resources', L]
+    .concat(local('ora.LISTENER.lsnr'), local('ora.chad'), local('ora.net1.network'), local('ora.ons'), [L, 'Cluster Resources', L],
+      two('ora.ASMNET1LSNR_ASM.lsnr(ora.asmgroup)'), two('ora.DATA.dg(ora.asmgroup)'),
+      one('ora.LISTENER_SCAN1.lsnr', R.scanOn[0]), one('ora.LISTENER_SCAN2.lsnr', R.scanOn[1]), one('ora.LISTENER_SCAN3.lsnr', R.scanOn[2]),
+      two('ora.asm(ora.asmgroup)', (n) => n.no === 2 ? 'Started,STABLE' : 'STABLE'), two('ora.asmnet1.asmnetwork(ora.asmgroup)'), one('ora.cvu', 'racnode1'),
+      dbLines, svcLines, one('ora.qosmserver', 'racnode1'), one('ora.racnode1.vip', 'racnode1'), one('ora.racnode2.vip', 'racnode2'),
+      one('ora.scan1.vip', R.scanOn[0]), one('ora.scan2.vip', R.scanOn[1]), one('ora.scan3.vip', R.scanOn[2]), [L]);
+  return lines.join('\n') + '\n';
+}
+CMDS.crsctl = function (argv) {
+  if (!S.rac) return fail('-bash: crsctl: command not found\n', 127);
+  const a = argv.slice(1).map(x => x.toLowerCase()); const t = a.join(' '); const ev = S.ev;
+  if (/^check cluster -all$/.test(t)) { ev.crs = 'check-all'; const star = '*'.repeat(62); return ok('\n' + star + '\n' + S.rac.nodes.map(n => `${n.name}:\n${CRS_ONLINE.join('\n')}\n${star}`).join('\n') + '\n'); }
+  if (/^check cluster$/.test(t)) { ev.crs = 'check-cluster'; return ok(CRS_ONLINE.join('\n') + '\n' + racNote('crs-local', '-all 없이 실행하면 이 서버(로컬 노드)만 점검합니다. 이 모양은 문서 예시로 확인하지 못했습니다. 모든 노드는 crsctl check cluster -all 로 봅니다.')); }
+  if (/^check crs$/.test(t)) { ev.crs = 'check-crs'; return ok('CRS-4638: Oracle High Availability Services is online\n' + CRS_ONLINE.join('\n') + '\n' + racNote('crs-4638', 'CRS-4638(Oracle High Availability Services) 줄은 문서 예시로 확인하지 못했습니다. 나머지 세 줄은 19c 설치 가이드의 crsctl check cluster -all 예시와 같습니다.')); }
+  if (/^check (css|evm)$/.test(t)) return ok((a[1] === 'css' ? CRS_ONLINE[1] : CRS_ONLINE[2]) + '\n');
+  if (/^(stat|status) (res|resource)( -t)?$/.test(t) || /^(stat|status) (res|resource) -t$/.test(t)) {
+    if (!/-t$/.test(t)) return ok(note('실습에서는 표 모양으로 보는 crsctl stat res -t 만 흉내 냅니다. -t 없이 실행하면 실제로는 자원마다 NAME=, TYPE=, TARGET=, STATE= 줄이 나옵니다.'));
+    ev.crs = 'stat-res-t';
+    return ok(crsTable() + racNote('crs-t', 'crsctl stat res -t 의 제목 줄, Local Resources·Cluster Resources 구역, 자원 이름(ora.LISTENER.lsnr, ora.scan1.vip, ora.DATA.dg(ora.asmgroup) 등), STABLE, "Open,HOME=..." 모양은 Oracle 문서의 21c 클러스터 예시를 따랐습니다. 열 간격, 서비스 자원 이름(ora.paydb.pay_oltp.svc), 자원 순서는 19c 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (/^query crs activeversion$/.test(t)) return ok('Oracle Clusterware active version on the cluster is [19.0.0.0.0]\n' + racNote('crs-ver', '이 문구는 문서 예시로 확인하지 못했습니다. 실제로는 적용한 RU에 따라 버전 숫자가 다를 수 있습니다.'));
+  if (/^query css votedisk$/.test(t)) return ok(note('보팅 디스크(투표 디스크) 조회는 이 실습에서 흉내 내지 않습니다. 실제로는 디스크 그룹 +DATA 안의 보팅 파일 목록이 나옵니다.'));
+  if (/^(stop|start) (crs|cluster)/.test(t)) return fail(note('클러스터 스택을 내리고 올리는 명령은 root로 실행합니다. 실습에서는 실행하지 않습니다.'), 1);
+  return ok(note('이 실습의 crsctl에서 쓸 수 있는 명령: crsctl check cluster -all, crsctl check crs, crsctl stat res -t, crsctl query crs activeversion'));
+};
+function srvArgs(argv) { // -db x -service y ... (-d, -s, -i 같은 짧은 형식도 받는다)
+  const o = {}; const al = { d: 'db', s: 'service', i: 'instance', n: 'node' };
+  for (let i = 2; i < argv.length; i++) { const m = /^-(\w+)$/.exec(argv[i]); if (!m) continue; let k = m[1].toLowerCase(); k = al[k] || k; const v = argv[i + 1] && !/^-/.test(argv[i + 1]) ? argv[++i] : true; o[k] = v; }
+  return o;
+}
+CMDS.srvctl = function (argv) {
+  if (!S.rac) return fail('-bash: srvctl: command not found\n', 127);
+  const verb = (argv[1] || '').toLowerCase(), obj = (argv[2] || '').toLowerCase(); const o = srvArgs(argv); const R = S.rac, ev = S.ev;
+  const dbOk = () => { if (!o.db) return 'PRCD-1022 '; if (String(o.db).toLowerCase() !== 'paydb') return 'NODB'; return null; };
+  const need = () => { const e = dbOk(); if (e === 'PRCD-1022 ') return fail(note('-db 데이터베이스이름 을 붙여 주세요. 이 실습의 DB 이름은 paydb 입니다. 예: srvctl status database -db paydb')); if (e) return fail(note(`클러스터에 ${o.db}라는 DB가 등록되어 있지 않습니다. 실제로는 PRCD- 로 시작하는 오류가 나오지만, 그 문구는 확인하지 못해 보여 주지 않습니다. 이 실습의 DB 이름은 paydb 입니다.`)); return null; };
+  const ex = (x) => { ev.srv = Object.assign({ verb, obj }, x || {}); };
+  if (!verb || verb === '-h' || verb === 'help') return ok(note('형식: srvctl 동작 대상 [옵션] (RAC 19c SRVCTL Reference)\n  srvctl status database -db paydb\n  srvctl config database -db paydb\n  srvctl status instance -db paydb -instance PAYDB2\n  srvctl stop instance -db paydb -instance PAYDB2 -stopoption immediate\n  srvctl start instance -db paydb -instance PAYDB2\n  srvctl status service -db paydb [-service pay_batch]\n  srvctl config service -db paydb -service pay_batch\n  srvctl relocate service -db paydb -service pay_batch -oldinst PAYDB2 -newinst PAYDB1\n  srvctl status scan, srvctl status scan_listener, srvctl status listener, srvctl status nodeapps'));
+  if (verb === 'status' && obj === 'database') { const e = need(); if (e) return e; ex(); return ok(R.insts.map(i => i.up ? `Instance ${i.name} is running on node ${i.node}` : `Instance ${i.name} is not running on node ${i.node}`).join('\n') + '\n' + (R.insts.some(i => !i.up) ? racNote('srv-notrun', '"Instance ... is running on node ..." 줄은 Oracle 문서 예시와 같습니다. 인스턴스가 꺼졌을 때의 "is not running on node" 문구는 문서 예시로 확인하지 못했습니다.') : '')); }
+  if (verb === 'status' && (obj === 'instance' || obj === 'inst')) { const e = need(); if (e) return e; const i = racInst(o.instance); if (!i) return fail(note('인스턴스 이름은 PAYDB1, PAYDB2 입니다.')); ex({ inst: i.name }); return ok(`Instance ${i.name} is ${i.up ? '' : 'not '}running on node ${i.node}\n`); }
+  if (verb === 'config' && obj === 'database') { const e = need(); if (e) return e; ex(); return ok(`Database unique name: paydb\nDatabase name: PAYDB\nOracle home: ${OH}\nOracle user: oracle\nSpfile: ${S.db.params.spfile[1]}\nPassword file: +DATA/PAYDB/PASSWORD/pwdpaydb.256.1180000005\nDomain: \nStart options: open\nStop options: immediate\nDatabase role: PRIMARY\nManagement policy: AUTOMATIC\nDisk Groups: DATA\nDatabase instances: PAYDB1,PAYDB2\nConfigured nodes: racnode1,racnode2\nDatabase is administrator managed\n` + racNote('srv-cfgdb', 'srvctl config database 의 줄은 실제 출력에서 몇 가지(Database unique name, Database instances, Configured nodes, Database is administrator managed 등)를 골라 줄인 것이며, 줄 순서와 나머지 줄은 19c 문서 예시로 확인하지 못했습니다. 파일 이름의 숫자는 예시입니다.')); }
+  if ((verb === 'stop' || verb === 'start') && (obj === 'instance' || obj === 'inst')) {
+    const e = need(); if (e) return e; const i = racInst(o.instance); if (!i) return fail(note('-instance PAYDB1 또는 -instance PAYDB2 처럼 인스턴스 이름을 주세요.'));
+    if (verb === 'stop') {
+      if (!i.up) return fail(note(`${i.name}은(는) 이미 내려가 있습니다. 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.`));
+      if (i.name === 'PAYDB1') return fail(note('실습: 지금 접속한 racnode1의 PAYDB1은 이 레슨에서 내리지 않습니다. PAYDB2를 내려 보세요.'));
+      const so = String(o.stopoption || 'immediate').toLowerCase();
+      if (!['normal', 'transactional', 'immediate', 'abort'].includes(so)) return fail(note('-stopoption 값은 NORMAL, TRANSACTIONAL, IMMEDIATE, ABORT 가운데 하나입니다(SRVCTL 19c 표 A-2).'));
+      const lost = R.svcs.filter(s => s.on.length === 1 && s.on[0] === i.name).map(s => s.name);
+      i.up = false; i.tgtOff = true; R.svcs.forEach(s => { s.on = s.on.filter(x => x !== i.name); }); R.sess2 = [];
+      ex({ inst: i.name, stopoption: so });
+      return ok(lost.length ? note(`실습: ${lost.join(', ')} 서비스는 ${i.name}에서만 돌고 있었으므로 함께 멈췄습니다. 그래서 인스턴스를 내리기 전에 서비스를 먼저 옮겨 둡니다.`) : '');
+    }
+    if (i.up) return fail(note(`${i.name}은(는) 이미 실행 중입니다. 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.`));
+    i.up = true; i.tgtOff = false; i.start = new Date(); R.svcs.forEach(s => { if (s.name === 'pay_oltp' && s.pref.includes(i.name) && !s.on.includes(i.name)) s.on.push(i.name); });
+    ex({ inst: i.name });
+    return ok(racNote('srv-start', '실습: 인스턴스가 올라오면서 그 인스턴스가 preferred인 pay_oltp도 다시 시작한 것으로 보여 줍니다. 실제로 어떤 서비스가 함께 시작되는지는 서비스의 관리 정책(-policy)과 설정에 따라 다릅니다.'));
+  }
+  if (verb === 'status' && obj === 'service') {
+    const e = need(); if (e) return e; let list = R.svcs; if (o.service) { const s = racSvc(o.service); if (!s) return fail(note(`${o.service}라는 서비스가 없습니다(이 실습: pay_oltp, pay_batch). 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.`)); list = [s]; }
+    ex({ service: o.service ? String(o.service).toLowerCase() : null });
+    return ok(list.map(s => s.on.length ? `Service ${s.name} is running on instance(s) ${s.pref.concat(s.avail).filter(x => s.on.includes(x)).join(',')}` : `Service ${s.name} is not running.`).join('\n') + '\n' + racNote('srv-svcst', 'srvctl status service 의 문장("Service ... is running on instance(s) ...")은 19c 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (verb === 'config' && obj === 'service') {
+    const e = need(); if (e) return e; const list = o.service ? [racSvc(o.service)].filter(Boolean) : R.svcs; if (!list.length) return fail(note(`${o.service}라는 서비스가 없습니다(이 실습: pay_oltp, pay_batch).`));
+    ex({ service: o.service ? String(o.service).toLowerCase() : null });
+    return ok(list.map(s => `Service name: ${s.name}\nCardinality: ${s.pref.length}\nManagement policy: AUTOMATIC\nPreferred instances: ${s.pref.join(',')}\nAvailable instances: ${s.avail.join(',')}\n`).join('\n') + racNote('srv-cfgsvc', 'srvctl config service 의 실제 출력은 줄이 더 많습니다. 여기서는 Preferred instances, Available instances 같은 핵심 줄만 골랐고, 줄 모양은 19c 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (verb === 'relocate' && obj === 'service') {
+    const e = need(); if (e) return e; const s = racSvc(o.service); if (!s) return fail(note('-service 서비스이름 을 주세요(이 실습: pay_oltp, pay_batch).'));
+    if (!o.oldinst || !o.newinst) return fail(note('관리자 관리형 DB에서는 -oldinst 옮기기전인스턴스 -newinst 옮길인스턴스 를 씁니다(RAC 19c SRVCTL Reference).'));
+    const oi = String(o.oldinst).toUpperCase(), ni = String(o.newinst).toUpperCase();
+    if (!s.on.includes(oi)) return fail(note(`${s.name}은(는) 지금 ${oi}에서 돌고 있지 않아 옮길 수 없습니다. 지금 도는 인스턴스는 srvctl status service -db paydb 로 먼저 봅니다. 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.`));
+    if (!s.pref.concat(s.avail).includes(ni)) return fail(note(`${ni}은(는) ${s.name}의 preferred나 available 목록에 없습니다. 문서: 관리자 관리형 DB에서 옮길 대상은 서비스의 preferred 또는 available 인스턴스여야 한다.`));
+    const ti = racInst(ni); if (!ti || !ti.up) return fail(note(`${ni} 인스턴스가 내려가 있어 옮길 수 없습니다.`));
+    if (s.on.includes(ni)) return fail(note(`${s.name}은(는) 이미 ${ni}에서 돌고 있습니다.`));
+    s.on = s.on.filter(x => x !== oi).concat(ni);
+    if (o.force) { const from = racInst(oi).no; if (from === 1) S.db.sessions = S.db.sessions.filter(x => x.svc !== s.name); else R.sess2 = R.sess2.filter(x => x.svc !== s.name); }
+    ex({ service: s.name, oldinst: oi, newinst: ni, force: !!o.force });
+    return ok('');
+  }
+  if (verb === 'status' && obj === 'scan') return ok([1, 2, 3].map(n => `SCAN VIP scan${n} is enabled\nSCAN VIP scan${n} is running on node ${R.scanOn[n - 1]}`).join('\n') + '\n' + racNote('srv-scan', 'srvctl status scan 의 문구는 문서 예시로 확인하지 못했습니다. 어느 노드에서 도는지는 crsctl stat res -t 의 ora.scan1.vip 줄로도 볼 수 있습니다.'));
+  if (verb === 'status' && obj === 'scan_listener') return ok([1, 2, 3].map(n => `SCAN Listener LISTENER_SCAN${n} is enabled\nSCAN listener LISTENER_SCAN${n} is running on node ${R.scanOn[n - 1]}`).join('\n') + '\n' + racNote('srv-scanl', 'srvctl status scan_listener 의 문구는 문서 예시로 확인하지 못했습니다.'));
+  if (verb === 'status' && (obj === 'listener' || obj === 'lsnr')) return ok(`Listener LISTENER is enabled\nListener LISTENER is running on node(s): ${R.nodes.filter(n => n.up).map(n => n.name).join(',')}\n` + racNote('srv-lsnr', 'srvctl status listener 의 문구는 문서 예시로 확인하지 못했습니다.'));
+  if (verb === 'status' && obj === 'nodeapps') return ok(R.nodes.map(n => `VIP ${n.name}-vip is enabled\nVIP ${n.name}-vip is running on node: ${n.name}`).join('\n') + '\nNetwork is enabled\nNetwork is running on node: ' + R.nodes.map(n => n.name).join(',') + '\nONS is enabled\nONS daemon is running on node: ' + R.nodes.map(n => n.name).join(',') + '\n' + racNote('srv-nodeapps', 'srvctl status nodeapps 의 문구는 문서 예시로 확인하지 못했습니다.'));
+  return ok(note('이 실습의 srvctl에서 쓸 수 있는 명령은 srvctl -h 로 볼 수 있습니다.'));
 };
 </script>
 <script>
@@ -4902,7 +5505,7 @@ LESSONS.push(
       { text: 'RMAN에서 나와 백업 파일이 생겼는지 보기', hint: 'exit\nfind /u01/app/oracle/fast_recovery_area/ORCL -type f', done: ev => (has(ev, 'ls') || has(ev, 'find')) && !S.sql && ev.stages.some(a => a.some(x => x.includes('fast_recovery_area'))),
         why: 'backupset, autobackup, archivelog 디렉터리 아래에 o1_mf_로 시작하는 파일이 생겼습니다. 오라클이 이름을 정하는 OMF 형식입니다. 이 파일들을 리눅스 rm으로 지우면 RMAN 기록과 맞지 않게 되니, 정리는 RMAN의 DELETE OBSOLETE로 합니다.' },
     ],
-    field: '이 백업은 같은 서버의 /u01에 있습니다. 서버나 디스크가 통째로 망가지면 백업도 함께 잃으니, 현장에서는 테이프나 다른 저장소로 한 번 더 보냅니다. 매일 백업은 보통 cron이나 Oracle Scheduler로 돌립니다. Scheduler로 OS 스크립트를 돌리는 "외부 작업"은 CREATE JOB, CREATE EXTERNAL JOB 권한이 필요하고, Administrator\'s Guide는 DBMS_CREDENTIAL로 만든 자격 증명을 쓰라고 권합니다. 자격 증명 없이 SYS가 아닌 사용자의 외부 작업은 <code>$ORACLE_HOME/rdbms/admin/externaljob.ora</code>의 run_user, run_group으로 실행됩니다. 4단계 장애 대응에서 이 백업으로 실제 복구를 해 봅니다.',
+    field: '이 백업은 같은 서버의 /u01에 있습니다. 서버나 디스크가 통째로 망가지면 백업도 함께 잃으니, 현장에서는 테이프나 다른 저장소로 한 번 더 보냅니다. 매일 백업은 보통 cron이나 Oracle Scheduler로 돌립니다. Scheduler로 OS 스크립트를 돌리는 "외부 작업"은 CREATE JOB, CREATE EXTERNAL JOB 권한이 필요하고, Administrator\'s Guide는 DBMS_CREDENTIAL로 만든 자격 증명을 쓰라고 권합니다. 자격 증명 없이 SYS가 아닌 사용자의 외부 작업은 <code>$ORACLE_HOME/rdbms/admin/externaljob.ora</code>의 run_user, run_group으로 실행됩니다. 5단계 장애 대응에서 이 백업으로 실제 복구를 해 봅니다.',
     sources: ['adarch', 'rmstart', 'rmcfg', 'rmbk', 'rmmnt', 'tutback', 'adsch', 'adsch2'] },
 
   { id: 29, stage: 3, title: '졸업 미션: 재부팅 뒤 아침 점검', short: '졸업 미션', start: 'oracle',
@@ -5065,7 +5668,7 @@ LESSONS.push(
 
   { id: 36, stage: 4, title: '졸업 미션: 장애가 겹친 아침', short: '졸업 미션', start: 'oracle',
     who: '박팀장',
-    situation: '오늘 아침 연락이 두 개 왔어요. ① 앱팀: "주문 이력 조회가 ORA-01116으로 실패해요." ② 개발팀: "어제 밤에 cust_memo 테이블을 실수로 지웠어요." 4단계에서 배운 대로 데이터 손실 없이 해결하고, 장애 보고서를 ~/incident_report.txt로 남겨 주세요.',
+    situation: '오늘 아침 연락이 두 개 왔어요. ① 앱팀: "주문 이력 조회가 ORA-01116으로 실패해요." ② 개발팀: "어제 밤에 cust_memo 테이블을 실수로 지웠어요." 5단계에서 배운 대로 데이터 손실 없이 해결하고, 장애 보고서를 ~/incident_report.txt로 남겨 주세요.',
     tasks: [
       { text: '앱 계정으로 첫 번째 증상 확인하기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => failed(ev, 'ORA-01116') },
       { text: 'RMAN으로 없어진 파일 확인하기', hint: 'exit\nrman target /\nvalidate database;', done: ev => ev.rmanValidate && (ev.rmanValidateBad || []).length > 0 },
@@ -5074,7 +5677,7 @@ LESSONS.push(
       { text: 'RMAN에서 나와 APP 계정으로 지운 테이블 되살리기', hint: 'exit\nsqlplus app/App#2026@ORCL\nshow recyclebin\nflashback table cust_memo to before drop;', done: () => !!S.db.tables['APP.CUST_MEMO'] },
       { text: '두 테이블 모두 조회되는지 확인하기', hint: 'select count(*) from order_hist;\nselect count(*) from cust_memo;', done: ev => asUser('APP') && (qtab(ev, 'APP.CUST_MEMO') || qtab(ev, 'APP.ORDER_HIST')) && fileOk(2) && !!S.db.tables['APP.CUST_MEMO'] },
       { text: '장애 보고서 남기기', hint: "exit\necho '09:10 users02.dbf 삭제로 ORA-01116 → USERS OFFLINE, RESTORE/RECOVER, ONLINE (손실 없음). cust_memo DROP → FLASHBACK TABLE TO BEFORE DROP (손실 없음).' > ~/incident_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/incident_report.txt') || {}).txt || ''),
-        why: '수고했습니다. 4단계 장애 대응을 마쳤습니다. 장애 보고서에는 시각(언제 알았고 언제 끝났나), 증상(오류 번호), 원인, 조치(명령), 잃은 데이터, 재발 방지책을 적습니다. 다음 사람이 같은 장애를 만났을 때 이 보고서가 가장 좋은 교과서가 됩니다.' },
+        why: '수고했습니다. 5단계 장애 대응을 마쳤습니다. 장애 보고서에는 시각(언제 알았고 언제 끝났나), 증상(오류 번호), 원인, 조치(명령), 잃은 데이터, 재발 방지책을 적습니다. 다음 사람이 같은 장애를 만났을 때 이 보고서가 가장 좋은 교과서가 됩니다.' },
     ],
     field: '장애 때 가장 위험한 것은 서두르다 상황을 더 나쁘게 만드는 것입니다. 복구 명령을 치기 전에 ① 무엇이 망가졌는지(오류 번호, alert log, VALIDATE) ② 쓸 백업이 있는지 ③ 복구로 잃을 것이 있는지를 확인하고, 할 수 있으면 다른 사람과 함께 봅니다. 복구가 끝나면 새 백업을 한 번 받아 두는 것도 잊지 마세요.',
     sources: ['rmrec', 'fbtab', 'e01116', 'sqshow'] },
@@ -5103,17 +5706,17 @@ LESSONS.push(
     situation: () => `"큰일 났어요. 운영 DB에서 오늘 ${at5()}에 TRUNCATE TABLE app.order_hist가 실행됐어요. 주문 이력이 통째로 비었어요." TRUNCATE는 휴지통에 남지 않고, 이 DB는 Flashback Database도 켜 두지 않았습니다. 업무팀과 협의해서, 사고 2분 전 시각으로 DB 전체를 되돌리기로 했어요. 그 뒤에 들어온 변경은 잃는다는 데 모두 동의했어요.`,
     tasks: [
       { text: '앱 계정으로 테이블이 정말 비었는지 확인하기', hint: 'sqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => asUser('APP') && qtab(ev, 'APP.ORDER_HIST'),
-        why: '<code>0</code>건입니다. SQL Language Reference 19c의 TRUNCATE TABLE 주의 문구: "TRUNCATE TABLE 문은 롤백할 수 없고, FLASHBACK TABLE 문으로 비운 테이블의 내용을 되찾을 수도 없다." 4단계의 휴지통으로도 되살릴 수 없습니다.' },
+        why: '<code>0</code>건입니다. SQL Language Reference 19c의 TRUNCATE TABLE 주의 문구: "TRUNCATE TABLE 문은 롤백할 수 없고, FLASHBACK TABLE 문으로 비운 테이블의 내용을 되찾을 수도 없다." 5단계의 휴지통으로도 되살릴 수 없습니다.' },
       { text: 'SQL*Plus에서 나와 RMAN 날짜 형식 맞추기', hint: 'exit\nexport NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"', done: () => !S.sql && String(S.env.NLS_DATE_FORMAT || '').replace(/['"]/g, '').toUpperCase() === 'YYYY-MM-DD HH24:MI:SS',
         why: 'Backup and Recovery User\'s Guide 19c의 DBPITR 절차 3단계: "시각으로 목표를 정한다면 RMAN을 실행하기 전에 시각 형식 환경 변수를 맞춰 두라." Reference 19c의 untilClause도 UNTIL TIME 문자열이 NLS_DATE_FORMAT 형식과 맞아야 한다고 설명합니다. 문서 예시는 <code>"Mon DD YYYY HH24:MI:SS"</code>이고, 실습에서는 읽기 쉬운 <code>YYYY-MM-DD HH24:MI:SS</code>를 씁니다.' },
       { text: 'RMAN으로 접속해서 사고 전 백업이 있는지 보기', hint: 'rman target /\nlist backup summary;', done: ev => ev.rmanList,
         why: '오늘 새벽과 어제 새벽의 전체 백업(LV F)이 있습니다. 목표 시각보다 앞선 백업이 있어야 시점 복구를 할 수 있습니다.' },
       { text: 'RMAN에서 나와 DB를 MOUNT 상태로 내렸다 올리기', hint: 'exit\nsqlplus / as sysdba\nshutdown immediate\nstartup mount\nexit', done: () => S.db.state === 'MOUNTED' && !S.sql,
-        why: '문서 절차 5단계: <code>SHUTDOWN IMMEDIATE;</code> <code>STARTUP MOUNT;</code> DB 전체를 되돌리므로 업무는 이 순간부터 멈춥니다. 데이터 파일을 모두 덮어써야 하니 DB가 열려 있으면 안 됩니다.' },
+        why: '문서 절차 6단계: <code>SHUTDOWN IMMEDIATE;</code> <code>STARTUP MOUNT;</code> DB 전체를 되돌리므로 업무는 이 순간부터 멈춥니다. 데이터 파일을 모두 덮어써야 하니 DB가 열려 있으면 안 됩니다.' },
       { text: 'RMAN의 RUN 블록으로 목표 시각까지 복원·복구하기', hint: () => `rman target /\nrun {\n  set until time '${PITR_UNTIL()}';\n  restore database;\n  recover database;\n}`, done: ev => !!(ev.rmanRecoverDb && ev.rmanRecoverDb.until) && S.db.needResetlogs,
-        why: '문서 절차 6단계와 같은 모양입니다: <code>RUN { SET UNTIL ...; RESTORE DATABASE; RECOVER DATABASE; }</code>. Reference 19c는 SET UNTIL을 RESTORE와 RECOVER 앞에 함께 두라고 권합니다. 그래야 목표 시각보다 앞선 백업을 고르고, 아카이브 로그를 딱 그 시각까지만 적용합니다. 문서: "오류 없이 끝나면 DBPITR은 성공한 것이다." 목표 시각은 포함하지 않는 상한입니다(untilClause).' },
+        why: '문서 절차 7단계와 같은 모양입니다: <code>RUN { SET UNTIL ...; RESTORE DATABASE; RECOVER DATABASE; }</code>. Reference 19c는 SET UNTIL을 RESTORE와 RECOVER 앞에 함께 두라고 권합니다. 그래야 목표 시각보다 앞선 백업을 고르고, 아카이브 로그를 딱 그 시각까지만 적용합니다. 문서: "오류 없이 끝나면 DBPITR은 성공한 것이다." 목표 시각은 포함하지 않는 상한입니다(untilClause).' },
       { text: 'RESETLOGS로 DB 열기', hint: 'alter database open resetlogs;', done: () => S.db.state === 'OPEN' && !S.db.needResetlogs,
-        why: '<code>ALTER DATABASE OPEN RESETLOGS;</code> Reference 19c(RECOVER): "불완전 복구(DBPITR) 뒤에는 RESETLOGS 옵션으로 DB를 열어야 한다." 문서 7단계는 이것을 "목표 시각 뒤의 모든 변경을 버리고 읽기·쓰기로 연다"고 설명합니다. 그냥 <code>alter database open</code>을 치면 ORA-01589로 막힙니다.' },
+        why: '<code>ALTER DATABASE OPEN RESETLOGS;</code> Reference 19c(RECOVER): "불완전 복구(DBPITR) 뒤에는 RESETLOGS 옵션으로 DB를 열어야 한다." 문서 8단계는 이것을 "목표 시각 뒤의 모든 변경을 버리고 읽기·쓰기로 연다"고 설명합니다. 그냥 <code>alter database open</code>을 치면 ORA-01589로 막힙니다.' },
       { text: 'RMAN에서 나와 주문 이력이 돌아왔는지 확인하기', hint: 'exit\nsqlplus app/App#2026@ORCL\nselect count(*) from order_hist;', done: ev => asUser('APP') && qtab(ev, 'APP.ORDER_HIST') && !stillEmpty(),
         why: '건수가 돌아왔습니다. 대신 사고 2분 전부터 지금까지 들어온 다른 변경은 모두 사라졌습니다. 업무팀은 그 시간의 주문을 다시 넣어야 합니다. 목표 시각을 사고 뒤로 잡았거나 SET UNTIL 없이 끝까지 복구했다면 TRUNCATE까지 다시 적용되어 0건 그대로였을 것입니다.' },
       { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
@@ -5146,7 +5749,7 @@ LESSONS.push(
 
   { id: 43, stage: 5, title: '졸업 미션: 지워진 테이블과 빈 휴지통', short: '졸업 미션', start: 'oracle',
     who: '박팀장',
-    situation: () => `개발팀 송대리가 오늘 ${at5()}에 운영 DB에서 <code>DROP TABLE app.cust_memo PURGE</code>를 실행했습니다. 고객 상담 메모는 법적 보관 대상이라 반드시 되살려야 하고, 업무팀은 그 뒤에 들어온 변경을 다시 넣기로 했어요. 4단계에서 배운 휴지통부터 확인하고, 안 되면 사고 2분 전으로 시점 복구하세요. 끝나면 ~/incident_pitr.txt 에 보고서를 남겨 주세요.`,
+    situation: () => `개발팀 송대리가 오늘 ${at5()}에 운영 DB에서 <code>DROP TABLE app.cust_memo PURGE</code>를 실행했습니다. 고객 상담 메모는 법적 보관 대상이라 반드시 되살려야 하고, 업무팀은 그 뒤에 들어온 변경을 다시 넣기로 했어요. 5단계에서 배운 휴지통부터 확인하고, 안 되면 사고 2분 전으로 시점 복구하세요. 끝나면 ~/incident_pitr.txt 에 보고서를 남겨 주세요.`,
     tasks: [
       { text: '앱 계정으로 휴지통부터 확인하기', hint: 'sqlplus app/App#2026@ORCL\nshow recyclebin\nflashback table cust_memo to before drop;', done: ev => failed(ev, 'ORA-38305') || (ev.showRecyc && !ev.showRecycRows),
         why: 'PURGE로 지운 테이블은 휴지통을 거치지 않습니다. SQL Language Reference 19c는 휴지통에서 지운(purge) 테이블은 FLASHBACK TABLE로 되살릴 수 없다고 설명합니다.' },
@@ -5157,7 +5760,7 @@ LESSONS.push(
         why: 'RESETLOGS 뒤의 첫 백업입니다. 다음 장애 때 되돌아갈 출발점을 새로 만든 것입니다.' },
       { text: 'RMAN에서 나와 테이블이 돌아왔는지 확인하기', hint: 'exit\nsqlplus app/App#2026@ORCL\nselect count(*) from cust_memo;\nexit', done: ev => asUser('APP') && qtab(ev, 'APP.CUST_MEMO') },
       { text: '장애 보고서 남기기', hint: () => `exit\necho '${at5()} cust_memo DROP PURGE → ${PITR_UNTIL().slice(11)} 시점 복구, OPEN RESETLOGS, 새 백업. 그 뒤 변경은 재입력 필요.' > ~/incident_pitr.txt`, done: () => !S.sql && /\S/.test((node('/home/oracle/incident_pitr.txt') || {}).txt || ''),
-        why: '수고했습니다. 5단계 고급 복구를 마쳤습니다. 시점 복구 보고서에는 목표 시각을 어떻게 정했는지, 잃은 변경의 범위(목표 시각부터 열 때까지), 누가 결정했는지를 꼭 적습니다.' },
+        why: '수고했습니다. 6단계 고급 복구를 마쳤습니다. 시점 복구 보고서에는 목표 시각을 어떻게 정했는지, 잃은 변경의 범위(목표 시각부터 열 때까지), 누가 결정했는지를 꼭 적습니다.' },
     ],
     field: '이런 사고를 줄이는 방법은 복구보다 앞에 있습니다. 운영 DB 계정에 DROP 권한을 함부로 주지 않기, 개발자 접속과 운영 접속을 구분하기, 중요한 테이블이 있는 DB는 Flashback Database나 보존 기간이 긴 UNDO를 검토하기. 문서가 드는 다른 대안(Data Pump로 객체만 옮기기)도 기억해 두세요.',
     sources: ['pitr', 'fbtab', 'rcuntil', 'rmrecref'] },
@@ -5202,7 +5805,7 @@ LESSONS.push(
 
   { id: 53, stage: 6, title: '졸업 미션: 주문 저장이 멈춘 아침', short: '졸업 미션', start: 'oracle',
     who: '박팀장',
-    situation: '"주문 저장 버튼을 누르면 화면이 돌기만 해요!" 오전 9시, 콜센터 전화가 몰립니다. 6단계에서 배운 순서대로 무엇을 기다리는지 찾고, 원인 세션을 정리한 뒤 ~/perf_report.txt 에 보고서를 남겨 주세요. 세션을 끊는 것은 팀장님이 승인했습니다.',
+    situation: '"주문 저장 버튼을 누르면 화면이 돌기만 해요!" 오전 9시, 콜센터 전화가 몰립니다. 7단계에서 배운 순서대로 무엇을 기다리는지 찾고, 원인 세션을 정리한 뒤 ~/perf_report.txt 에 보고서를 남겨 주세요. 세션을 끊는 것은 팀장님이 승인했습니다.',
     tasks: [
       { text: 'Idle이 아닌 사용자 세션의 대기 이벤트 보기', hint: "sqlplus / as sysdba\nset linesize 200\ncol event format a32\nselect sid, username, event, wait_class, blocking_session, seconds_in_wait from v$session where type = 'USER' and wait_class <> 'Idle';", done: ev => qsel(ev, 'V$SESSION') && /WAIT_CLASS/.test(ev.sqlU),
         why: '<code>enq: TX - row lock contention</code>(Application)입니다. Database Reference 19c: "한 사용자가 다른 세션이 고치고 있는 행을 고치거나 지우려 할 때" 생기고, "잠금을 쥔 세션이 COMMIT이나 ROLLBACK을 하면 풀린다." BLOCKING_SESSION이 모두 88입니다.' },
@@ -5213,7 +5816,7 @@ LESSONS.push(
         why: '<code>no rows selected</code>. 기다리던 세션이 모두 풀렸습니다. 끊긴 세션의 고치다 만 변경은 롤백됩니다. 송대리에게 무엇을 고치던 중이었는지 알려 주어야 합니다.' },
       { text: '누적 대기 순위로 오늘 아침 상황 확인하기', hint: "select event, total_waits, round(time_waited_micro/1000000) waited_s, wait_class from v$system_event where wait_class <> 'Idle' order by time_waited_micro desc;", done: ev => qsel(ev, 'V$SYSTEM_EVENT') },
       { text: '보고서 남기기', hint: "exit\necho '09:05 주문 저장 멈춤: enq: TX - row lock contention, 원인 SID 88(dev-pc07 SQL Developer, 40분 미커밋). 승인 후 KILL, 대기 해소. 재발 방지: 운영 DB 개발자 직접 접속 제한' > ~/perf_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/perf_report.txt') || {}).txt || ''),
-        why: '수고했습니다. 6단계 성능 점검과 DBA 실습 과정 전체를 마쳤습니다. 리눅스 기초부터 장애 복구, 성능 점검까지, 신입 DBA가 현장에서 처음 몇 달 동안 만나는 일들을 한 번씩 손으로 해 보았습니다.' },
+        why: '수고했습니다. 7단계 성능 점검과 DBA 실습 과정 전체를 마쳤습니다. 리눅스 기초부터 장애 복구, 성능 점검까지, 신입 DBA가 현장에서 처음 몇 달 동안 만나는 일들을 한 번씩 손으로 해 보았습니다.' },
     ],
     field: '성능 문제의 첫 질문은 언제나 "무엇을 기다리는가"입니다. 대기 클래스가 Application이면 잠금, Commit이면 커밋 횟수, User I/O면 읽는 양과 SQL, Concurrency면 내부 자원 경합 쪽을 봅니다(Database Reference 19c의 대기 클래스 정의).',
     sources: ['waitev', 'waitcls', 'tginst'] },
@@ -5270,7 +5873,7 @@ LESSONS.push(
 
   { id: 63, stage: 7, title: '졸업 미션: RU 되돌리기 (롤백)', short: '졸업 미션', start: 'oracle',
     who: '박팀장',
-    situation: () => `"어젯밤 RU를 적용한 뒤로 정산 배치 하나가 계속 실패해요. 오라클 지원에 문의했더니 원인이 나올 때까지 패치를 되돌리는 것을 권했습니다. 오늘 밤 긴급 점검으로 롤백합시다." 7단계에서 배운 순서를 거꾸로 밟아 ${RU_NEW.id}를 되돌리고, ~/patch_report.txt 에 결과를 남겨 주세요. 점검 공지와 접속 차단은 끝났습니다.`,
+    situation: () => `"어젯밤 RU를 적용한 뒤로 정산 배치 하나가 계속 실패해요. 오라클 지원에 문의했더니 원인이 나올 때까지 패치를 되돌리는 것을 권했습니다. 오늘 밤 긴급 점검으로 롤백합시다." 8단계에서 배운 순서를 거꾸로 밟아 ${RU_NEW.id}를 되돌리고, ~/patch_report.txt 에 결과를 남겨 주세요. 점검 공지와 접속 차단은 끝났습니다.`,
     tasks: [
       { text: '되돌리기 전 상태를 파일로 남기기', hint: '$ORACLE_HOME/OPatch/opatch lspatches\n$ORACLE_HOME/OPatch/opatch lsinventory -oh $ORACLE_HOME > ~/lsinv_before_rollback.txt', done: () => /Interim patches/.test((node('/home/oracle/lsinv_before_rollback.txt') || {}).txt || ''),
         why: '되돌릴 때도 바꾸기 전 상태를 먼저 남깁니다. 지원 엔지니어가 가장 먼저 묻는 것이 lsinventory 결과입니다.' },
@@ -5283,7 +5886,7 @@ LESSONS.push(
       { text: '롤백 기록 확인하기', hint: "sqlplus / as sysdba\nset linesize 200\nselect install_id, patch_id, action, status, source_version, target_version from dba_registry_sqlpatch order by install_id;", done: ev => qsel(ev, 'DBA_REGISTRY_SQLPATCH') && patchState().reg.some(r => r.ACTION === 'ROLLBACK'),
         why: () => `ACTION이 ROLLBACK, STATUS가 SUCCESS인 줄이 새로 생겼습니다. Database Reference 19c: 이 뷰는 적용과 롤백마다 한 줄씩 남기므로, 줄을 지우지 않고 이력이 쌓입니다.` },
       { text: '보고서 남기기', hint: () => `exit\necho '긴급 점검: RU ${RU_NEW.id}(${RU_NEW.ver}) 롤백 완료. opatch rollback 후 datapatch -verbose, DBA_REGISTRY_SQLPATCH ROLLBACK SUCCESS 확인. 현재 19.3. 정산 배치 재실행 확인 요청, SR 원인 분석 대기' > ~/patch_report.txt`, done: () => !S.sql && /\S/.test((node('/home/oracle/patch_report.txt') || {}).txt || ''),
-        why: '수고했습니다. 7단계 패치를 마쳤습니다. 패치 전 점검, 적용, 확인, 되돌리기까지 한 번씩 해 보았습니다.' },
+        why: '수고했습니다. 8단계 패치를 마쳤습니다. 패치 전 점검, 적용, 확인, 되돌리기까지 한 번씩 해 보았습니다.' },
     ],
     field: '롤백은 적용의 거울입니다. 바이너리는 opatch rollback, DB 안은 datapatch가 맡습니다. 그래서 적용 전에 남긴 lsinventory와 DBA_REGISTRY_SQLPATCH 기록이 중요합니다. Patch Maintenance 문서가 out-of-place 패치를 권하는 이유도 여기에 있습니다. 새 오라클 홈에 패치해 두고 DB만 옮기면, 문제가 생겼을 때 옛 홈으로 다시 옮기기만 하면 되기 때문입니다.',
     sources: ['optch', 'opsi26', 'regsqlp', 'dbptc'] },
@@ -5291,8 +5894,8 @@ LESSONS.push(
 
 LESSONS.push(
   { id: 71, stage: 8, title: '느린 SQL의 실행 계획 읽기', short: '실행 계획', start: 'oracle',
-    who: '영업팀 김과장 (전화, 6단계에서 이어짐)',
-    situation: '"월별 주문 조회가 여전히 1분 넘게 걸려요." 6단계에서 찾은 SQL(sql_id 8wzq2k1ptm6c4)은 주문 이력 테이블을 통째로 읽고 있었습니다. 이번에는 옵티마이저가 이 SQL을 어떻게 실행하기로 했는지, 실행 계획을 직접 읽어 봅니다.',
+    who: '영업팀 김과장 (전화, 7단계에서 이어짐)',
+    situation: '"월별 주문 조회가 여전히 1분 넘게 걸려요." 7단계에서 찾은 SQL(sql_id 8wzq2k1ptm6c4)은 주문 이력 테이블을 통째로 읽고 있었습니다. 이번에는 옵티마이저가 이 SQL을 어떻게 실행하기로 했는지, 실행 계획을 직접 읽어 봅니다.',
     tasks: [
       { text: '앱 계정으로 접속해서 같은 조건의 실행 계획 만들기', hint: "sqlplus app/App#2026@ORCL\nexplain plan for select order_id, order_date, amount from order_hist where to_char(order_date, 'YYYYMM') = '202611';", done: ev => !!ev.explain,
         why: '<code>Explained.</code> SQL Language Reference 19c: EXPLAIN PLAN은 "Oracle Database가 그 SQL 문을 실행할 계획"을 정해 PLAN_TABLE에 적습니다. SQL을 실제로 실행하지는 않습니다.' },
@@ -5325,7 +5928,7 @@ LESSONS.push(
 
   { id: 73, stage: 8, title: '졸업 미션: 고객별 주문 조회가 느린 아침', short: '졸업 미션', start: 'oracle',
     who: '고객센터 한팀장',
-    situation: '"고객 번호로 주문 내역을 찾는 화면이 오늘 아침부터 10초씩 걸려요. 상담 대기가 길어지고 있어요." 8단계에서 배운 순서대로 원인 SQL과 계획을 확인하고, 필요하면 인덱스를 만들어 해결한 뒤 ~/tuning_report.txt 에 보고서를 남겨 주세요. 업무 시간이라 인덱스는 DML을 막지 않는 ONLINE으로 만듭니다. 인덱스 추가는 팀장님이 승인했습니다.',
+    situation: '"고객 번호로 주문 내역을 찾는 화면이 오늘 아침부터 10초씩 걸려요. 상담 대기가 길어지고 있어요." 9단계에서 배운 순서대로 원인 SQL과 계획을 확인하고, 필요하면 인덱스를 만들어 해결한 뒤 ~/tuning_report.txt 에 보고서를 남겨 주세요. 업무 시간이라 인덱스는 DML을 막지 않는 ONLINE으로 만듭니다. 인덱스 추가는 팀장님이 승인했습니다.',
     tasks: [
       { text: '느린 SQL 찾기', hint: "sqlplus / as sysdba\nset linesize 200\ncol sql_text format a70\nselect sql_id, executions, round(elapsed_time/1000000) elapsed_s, disk_reads, sql_text from v$sql where module = 'cs-web';", done: ev => qsel(ev, 'V$SQL'),
         why: '<code>c7d2kq9x4m1pz</code>: <code>WHERE CUST_ID = :B1</code>로 한 고객의 주문을 찾는데, 8,812번 실행에 디스크 읽기가 2억 8천만 블록입니다. 한 번에 약 32,600블록(287,610,212 ÷ 8,812 ≈ 32,638), 테이블 전체 크기만큼 읽습니다.' },
@@ -5340,7 +5943,7 @@ LESSONS.push(
       { text: '같은 SQL의 계획이 바뀌었는지 확인하기', hint: 'explain plan for select order_id, order_date, amount, status from app.order_hist where cust_id = 10233 order by order_date desc;\nselect * from table(dbms_xplan.display);', done: ev => ev.xplan && ev.xplan.plan && ev.xplan.plan.usesIndex && /CUST/.test(ev.xplan.plan.usesIndex),
         why: '<code>INDEX RANGE SCAN IX_ORDER_HIST_CUST</code>와 <code>access("CUST_ID"=10233)</code>입니다. 이미 실행 중인 커서는 다음 하드 파스 때 새 계획을 고릅니다. 앱 화면에서 다시 확인해 달라고 요청합니다.' },
       { text: '보고서 남기기', hint: "exit\necho '고객별 주문 조회 지연: c7d2kq9x4m1pz(WHERE CUST_ID=:B1) TABLE ACCESS FULL, CUST_ID 인덱스 없음, 통계 41일 경과(STALE). 통계 재수집, IX_ORDER_HIST_CUST(cust_id) ONLINE 생성, 계획 INDEX RANGE SCAN 확인' > ~/tuning_report.txt", done: () => !S.sql && /\S/.test((node('/home/oracle/tuning_report.txt') || {}).txt || ''),
-        why: '수고했습니다. 8단계 SQL 튜닝 입문을 마쳤습니다. 느린 SQL 찾기(6단계) → 실행 계획 읽기 → 조건 고치기 또는 인덱스 → 다시 계획 확인, 이 순서를 한 번씩 밟아 보았습니다.' },
+        why: '수고했습니다. 9단계 SQL 튜닝 입문을 마쳤습니다. 느린 SQL 찾기(7단계) → 실행 계획 읽기 → 조건 고치기 또는 인덱스 → 다시 계획 확인, 이 순서를 한 번씩 밟아 보았습니다.' },
     ],
     field: '인덱스는 공짜가 아닙니다. 테이블에 행을 넣고 고칠 때마다 인덱스도 함께 고쳐야 하므로, 입력이 많은 테이블에 인덱스를 늘리면 입력이 느려집니다. 그래서 운영에서는 ① 정말 그 열로 자주 찾는지 ② 고르는 행이 적은지(선택도) ③ 같은 열로 시작하는 인덱스가 이미 있는지를 확인하고, 업무 시간에는 ONLINE으로 만듭니다.',
     sources: ['tgaccess', 'tgstats', 'crindex', 'xplan', 'tgxplan'] },
@@ -5409,10 +6012,227 @@ LESSONS.push(
       { text: '새 주 DB(dbserver03)에 접속해 역할 보기', hint: 'conn sys/Oracle#19c@ORCLSTBY as sysdba\nselect name, db_unique_name, database_role, open_mode from v$database;', done: ev => selCols(ev, 'V$DATABASE', 'DATABASE_ROLE') && onStby() && S.dg.remote.role === 'PRIMARY',
         why: 'DATABASE_ROLE <code>PRIMARY</code>, OPEN_MODE <code>READ WRITE</code>입니다. 이제 V$DATAGUARD_STATS를 보려면 반대로 dbserver02 쪽(새 대기 DB)에 접속해야 합니다.' },
       { text: '작업 보고서 남기기', hint: "exit\necho '스위치오버: orcl(dbserver02) → orclstby(dbserver03). 사전 VALIDATE Ready for Switchover: Yes, 전환 성공, 새 주 DB orclstby READ WRITE, orcl PHYSICAL STANDBY MOUNTED. 패치 후 원복(switchover to orcl) 예정' > ~/switchover_report.txt", done: memo9('switchover_report.txt'),
-        why: '수고했습니다. 9단계 Data Guard 기초를 마쳤습니다. 상태 점검 → 적용 문제 해결 → 계획된 전환까지, 운영 DBA가 Data Guard에서 가장 자주 하는 세 가지를 한 번씩 해 보았습니다. 패치가 끝나면 같은 순서(show configuration → validate database orcl → switchover to orcl)로 되돌립니다.' },
+        why: '수고했습니다. 10단계 Data Guard 기초를 마쳤습니다. 상태 점검 → 적용 문제 해결 → 계획된 전환까지, 운영 DBA가 Data Guard에서 가장 자주 하는 세 가지를 한 번씩 해 보았습니다. 패치가 끝나면 같은 순서(show configuration → validate database orcl → switchover to orcl)로 되돌립니다.' },
     ],
     field: '스위치오버는 계획된 작업(패치, 장비 교체)에 쓰고, 주 DB가 갑자기 망가졌을 때는 페일오버(FAILOVER)를 씁니다. 스위치오버는 두 DB가 모두 살아 있는 상태에서 역할을 맞바꾸므로 데이터를 잃지 않고 나중에 되돌릴 수 있습니다. 전환 뒤에 꼭 확인할 것은 앱이 새 주 DB로 접속하는지입니다. 접속 문자열이 dbserver02 한 곳만 가리키고 있으면 앱은 대기 DB로 가서 접속에 실패합니다. 그래서 운영에서는 접속 설정에 두 서버를 모두 넣어 두거나, 역할에 따라 켜지는 서비스를 따로 만들어 앱이 그 서비스로 접속하게 합니다.',
     sources: ['dgbrkex', 'dgbrkcmd', 'dgrole', 'vdb'] },
+);
+
+/* ---------- 4단계 SQL 기초 (내부 단계 키 10, 레슨 id 91~96) ---------- */
+const qt = (ev, t) => okSql(ev) && ev.select && ev.select.views.some(v => v === t || v === 'STUDY.' + t);
+const nrows = (ev) => ev.select ? ev.select.rows.length : -1;
+const asStudy = () => asUser('STUDY');
+const utRow = (tb, id, committed) => { const d = committed ? S.db.utC : S.db.ut; const t = d && d['STUDY.' + tb]; return t ? t.rows.find(r => r[tb === 'EMP' ? 'EMP_ID' : tb === 'DEPT' ? 'DEPT_ID' : 'TRAIN_ID'] === id) : null; };
+const CONN10 = { text: 'SQL 연습 계정(STUDY)으로 접속하기', hint: 'sqlplus study/Study#2026', done: ev => !!ev.connected && asStudy(),
+  why: '연습 계정 STUDY로 접속했습니다. 일반 사용자로 접속하면 프롬프트는 똑같이 <code>SQL&gt;</code>이지만, 내 스키마(STUDY)의 테이블은 이름만으로 부를 수 있습니다. <code>emp</code>는 <code>study.emp</code>와 같습니다.' };
+LESSONS.push(
+  { id: 91, stage: 10, title: 'SELECT로 테이블 읽기', short: 'SELECT', start: 'oracle',
+    who: 'DBA 팀장 (교육)',
+    situation: '"DBA도 SQL을 읽고 쓸 줄 알아야 합니다. 장애 때 V$ 뷰를 조회하는 것도, 개발자가 가져온 느린 SQL을 보는 것도 다 SQL이에요. 연습 계정 STUDY에 부서(DEPT)와 사원(EMP) 테이블을 만들어 두었으니, 오늘은 읽기부터 해 봅시다. 마음대로 해도 운영에는 영향이 없습니다."',
+    tasks: [
+      { text: '연습 계정 안내문 읽기', hint: 'cat ~/study_account.txt', done: ev => ev.read.has('/home/oracle/study_account.txt'),
+        why: '접속 정보와 테이블 두 개(DEPT, EMP)가 적혀 있습니다. 이 단계의 사원 이름, 급여, 입사일은 모두 설명용 예시 데이터입니다.' },
+      CONN10,
+      { text: '내 스키마에 있는 테이블 목록 보기', hint: 'select table_name from user_tables;', done: ev => qsel(ev, 'USER_TABLES'),
+        why: '<code>USER_TABLES</code>는 "지금 접속한 사용자가 가진 테이블"을 보여 주는 데이터 사전 뷰입니다. DBA는 모든 사용자의 테이블을 보는 <code>DBA_TABLES</code>를 더 자주 씁니다. 이름의 앞머리가 USER_(내 것), ALL_(내가 볼 수 있는 것), DBA_(전부)로 나뉩니다.' },
+      { text: 'EMP 테이블의 열과 형식 보기', hint: 'desc emp', done: ev => ev.desc === 'EMP',
+        why: '<code>DESC</code>는 SQL이 아니라 SQL*Plus 명령이라 끝에 ;가 없어도 됩니다. <code>NUMBER(8)</code>은 숫자 8자리, <code>VARCHAR2(30)</code>은 30바이트까지의 문자열, <code>DATE</code>는 날짜와 시각입니다. <code>Null?</code> 칸의 <code>NOT NULL</code>은 값을 반드시 넣어야 하는 열이라는 뜻입니다.' },
+      { text: 'DEPT 테이블의 모든 행과 열 보기', hint: 'select * from dept;', done: ev => qt(ev, 'DEPT') && sqlRe(ev, /^SELECT \* FROM/),
+        why: '<code>*</code>는 "모든 열"입니다. 행 4개가 나옵니다. 운영 DB의 큰 테이블에 <code>select *</code>를 조건 없이 실행하면 수백만 행을 읽게 되므로, 실무에서는 필요한 열과 조건을 꼭 적습니다.' },
+      { text: '필요한 열만 고르고, 계산한 열에 별칭 붙이기', hint: 'set linesize 120\ncol emp_name format a12\nselect emp_name, salary, salary * 12 as annual_salary from emp;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /SALARY ?\* ?12/),
+        why: 'SELECT 목록에는 열 이름뿐 아니라 계산식도 쓸 수 있습니다. <code>AS annual_salary</code>는 결과 열의 이름(별칭)입니다. 별칭이 없으면 제목이 <code>SALARY*12</code>처럼 식 그대로 나옵니다. <code>set linesize</code>와 <code>col ... format a12</code>는 SQL*Plus 화면을 보기 좋게 하는 명령입니다(3단계에서 써 봤습니다).' },
+      { text: '직무(JOB) 종류를 중복 없이 보기', hint: 'select distinct job from emp;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /^SELECT (DISTINCT|UNIQUE) JOB\b/) && nrows(ev) === 4,
+        why: '사원은 10명이지만 직무는 팀장, 개발, 영업, 인사 네 가지입니다. SQL Language Reference 19c: DISTINCT(또는 UNIQUE)를 쓰면 "중복된 행은 한 번만" 돌려준다. 이 레슨을 마쳤습니다. 다음은 원하는 행만 골라내는 WHERE입니다.' },
+    ],
+    field: 'SQL 문은 SELECT(무엇을) FROM(어디서) 순서로 읽으면 쉽습니다. 실무에서 DBA가 쓰는 SQL의 대부분은 데이터 사전(DBA_, V$)을 조회하는 SELECT입니다. 그래서 처음에는 업무 데이터보다 "이 열이 무슨 뜻인지"를 DESC와 문서(Database Reference)로 확인하는 습관이 더 중요합니다.',
+    sources: ['sqlselect', 'sqlqueries', 'sqlpuserguide'] },
+
+  { id: 92, stage: 10, title: 'WHERE로 고르고 ORDER BY로 정렬하기', short: 'WHERE·정렬', start: 'oracle',
+    who: 'DBA 팀장 (교육)',
+    situation: '"이번엔 조건입니다. 인사팀이 자주 묻는 질문들을 SQL로 바꿔 보세요. 부서, 급여 범위, 이름, 그리고 \'부서가 아직 안 정해진 사람\'까지요. 마지막 것은 함정이 하나 있습니다."',
+    tasks: [
+      CONN10,
+      { text: '개발팀(부서 번호 20) 사원만 보기', hint: 'set linesize 120\ncol emp_name format a12\nselect emp_name, job, salary from emp where dept_id = 20;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /WHERE .*DEPT_ID ?= ?20\b/) && nrows(ev) === 4,
+        why: '<code>WHERE</code> 뒤의 조건이 참인 행만 나옵니다. 숫자는 따옴표 없이 씁니다.' },
+      { text: '직무가 \'개발\'이면서 급여가 500만 원 이상인 사원 찾기', hint: "select emp_name, job, salary from emp where job = '개발' and salary >= 5000000;", done: ev => qt(ev, 'EMP') && sqlRe(ev, / AND /) && nrows(ev) === 1,
+        why: '문자열은 작은따옴표로 감쌉니다. <code>AND</code>는 두 조건이 모두 참, <code>OR</code>는 하나만 참이어도 됩니다. 섞어 쓸 때는 괄호로 묶어야 뜻이 분명해집니다.' },
+      { text: '이름이 \'김\'으로 시작하는 사원 찾기', hint: "select emp_name from emp where emp_name like '김%';", done: ev => qt(ev, 'EMP') && sqlRe(ev, / LIKE /) && nrows(ev) >= 1,
+        why: '<code>LIKE</code>에서 <code>%</code>는 "아무 글자나 몇 글자든", <code>_</code>는 "아무 글자 한 개"입니다.' },
+      { text: '급여가 400만~500만 원 사이인 사원 찾기', hint: 'select emp_name, salary from emp where salary between 4000000 and 5000000;', done: ev => qt(ev, 'EMP') && sqlRe(ev, / BETWEEN /) && nrows(ev) === 3,
+        why: '<code>BETWEEN a AND b</code>는 a 이상 b 이하입니다(양 끝 포함). 여러 값 가운데 하나인지 볼 때는 <code>dept_id IN (10, 30)</code>처럼 IN을 씁니다.' },
+      { text: '부서가 정해지지 않은 사원 찾기 (= NULL과 IS NULL 비교)', hint: 'select emp_name from emp where dept_id = null;\nselect emp_name from emp where dept_id is null;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /DEPT_ID IS NULL/) && nrows(ev) === 1,
+        why: '첫 문장은 <code>no rows selected</code>, 둘째 문장은 한예린 한 명입니다. SQL Language Reference 19c(Nulls): "null은 어떤 값과도, 다른 null과도 같거나 다를 수 없다." 그래서 <code>= NULL</code>은 참이 아니라 UNKNOWN이 되고 아무 행도 고르지 못합니다. NULL은 반드시 <code>IS NULL</code>, <code>IS NOT NULL</code>로 찾습니다. 장애 점검 쿼리에서도 자주 하는 실수입니다.' },
+      { text: '급여가 높은 순서로 정렬하기', hint: 'select emp_name, salary from emp order by salary desc;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /ORDER BY .*DESC/) && nrows(ev) >= 10,
+        why: '<code>ORDER BY</code>가 없으면 행의 순서는 보장되지 않습니다. 오늘 같은 순서로 나왔다고 내일도 그렇다는 보장이 없으므로, 순서가 필요하면 늘 ORDER BY를 씁니다. <code>DESC</code>는 내림차순, 기본은 오름차순(ASC)입니다. 이 레슨을 마쳤습니다.' },
+    ],
+    field: 'WHERE 조건은 성능과도 이어집니다. 9단계(SQL 튜닝 입문)에서 보겠지만, 인덱스가 있는 열이라도 <code>WHERE TO_CHAR(order_date, ...) = ...</code>처럼 열에 함수를 씌우면 인덱스를 쓰지 못할 수 있습니다. 지금은 "조건을 정확하게 쓰는 것"이 먼저이고, 그다음이 "빠르게 쓰는 것"입니다.',
+    sources: ['sqlselect', 'sqlnulls', 'sqlcond'] },
+
+  { id: 93, stage: 10, title: '함수와 GROUP BY로 집계하기', short: '집계', start: 'oracle',
+    who: '인사팀 (메신저)',
+    situation: '"연말 보고서에 부서별 인원과 평균 급여가 필요해요. 그리고 전체 인원이 몇 명인지도요." 팀장이 옆에서 덧붙입니다. "집계 함수와 NULL이 만나면 숫자가 달라질 수 있으니, 그것도 직접 확인해 보세요."',
+    tasks: [
+      CONN10,
+      { text: '전체 인원, 급여 합계, 평균 급여 구하기', hint: 'select count(*), sum(salary), round(avg(salary)) from emp;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /COUNT\(\*\)/) && sqlRe(ev, /AVG\(SALARY\)/),
+        why: '10명, 합계 50,000,000, 평균 5,000,000입니다. <code>ROUND</code>는 반올림 함수입니다. 집계 함수는 여러 행을 받아 값 하나를 돌려줍니다.' },
+      { text: 'COUNT(*)와 COUNT(dept_id) 비교하기', hint: 'select count(*), count(dept_id) from emp;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /COUNT\(DEPT_ID\)/),
+        why: '10과 9입니다. SQL Language Reference 19c(Aggregate Functions): "COUNT(*), GROUPING, GROUPING_ID를 뺀 모든 집계 함수는 null을 무시한다." 부서가 비어 있는 한예린은 COUNT(dept_id)에서 빠집니다. AVG도 NULL인 행을 빼고 평균을 내므로, "평균이 이상하다"는 문의를 받으면 NULL부터 의심합니다.' },
+      { text: '입사일을 YYYY-MM-DD 모양으로 보기', hint: "col emp_name format a12\nselect emp_name, to_char(hire_date, 'YYYY-MM-DD') as hired from emp order by hire_date;", done: ev => qt(ev, 'EMP') && sqlRe(ev, /TO_CHAR\(HIRE_DATE/),
+        why: '날짜 열을 그냥 SELECT하면 세션의 기본 형식(이 실습은 DD-MON-RR, 예: 02-MAR-12)으로 나옵니다. <code>TO_CHAR(날짜, \'형식\')</code>으로 원하는 모양을 정해 두면 누가 실행해도 같은 모양으로 나옵니다.' },
+      { text: '부서별 인원과 평균 급여 구하기', hint: 'select dept_id, count(*) as cnt, round(avg(salary)) as avg_sal from emp group by dept_id order by dept_id;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /GROUP BY DEPT_ID/) && nrows(ev) === 4,
+        why: '<code>GROUP BY dept_id</code>는 같은 부서 번호끼리 묶고, 묶음마다 집계합니다. 부서가 없는 사원도 NULL이라는 한 묶음으로 나옵니다(맨 아래, DEPT_ID가 빈 줄).' },
+      { text: '일부러 GROUP BY를 빼고 실행해 오류 보기', hint: 'select dept_id, count(*) from emp;', done: ev => failed(ev, 'ORA-00937'),
+        why: '<code>ORA-00937: not a single-group group function</code>. 집계 함수와 보통 열(dept_id)을 함께 고르면, 보통 열은 반드시 GROUP BY에 있어야 합니다. GROUP BY에 없는 열을 고르면 <code>ORA-00979: not a GROUP BY expression</code>이 납니다. 개발자가 가장 자주 묻는 오류 가운데 하나입니다.' },
+      { text: '인원이 3명 이상인 부서만 남기기 (HAVING)', hint: 'select dept_id, count(*) from emp group by dept_id having count(*) >= 3;', done: ev => qt(ev, 'EMP') && sqlRe(ev, / HAVING /) && nrows(ev) === 2,
+        why: '부서 20(4명)과 30(3명)입니다. WHERE는 묶기 전의 행을, <code>HAVING</code>은 묶은 뒤의 그룹을 거릅니다. SQL Language Reference 19c: "집계 함수는 SELECT 목록, ORDER BY, HAVING 절에 쓸 수 있다." 그래서 <code>WHERE count(*) &gt;= 3</code>처럼은 쓰지 못합니다. 이 레슨을 마쳤습니다.' },
+    ],
+    field: '모니터링 쿼리도 대부분 집계입니다. 예를 들어 "사용자별 세션 수"는 <code>select username, count(*) from v$session group by username;</code>, "테이블스페이스별 남은 공간"은 <code>select tablespace_name, sum(bytes) from dba_free_space group by tablespace_name;</code>입니다. 3단계에서 힌트로만 쳐 보았던 쿼리를 이제 직접 읽을 수 있습니다.',
+    sources: ['sqlagg', 'sqlselect', 'sqlnulls'] },
+
+  { id: 94, stage: 10, title: '조인과 서브쿼리', short: '조인', start: 'oracle',
+    who: '인사팀 (메신저)',
+    situation: '"사원 목록에 부서 번호 말고 부서 이름이 나오게 해 주실 수 있나요? 그리고 사원이 한 명도 없는 부서가 있는지, 평균보다 급여가 많은 사람이 누구인지도 궁금해요."',
+    tasks: [
+      CONN10,
+      { text: '사원 이름 옆에 부서 이름 붙이기 (JOIN ... ON)', hint: 'set linesize 120\ncol emp_name format a12\ncol dept_name format a14\nselect e.emp_name, d.dept_name from emp e join dept d on e.dept_id = d.dept_id;', done: ev => qt(ev, 'EMP') && qt(ev, 'DEPT') && sqlRe(ev, / JOIN /) && nrows(ev) === 9,
+        why: '<code>emp e</code>의 e는 테이블 별칭입니다. <code>ON e.dept_id = d.dept_id</code>가 두 테이블을 잇는 조건입니다. 결과는 9명입니다. 부서가 없는 한예린은 짝이 되는 DEPT 행이 없어서 빠졌습니다. 이렇게 짝이 있는 행만 남기는 것이 내부 조인(inner join)입니다.' },
+      { text: '같은 조인을 오라클 전통 문법(쉼표와 WHERE)으로 쓰기', hint: 'select e.emp_name, d.dept_name from emp e, dept d where e.dept_id = d.dept_id;', done: ev => qt(ev, 'EMP') && qt(ev, 'DEPT') && !sqlRe(ev, / JOIN /) && sqlRe(ev, /WHERE/) && nrows(ev) === 9,
+        why: '결과는 같습니다. 오래된 운영 SQL과 오라클 문서 예시에서 이 모양을 자주 봅니다. 조인 조건을 빠뜨리면 두 테이블의 모든 행이 짝지어져(10×4=40행) 엉뚱한 결과가 나오므로, 테이블이 n개면 조인 조건은 보통 n-1개입니다.' },
+      { text: '부서가 없는 사원까지 모두 보기 (LEFT JOIN)', hint: 'select e.emp_name, d.dept_name from emp e left join dept d on e.dept_id = d.dept_id;', done: ev => qt(ev, 'EMP') && sqlRe(ev, / LEFT (OUTER )?JOIN /) && nrows(ev) === 10,
+        why: '이제 10명이고, 한예린의 DEPT_NAME은 비어 있습니다. SQL Language Reference 19c(Joins): A가 바깥 쪽이면 "A의 행 가운데 B에 짝이 없는 행에 대해서는 B의 열을 담은 SELECT 목록 식에 null을 돌려준다." 같은 문서는 예전의 <code>(+)</code> 연산자보다 FROM 절의 OUTER JOIN 문법을 쓰라고 권합니다.' },
+      { text: '부서별 사원 수를 세어 사원이 없는 부서 찾기', hint: 'select d.dept_name, count(e.emp_id) as emp_cnt from dept d left join emp e on d.dept_id = e.dept_id group by d.dept_name order by emp_cnt;', done: ev => qt(ev, 'DEPT') && sqlRe(ev, / LEFT (OUTER )?JOIN /) && sqlRe(ev, /GROUP BY/) && nrows(ev) === 4,
+        why: '고객지원팀이 0명입니다. 이번에는 DEPT를 왼쪽에 두었기 때문에 짝이 없는 부서도 남았고, <code>count(e.emp_id)</code>는 NULL을 세지 않으므로 0이 됩니다. <code>count(*)</code>로 세면 1이 나와 틀린 답이 됩니다(앞 레슨의 NULL 규칙).' },
+      { text: '평균보다 급여가 많은 사원 찾기 (서브쿼리)', hint: 'select emp_name, salary from emp where salary > (select avg(salary) from emp) order by salary desc;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /\(SELECT AVG\(SALARY\) FROM/) && nrows(ev) === 4,
+        why: '괄호 안의 SELECT(서브쿼리)가 먼저 평균 5,000,000을 구하고, 바깥 쿼리가 그보다 큰 4명을 고릅니다. SQL Language Reference 19c: 값 하나(한 행 한 열)를 돌려주는 스칼라 서브쿼리는 식으로 쓸 수 있다. 서브쿼리가 여러 행을 돌려주는데 <code>&gt;</code>나 <code>=</code>로 비교하면 오류가 납니다.' },
+      { text: '판교에 있는 부서의 사원 찾기 (IN 서브쿼리)', hint: "select emp_name from emp where dept_id in (select dept_id from dept where loc = '판교');", done: ev => qt(ev, 'EMP') && sqlRe(ev, / IN \(SELECT /) && nrows(ev) === 4,
+        why: '서브쿼리가 여러 값을 돌려줄 때는 <code>IN</code>으로 받습니다. 같은 결과를 조인으로도 쓸 수 있습니다. 이 레슨을 마쳤습니다.' },
+    ],
+    field: 'DBA가 보는 데이터 사전도 조인으로 엮어 읽습니다. 예를 들어 "어떤 세션이 어떤 SQL을 실행 중인지"는 V$SESSION의 SQL_ID와 V$SQL의 SQL_ID를 조인해서 봅니다(7단계 성능 점검). 조인 조건이 빠진 SQL이 운영에서 갑자기 느려졌다는 문의도 흔하니, 실행 계획을 보기 전에 조인 조건부터 세어 보는 습관을 들이세요.',
+    sources: ['sqljoins', 'sqlsubq', 'sqlselect'] },
+
+  { id: 95, stage: 10, title: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK', short: 'DML·트랜잭션', start: 'oracle',
+    who: '인사팀 (작업 요청)',
+    situation: '"연습 계정에서 해 보세요. 다음 달 입사하는 신입(서지우, 사번 1011, 개발팀)을 등록하고, 영업팀 급여를 5% 올리는 연습이요." 팀장: "데이터를 바꾸는 문장(DML)은 COMMIT하기 전까지는 되돌릴 수 있어요. 그 감각을 꼭 익혀 두세요."',
+    tasks: [
+      CONN10,
+      { text: '새 사원 한 명 넣기 (INSERT)', hint: "insert into emp (emp_id, emp_name, job, salary, hire_date, dept_id, manager_id) values (1011, '서지우', '개발', 3800000, date '2026-12-01', 20, 1001);", done: ev => ev.dml && ev.dml.verb === 'INSERT' && !!utRow('EMP', 1011),
+        why: '<code>1 row created.</code> 열 목록과 VALUES의 값은 순서대로 짝이 맞아야 합니다. <code>DATE \'2026-12-01\'</code>은 날짜 리터럴입니다. 열 목록을 생략할 수도 있지만, 나중에 열이 늘어나면 문장이 깨지므로 실무에서는 늘 적습니다.' },
+      { text: '넣은 행 확인하기', hint: 'select emp_id, emp_name, hire_date from emp where emp_id = 1011;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /1011/) && nrows(ev) === 1,
+        why: '보입니다. 하지만 아직 COMMIT하지 않았으므로, 이 변경은 지금 이 세션에만 보입니다. 다른 사용자가 같은 테이블을 조회하면 서지우는 아직 없습니다.' },
+      { text: 'ROLLBACK으로 되돌리고 다시 확인하기', hint: 'rollback;\nselect emp_id, emp_name, hire_date from emp where emp_id = 1011;', done: ev => qt(ev, 'EMP') && sqlRe(ev, /1011/) && nrows(ev) === 0 && !utRow('EMP', 1011),
+        why: '<code>Rollback complete.</code> 뒤에는 <code>no rows selected</code>입니다. 마지막 COMMIT 뒤에 한 변경이 모두 취소되었습니다.' },
+      { text: '다시 넣고 COMMIT으로 확정하기', hint: "insert into emp (emp_id, emp_name, job, salary, hire_date, dept_id, manager_id) values (1011, '서지우', '개발', 3800000, date '2026-12-01', 20, 1001);\ncommit;", done: ev => ev.tx === 'COMMIT' && !!utRow('EMP', 1011, true),
+        why: '<code>Commit complete.</code> 이제 다른 세션에서도 보이고, ROLLBACK으로 되돌릴 수 없습니다. 되돌리려면 DELETE라는 새 변경을 해야 합니다.' },
+      { text: '영업팀(30) 급여를 5% 올리고 확정하기 (UPDATE)', hint: 'update emp set salary = salary * 1.05 where dept_id = 30;\ncommit;', done: ev => ev.tx === 'COMMIT' && S.db.utC['STUDY.EMP'].rows.find(r => r.EMP_ID === 1006).SALARY > 4300000,
+        why: '<code>3 rows updated.</code> 숫자가 예상과 같은지 보고 나서 COMMIT하는 것이 습관이 되어야 합니다. WHERE를 빠뜨리면 모든 사원의 급여가 바뀝니다. 그래서 운영에서 UPDATE·DELETE를 할 때는 같은 WHERE로 먼저 SELECT해서 건수를 확인합니다.' },
+      { text: '이미 있는 사번으로 넣어 보기 (기본 키 위반)', hint: "insert into emp (emp_id, emp_name, hire_date) values (1001, '중복시험', sysdate);", done: ev => failed(ev, 'ORA-00001'),
+        why: '<code>ORA-00001: unique constraint (STUDY.PK_EMP) violated</code>. 사번(EMP_ID)은 기본 키(PRIMARY KEY)라 같은 값이 두 번 들어갈 수 없습니다. Database Concepts 19c의 예도 같은 모양입니다: <code>ORA-00001: unique constraint (HR.EMP_EMP_ID_PK) violated</code>. 실패한 문장은 그 문장만 취소되고, 앞의 작업은 그대로 남습니다.' },
+      { text: '필수 열을 빼고 넣어 보기 (NOT NULL 위반)', hint: "insert into emp (emp_id, emp_name) values (1012, '입사일없음');", done: ev => failed(ev, 'ORA-01400'),
+        why: '<code>ORA-01400: cannot insert NULL into ("STUDY"."EMP"."HIRE_DATE")</code>. DESC에서 NOT NULL이었던 열입니다. 오류에 스키마, 테이블, 열 이름이 다 나오므로 어디를 고칠지 바로 알 수 있습니다(Database Concepts 19c의 NOT NULL 예시와 같은 모양).' },
+      { text: '연습한 신입 행을 지우고 확정하기 (DELETE)', hint: 'delete from emp where emp_id = 1011;\ncommit;', done: ev => ev.tx === 'COMMIT' && !utRow('EMP', 1011, true),
+        why: '<code>1 row deleted.</code>, <code>Commit complete.</code>. 참고로 SQL*Plus는 EXIT로 나갈 때 기본으로 COMMIT합니다. SQL*Plus User\'s Guide 19c: SET EXITCOMMIT의 기본값은 ON이며 "기대했든 아니든 나갈 때 작업이 커밋된다." 그래서 확정하고 싶지 않은 변경이 있으면 나가기 전에 꼭 ROLLBACK합니다. 이 레슨을 마쳤습니다.' },
+    ],
+    field: '운영 DB에서 DML을 직접 실행할 일은 많지 않지만, 해야 할 때는 순서를 지킵니다. ① 요청서(무엇을, 몇 건)를 받는다 ② 같은 WHERE로 SELECT해 건수를 확인한다 ③ 실행하고 "n rows updated" 건수가 같은지 본다 ④ 같으면 COMMIT, 다르면 ROLLBACK. 또 커밋하지 않은 변경은 행 잠금을 붙잡고 있으므로(7단계의 행 잠금 레슨), 작업 중에 자리를 비우면 다른 업무가 멈출 수 있습니다.',
+    sources: ['sqlinsert', 'sqlupdate', 'sqldelete', 'sqlcommit', 'cncptint', 'sqpset'] },
+
+  { id: 96, stage: 10, title: '졸업 미션: 테이블 만들고 보고서 뽑기', short: '졸업 미션', start: 'oracle',
+    who: 'DBA 팀장 (작업 요청)',
+    situation: '"교육 이수 기록을 담을 테이블 TRAINING을 연습 계정에 만들어 주세요. 번호(TRAIN_ID)가 기본 키, 사번(EMP_ID)은 EMP를 가리키는 외래 키, 과정 이름(COURSE)은 필수, 이수일(DONE_DATE)은 기본값이 오늘이에요. 두 건 넣어 보고, 마지막으로 부서별 인원과 평균 급여 보고서를 ~/dept_report.txt 로 남겨 주세요."',
+    tasks: [
+      CONN10,
+      { text: 'TRAINING 테이블 만들기 (CREATE TABLE)', hint: 'create table training (\n  train_id  number(6) constraint pk_training primary key,\n  emp_id    number(6) not null constraint fk_training_emp references emp (emp_id),\n  course    varchar2(60) not null,\n  done_date date default sysdate\n);', done: ev => !!(S.db.ut && S.db.ut['STUDY.TRAINING'] && S.db.ut['STUDY.TRAINING'].pk && S.db.ut['STUDY.TRAINING'].fks.length),
+        why: '<code>Table created.</code> 열마다 형식과 제약 조건을 붙였습니다. <code>CONSTRAINT pk_training</code>처럼 이름을 직접 주지 않으면 오라클이 SYS_C로 시작하는 이름을 붙이는데, 그러면 오류가 났을 때 어떤 규칙인지 알아보기 어렵습니다. SQL Language Reference 19c(COMMIT): CREATE TABLE 같은 DDL 앞뒤에는 자동으로 COMMIT이 일어난다. 그래서 DDL은 ROLLBACK으로 되돌릴 수 없습니다.' },
+      { text: '만든 테이블의 구조와 제약 조건 확인하기', hint: "desc training\ncol constraint_name format a20\nselect constraint_name, constraint_type, table_name from user_constraints where table_name = 'TRAINING';", done: ev => qsel(ev, 'USER_CONSTRAINTS') && sqlRe(ev, /TRAINING/),
+        why: 'CONSTRAINT_TYPE의 <code>P</code>는 기본 키, <code>R</code>은 외래 키(다른 테이블 참조), <code>C</code>는 NOT NULL 같은 검사 조건입니다(Database Reference 19c, ALL_CONSTRAINTS). NOT NULL에 이름을 주지 않아 SYS_C로 시작하는 이름이 붙은 것도 보입니다.' },
+      { text: '이수 기록 두 건 넣고 확정하기', hint: "insert into training (train_id, emp_id, course) values (1, 1004, 'SQL 기초');\ninsert into training (train_id, emp_id, course) values (2, 1010, 'Oracle 백업 입문');\ncommit;\nselect * from training;", done: ev => qt(ev, 'TRAINING') && (S.db.utC['STUDY.TRAINING'] || { rows: [] }).rows.length >= 2,
+        why: 'DONE_DATE를 적지 않았는데 오늘 날짜가 들어갔습니다. <code>DEFAULT sysdate</code> 덕분입니다.' },
+      { text: '없는 사번으로 넣어 외래 키가 막는지 보기', hint: "insert into training (train_id, emp_id, course) values (3, 9999, '없는 사원');", done: ev => failed(ev, 'ORA-02291'),
+        why: '<code>ORA-02291: integrity constraint (STUDY.FK_TRAINING_EMP) violated - parent key not found</code>. EMP에 없는 사번은 들어가지 못합니다. 이렇게 외래 키는 "가리키는 대상이 실제로 있어야 한다"는 규칙을 DB가 지키게 합니다. 반대로 이수 기록이 있는 사원을 EMP에서 지우려 하면 ORA-02292(child record found)로 막힙니다.' },
+      { text: '부서별 보고서를 파일로 남기기 (SPOOL)', hint: 'set linesize 120\ncol dept_name format a14\nspool /home/oracle/dept_report.txt\nselect d.dept_name, count(e.emp_id) as emp_cnt, round(avg(e.salary)) as avg_salary from dept d left join emp e on d.dept_id = e.dept_id group by d.dept_name order by avg_salary desc;\nspool off', done: ev => /개발팀/.test((node('/home/oracle/dept_report.txt') || {}).txt || '') && !(S.sql && S.sql.spool),
+        why: 'LEFT JOIN으로 사원이 없는 고객지원팀까지 넣고, GROUP BY로 부서별 인원과 평균을 냈습니다. 고객지원팀은 사원이 없어 평균이 NULL(빈 칸)입니다. SPOOL은 3단계에서 써 본 그대로 화면을 파일로 남깁니다.' },
+      { text: 'SQL*Plus에서 나와 보고서 파일 확인하기', hint: 'exit\ncat ~/dept_report.txt', done: ev => !S.sql && ev.read.has('/home/oracle/dept_report.txt'),
+        why: '수고했습니다. 4단계 SQL 기초를 마쳤습니다. SELECT, WHERE, 정렬, 집계, 조인, 서브쿼리, DML과 트랜잭션, DDL과 제약 조건까지 한 번씩 써 보았습니다. 다음 5단계부터는 장애 대응입니다. 앞으로 나오는 V$ 뷰 쿼리도 이제 직접 고쳐 쓸 수 있습니다.' },
+    ],
+    field: '테이블을 만드는 일은 보통 개발자가 하지만, 운영 DB에 반영할 때는 DBA가 스크립트를 검토합니다. 볼 것은 ① 기본 키가 있는지 ② 제약 조건에 이름이 있는지 ③ 외래 키 열에 인덱스가 필요한지(부모 행을 지우거나 고칠 때 잠금과 성능 문제) ④ 어느 테이블스페이스에 만드는지입니다. DDL은 자동 커밋되므로, 운영에서는 실행 전에 백업 시점과 되돌리는 스크립트(DROP 문 등)를 함께 준비합니다.',
+    sources: ['sqlcreate', 'sqlcommit', 'cncptint', 'refcons', 'sqljoins'] },
+);
+
+/* ---------- 11단계 RAC 기초 (내부 단계 키 11, 레슨 id 101~103) ---------- */
+const srvIs = (ev, verb, obj, x) => ev.srv && ev.srv.verb === verb && ev.srv.obj === obj && Object.keys(x || {}).every(k => ev.srv[k] === x[k]);
+const memo11 = (f) => () => !S.sql && !mode && /\S/.test((node('/home/oracle/' + f) || {}).txt || '');
+const gvSvc = (ev) => qsel(ev, 'GV$SESSION') && sqlRe(ev, /GROUP BY/) && sqlRe(ev, /SERVICE_NAME/);
+LESSONS.push(
+  { id: 101, stage: 11, title: 'RAC 클러스터 상태 점검', short: '상태 점검', start: 'oracle',
+    who: 'DBA 팀장 (인계)',
+    situation: '"결제 시스템은 서버 두 대(racnode1, racnode2)를 묶은 RAC입니다. 한 DB(PAYDB)를 두 서버의 인스턴스가 함께 열고 있어서, 서버 한 대가 멈춰도 서비스는 계속됩니다. 오늘은 매일 아침 하는 점검 순서를 익혀 두세요. 클러스터 → 자원 → DB → SQL 순서입니다."',
+    tasks: [
+      { text: 'RAC 인수인계 메모 읽기', hint: 'cat ~/rac_handover.txt', done: ev => ev.read.has('/home/oracle/rac_handover.txt'),
+        why: '홈이 두 개라는 점이 중요합니다. 클러스터를 다루는 crsctl·olsnodes는 Grid 홈에, DB를 다루는 srvctl은 DB 홈에 있습니다. Clusterware Administration and Deployment Guide 19c: "CRSCTL 유틸리티는 Grid_home/bin 디렉터리에 있다." RAC Administration Guide 19c: SRVCTL은 관리하려는 DB의 Oracle 홈에 있는 것을 쓰고, 버전이 맞아야 한다.' },
+      { text: '어느 srvctl·crsctl이 실행되는지 확인하기', hint: 'echo $PATH\nwhich srvctl crsctl', done: ev => has(ev, 'which'),
+        why: 'PATH에 DB 홈이 Grid 홈보다 앞에 있어서 <code>srvctl</code>은 DB 홈의 것이, <code>crsctl</code>은 Grid 홈에만 있으므로 Grid 홈의 것이 실행됩니다. 홈이 여럿인 서버에서는 명령을 치기 전에 which로 어느 것이 실행되는지 보는 습관이 사고를 줄입니다.' },
+      { text: '클러스터의 노드 목록과 번호, 상태 보기', hint: 'olsnodes -n -s', done: ev => ev.olsnodes && ev.olsnodes.n,
+        why: 'racnode1이 1번, racnode2가 2번입니다. Clusterware 19c(OLSNODES): <code>-n</code>은 "노드 번호를 함께 보여 주고", <code>-s</code>는 노드 상태(active, inactive)를 보여 준다.' },
+      { text: '모든 노드의 클러스터 데몬 상태 보기', hint: 'crsctl check cluster -all', done: ev => ev.crs === 'check-all',
+        why: '노드마다 세 줄이 나옵니다. <code>CRS-4537</code> Cluster Ready Services(자원 관리), <code>CRS-4529</code> Cluster Synchronization Services(노드끼리 살아 있는지 확인), <code>CRS-4533</code> Event Manager(이벤트 전달)가 모두 online이면 클러스터 자체는 정상입니다. 모양은 Grid Infrastructure 19c 설치 가이드의 예시와 같습니다.' },
+      { text: 'Clusterware가 관리하는 자원 전체를 표로 보기', hint: 'crsctl stat res -t', done: ev => ev.crs === 'stat-res-t',
+        why: '<code>Local Resources</code>는 노드마다 하나씩 도는 자원(리스너, ONS 등), <code>Cluster Resources</code>는 클러스터에 몇 개만 도는 자원입니다. Target은 "있어야 할 상태", State는 "지금 상태"입니다. 둘이 다르면(예: ONLINE/OFFLINE) 문제입니다. <code>ora.paydb.db</code> 아래 1, 2가 두 인스턴스이고 <code>Open</code>입니다. <code>ora.scan1.vip</code>처럼 SCAN 주소와 SCAN 리스너도 Clusterware가 띄워 둡니다.' },
+      { text: 'srvctl로 DB와 인스턴스 상태 보기', hint: 'srvctl status database -db paydb\nsrvctl config database -db paydb', done: ev => srvIs(ev, 'config', 'database') || srvIs(ev, 'status', 'database'),
+        why: '<code>Instance PAYDB1 is running on node racnode1</code>, <code>Instance PAYDB2 is running on node racnode2</code>. config는 Clusterware에 등록된 설정입니다. <code>Database instances: PAYDB1,PAYDB2</code>, <code>Database is administrator managed</code>(어느 인스턴스를 어느 노드에서 띄울지 관리자가 정해 둔 방식). RAC에서는 DB를 내리고 올릴 때도 SQL*Plus보다 srvctl을 씁니다. Clusterware가 "내려간 게 일부러인지" 알아야 하기 때문입니다.' },
+      { text: 'SQL*Plus로 접속해 모든 인스턴스 보기 (GV$INSTANCE)', hint: 'sqlplus / as sysdba\nset linesize 150\ncol host_name format a22\nselect inst_id, instance_name, host_name, status from gv$instance order by inst_id;', done: ev => qsel(ev, 'GV$INSTANCE') && nrows(ev) >= 2,
+        why: '두 줄이 나옵니다. Database Reference 19c: "RAC에서 GV$ 뷰를 조회하면 자격이 되는 모든 인스턴스에서 V$ 뷰 정보를 가져온다." 그리고 GV$ 뷰에는 V$ 열에 더해 "정보를 가져온 인스턴스 번호를 보여 주는 INST_ID 열"이 있다.' },
+      { text: '같은 정보를 V$INSTANCE로 보고 차이 확인하기', hint: 'select instance_name, host_name from v$instance;', done: ev => qsel(ev, 'V$INSTANCE') && S.sql && S.sql.conn,
+        why: '한 줄(PAYDB1)만 나옵니다. V$ 뷰는 "지금 접속한 인스턴스"의 정보입니다. RAC에서 세션, 잠금, 대기를 볼 때 V$만 보면 다른 노드의 문제를 놓칩니다. 그래서 RAC 점검 쿼리는 GV$로 쓰고 INST_ID로 나눠 봅니다.' },
+      { text: '점검 메모 남기기', hint: "exit\necho 'RAC 점검: 노드 2대 Active, CRS/CSS/EVM online, 자원 STABLE, PAYDB1@racnode1·PAYDB2@racnode2 Open, GV$INSTANCE 2행' > ~/rac_check.txt", done: memo11('rac_check.txt'),
+        why: '매일 아침 점검 순서가 생겼습니다. olsnodes → crsctl check cluster -all → crsctl stat res -t → srvctl status database → GV$ 조회. 이 레슨을 마쳤습니다.' },
+    ],
+    field: 'RAC는 "DB 하나, 인스턴스 여럿"입니다. 데이터 파일은 공유 저장소(여기서는 ASM 디스크 그룹 +DATA)에 하나만 있고, 각 서버의 인스턴스가 그것을 함께 엽니다. 그래서 인스턴스 하나가 내려가도 데이터는 그대로이고, 남은 인스턴스가 서비스를 이어 갑니다. 점검할 때는 위에서 아래로(클러스터 → 자원 → DB → 세션) 내려가야 원인을 빨리 좁힙니다.',
+    sources: ['crsctl', 'olsnodes', 'cwcheck', 'srvctl', 'gvviews', 'pcarac'] },
+
+  { id: 102, stage: 11, title: '서비스를 옮기고 인스턴스 하나 내리기', short: '계획 작업', start: 'oracle',
+    who: '인프라팀 (작업 요청)',
+    situation: '"오늘 오후에 racnode2의 메모리를 교체합니다. 서버를 꺼야 하니 그 전에 DB 쪽 정리 부탁드려요." 팀장: "인스턴스를 그냥 내리면 PAYDB2에서만 도는 정산 배치 서비스(pay_batch)가 멈춥니다. 서비스부터 옮기고, 그다음에 내리세요."',
+    tasks: [
+      { text: '서비스가 지금 어느 인스턴스에서 도는지 보기', hint: 'srvctl status service -db paydb', done: ev => srvIs(ev, 'status', 'service'),
+        why: 'pay_oltp는 PAYDB1, PAYDB2 두 곳에서, pay_batch는 PAYDB2에서만 돌고 있습니다. 앱은 인스턴스 이름이 아니라 서비스 이름으로 접속하므로, 서비스가 어디서 도느냐가 곧 "그 업무가 어느 서버를 쓰느냐"입니다.' },
+      { text: 'pay_batch 서비스의 설정 보기 (preferred, available)', hint: 'srvctl config service -db paydb -service pay_batch', done: ev => srvIs(ev, 'config', 'service', { service: 'pay_batch' }),
+        why: '<code>Preferred instances: PAYDB2</code>, <code>Available instances: PAYDB1</code>. RAC Administration Guide 19c(서비스): 서비스를 평소 지원하는 인스턴스가 preferred 인스턴스이고, "preferred 인스턴스가 실패하면" 서비스를 지원할 다른 인스턴스가 available 인스턴스입니다. 그래서 PAYDB1로 옮길 수 있습니다.' },
+      { text: 'pay_batch를 PAYDB2에서 PAYDB1로 옮기기', hint: 'srvctl relocate service -db paydb -service pay_batch -oldinst PAYDB2 -newinst PAYDB1', done: ev => srvIs(ev, 'relocate', 'service', { service: 'pay_batch', newinst: 'PAYDB1' }),
+        why: '아무것도 출력되지 않았습니다. RAC 19c(SRVCTL 사용 안내): 출력이 없는 명령은 성공한 것이며, srvctl은 성공하면 0, 실패하면 1, 경고면 2를 돌려준다(<code>echo $?</code>로 확인). 관리자 관리형 DB에서는 <code>-oldinst</code>·<code>-newinst</code>를 쓰고, 옮길 대상은 그 서비스의 preferred나 available 인스턴스여야 합니다.' },
+      { text: '옮겨졌는지 확인하기', hint: 'echo $?\nsrvctl status service -db paydb -service pay_batch', done: ev => srvIs(ev, 'status', 'service', { service: 'pay_batch' }) && racSvc('pay_batch').on.includes('PAYDB1'),
+        why: '이제 pay_batch는 PAYDB1에서 돕니다. 지금 배치가 돌고 있지 않아 끊길 세션은 없었습니다. 배치가 도는 중이었다면 <code>-force</code>를 주지 않는 한 이미 붙어 있는 세션은 그대로 두는 것으로 이해하면 됩니다(문서: -force는 "재배치 중에 모든 세션을 끊는다").' },
+      { text: 'SQL로 인스턴스별·서비스별 접속 세션 수 보기', hint: "sqlplus / as sysdba\nset linesize 120\ncol service_name format a16\nselect inst_id, service_name, count(*) from gv$session where username is not null group by inst_id, service_name order by inst_id, service_name;", done: ev => gvSvc(ev),
+        why: 'PAYDB2(INST_ID 2)에는 pay_oltp 세션 8개가 붙어 있습니다. 인스턴스를 IMMEDIATE로 내리면 이 세션들은 끊기고, 앱이 다시 접속하면 pay_oltp가 도는 PAYDB1로 갑니다. 그래서 이런 작업은 앱 담당자에게 미리 알리고 사용량이 적은 시간에 합니다. 내 SQL*Plus 세션은 서비스 이름이 SYS$USERS로 보입니다(로컬 접속).' },
+      { text: 'PAYDB2 인스턴스만 내리기', hint: 'exit\nsrvctl stop instance -db paydb -instance PAYDB2 -stopoption immediate', done: () => !racInst('PAYDB2').up,
+        why: '이번에도 출력이 없으면 성공입니다. RAC 19c(SRVCTL): -stopoption 값은 NORMAL, TRANSACTIONAL, IMMEDIATE, ABORT입니다. DB 전체가 아니라 인스턴스 하나만 내렸으므로 PAYDB1은 계속 열려 있고 결제 화면도 계속 돕니다.' },
+      { text: 'DB 상태와 자원 상태 다시 보기', hint: 'srvctl status database -db paydb\ncrsctl stat res -t', done: ev => (ev.crs === 'stat-res-t' || srvIs(ev, 'status', 'database')) && !racInst('PAYDB2').up,
+        why: 'PAYDB2가 not running이고, 자원 표의 <code>ora.paydb.db</code> 2번은 Target도 OFFLINE입니다. Target이 OFFLINE이라는 것은 Clusterware가 이 인스턴스를 "내려가 있어야 할 상태"로 기록했다는 뜻입니다. 그래서 작업이 끝나면 srvctl start instance로 다시 올려야 Target도 ONLINE으로 돌아옵니다.' },
+      { text: '인프라팀에 넘길 작업 기록 남기기', hint: "echo 'racnode2 메모리 교체 사전 작업: pay_batch PAYDB2→PAYDB1 재배치, PAYDB2 srvctl stop(immediate). PAYDB1 정상 운영 중. 작업 후 srvctl start instance -db paydb -instance PAYDB2, pay_batch 원복 필요' > ~/racnode2_maint.txt", done: memo11('racnode2_maint.txt'),
+        why: '"작업 후에 무엇을 되돌려야 하는지"까지 적어 두는 것이 핵심입니다. 서비스는 인스턴스가 다시 올라와도 저절로 preferred로 돌아가지 않을 수 있습니다(다음 레슨). 이 레슨을 마쳤습니다.' },
+    ],
+    field: 'RAC의 계획 작업은 "서비스 먼저, 인스턴스 나중"입니다. 서비스가 한 인스턴스에서만 도는데 그 인스턴스를 먼저 내리면, available 인스턴스로 넘어가는 동안 그 업무가 잠깐 끊기거나, 설정에 따라 넘어가지 않을 수도 있습니다. 또 SQL*Plus로 한 노드에 접속해 SHUTDOWN을 치는 습관은 RAC에서는 버려야 합니다. 어느 노드의 인스턴스를 내리는지 헷갈리기 쉽고, srvctl은 -db와 -instance로 대상을 이름으로 분명하게 정하기 때문입니다.',
+    sources: ['srvctl', 'racsvc', 'gvviews', 'crsctl'] },
+
+  { id: 103, stage: 11, title: '졸업 미션: 노드 장애 뒤 서비스 되돌리기', short: '졸업 미션', start: 'oracle',
+    who: '정산팀 (메신저)',
+    situation: '"오늘 아침 정산 배치가 평소보다 두 배 느려요. 결제 화면도 조금 느리다는 말이 있고요." 야간 기록: "03:10 racnode2 서버 하드웨어 경보로 재부팅, 07:40 정상 기동 확인(인프라팀)". 원인을 찾아 바로잡고 ~/rac_incident.txt 에 보고해 주세요.',
+    tasks: [
+      { text: '클러스터와 자원 상태부터 보기', hint: 'crsctl check cluster -all\ncrsctl stat res -t', done: ev => ev.crs === 'stat-res-t',
+        why: '두 노드 모두 online이고 PAYDB1, PAYDB2도 Open입니다. 서버가 다시 켜지면서 Clusterware가 인스턴스를 다시 띄웠습니다. 그런데 <code>ora.paydb.pay_batch.svc</code>가 racnode1에 있습니다. 평소 자리(racnode2)가 아닙니다.' },
+      { text: '서비스가 어디서 도는지 확인하기', hint: 'srvctl status service -db paydb', done: ev => srvIs(ev, 'status', 'service'),
+        why: 'pay_batch가 PAYDB1에서 돌고 있습니다. racnode2가 내려갔을 때 preferred(PAYDB2)가 사라져서 available(PAYDB1)로 넘어갔고, racnode2가 돌아온 뒤에도 그대로 남았습니다. RAC Administration Guide 19c(서비스): "preferred 인스턴스가 다시 시작해도 오라클은 서비스를 자동으로 preferred 인스턴스로 되돌리지 않는다." 이유로 문서는 서비스가 이미 원하는 수의 인스턴스에서 돌고 있고, 되돌리다 두 번째 중단이 생기는 것을 막는다는 점을 듭니다. 같은 문서: 19.3부터 서비스의 -failback 속성을 yes로 주면 preferred 인스턴스가 살아날 때 그쪽으로 돌아간다.' },
+      { text: 'SQL로 인스턴스별·서비스별 세션 수 보기', hint: "sqlplus / as sysdba\nset linesize 120\ncol service_name format a16\nselect inst_id, service_name, count(*) from gv$session where username is not null group by inst_id, service_name order by inst_id, service_name;", done: ev => gvSvc(ev),
+        why: 'PAYDB1(INST_ID 1)에 pay_oltp 8개와 pay_batch 12개가 함께 붙어 있고, PAYDB2에는 pay_oltp만 있습니다. 결제 화면과 정산 배치가 한 서버에서 경쟁하고 있습니다. 이것이 "배치도 느리고 화면도 느린" 원인입니다.' },
+      { text: '배치 세션이 무엇을 기다리는지 보기', hint: "col event format a28\nselect inst_id, event, count(*) from gv$session where service_name = 'pay_batch' group by inst_id, event;", done: ev => qsel(ev, 'GV$SESSION') && sqlRe(ev, /EVENT/) && sqlRe(ev, /PAY_BATCH/),
+        why: '<code>gc cr block 2-way</code>, <code>gc current block 2-way</code>처럼 gc로 시작하는 대기는 글로벌 캐시 대기입니다. RAC Administration Guide 19c(성능 점검): 블록과 관련된 주요 대기로 gc current block 2-way, gc cr block 2-way 등을 들고, 이런 대기를 Cluster 대기 클래스로 묶는다. 다른 인스턴스가 가진 블록을 주고받느라 기다리는 것입니다. 세션 수와 대기 비율은 이 실습의 예시 값입니다. 결제와 배치를 인스턴스별로 나눠 두면 같은 블록을 두 인스턴스가 주고받는 일이 줄어듭니다.' },
+      { text: 'pay_batch를 원래 자리(PAYDB2)로 되돌리기', hint: 'exit\nsrvctl relocate service -db paydb -service pay_batch -oldinst PAYDB1 -newinst PAYDB2', done: () => racSvc('pay_batch').on.includes('PAYDB2'),
+        why: '출력이 없으면 성공입니다. -force 없이 옮겼으므로 지금 돌고 있는 배치 세션은 끊지 않았습니다. 새로 시작하는 배치 작업부터 PAYDB2로 접속합니다. 지금 배치를 끊어도 되는지는 정산팀과 정해야 하므로, 서버를 마음대로 정리하지 않습니다.' },
+      { text: '서비스와 자원 상태를 다시 확인하기', hint: 'srvctl status service -db paydb\nsrvctl status database -db paydb', done: ev => (srvIs(ev, 'status', 'service') || srvIs(ev, 'status', 'database')) && racSvc('pay_batch').on.includes('PAYDB2'),
+        why: 'pay_batch는 PAYDB2, pay_oltp는 두 인스턴스에서 돕니다. 평소 모습으로 돌아왔습니다.' },
+      { text: '장애 보고서 남기기', hint: "echo '03:10 racnode2 재부팅으로 pay_batch가 PAYDB2→PAYDB1로 넘어감(available). 07:40 racnode2 복귀 뒤에도 자동 복귀 안 됨 → PAYDB1에 결제+배치 몰려 지연. srvctl relocate service로 PAYDB2 원복, 진행 중 배치 세션은 유지. 재발 방지: 노드 복귀 후 서비스 위치 점검을 체크리스트에 추가, -failback 옵션 검토' > ~/rac_incident.txt", done: memo11('rac_incident.txt'),
+        why: '수고했습니다. 11단계 RAC 기초를 마쳤습니다. 클러스터 점검(olsnodes, crsctl), DB·서비스 관리(srvctl), RAC 전체 보기(GV$)를 한 번씩 해 보았고, "노드가 돌아와도 서비스는 그대로일 수 있다"는 현장의 함정도 직접 겪었습니다.' },
+    ],
+    field: 'RAC 장애는 "서버가 죽었다"보다 "죽었다 살아난 뒤의 상태가 평소와 다르다"는 형태로 더 자주 드러납니다. 서비스 위치, SCAN 리스너 위치, 세션이 몰린 인스턴스를 노드 복구 뒤 점검 목록에 꼭 넣으세요. 서비스를 옮기는 일 자체는 쉽지만, 옮기는 시점은 업무 담당자와 정해야 합니다. -force로 세션을 끊으면 진행 중인 배치가 처음부터 다시 돌아야 할 수도 있기 때문입니다.',
+    sources: ['racsvc', 'srvctl', 'crsctl', 'gvviews', 'racmon'] },
 );
 
 /* =====================================================================
@@ -5428,7 +6248,8 @@ function startLesson(id) {
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
-  if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 5 || S.stage === 6) { if (S.stage === 5) makeWorld5(L.id - 40); else makeWorld6(L.id - 50); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -5442,10 +6263,10 @@ function startLesson(id) {
   document.getElementById('termTitle').textContent = S.host === 'laptop' ? 'laptop — 내 노트북' : `${S.hn} — ssh ${S.user}@${S.hn}`;
   document.getElementById('brandSub').textContent = STAGES[S.stage].sub;
   if (S.host === 'db') print(`Last login: ${lastLogin()} from 10.0.1.25\n`);
-  print(note(`${S.stage}단계 레슨 ${lessonNo(L)}. ${L.title}\n할 일 목록을 위에서부터 차례로 해 보세요. 모르면 "힌트"를 누르세요. help 를 치면 쓸 수 있는 명령이 나옵니다.`));
+  print(note(`${dno(S.stage)}단계 레슨 ${lessonNo(L)}. ${L.title}\n할 일 목록을 위에서부터 차례로 해 보세요. 모르면 "힌트"를 누르세요. help 를 치면 쓸 수 있는 명령이 나옵니다.`));
   setPrompt(prompt());
   renderTabs(); renderMission(); renderNotes();
-  document.title = `${S.stage}-${lessonNo(L)}. ${L.title} · DBA 실습`;
+  document.title = `${dno(S.stage)}-${lessonNo(L)}. ${L.title} · DBA 실습`;
   if (location.hash !== '#lesson-' + L.id) history.replaceState(null, '', '#lesson-' + L.id);
   if (matchMedia('(min-width: 961px)').matches) inputEl.focus({ preventScroll: true });
   Sess.end(REPLAY);
@@ -5476,8 +6297,11 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '4단계 · 장애 대응', sub: '4단계 · 장애 대응과 복구' }, 5: { name: '5단계 · 고급 복구', sub: '5단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '6단계 · 성능 점검', sub: '6단계 · 대기 이벤트와 AWR' }, 7: { name: '7단계 · 패치', sub: '7단계 · OPatch와 분기별 RU' }, 8: { name: '8단계 · SQL 튜닝 입문', sub: '8단계 · 실행 계획과 인덱스' }, 9: { name: '9단계 · Data Guard 기초', sub: '9단계 · 주 DB와 물리 대기 DB' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '5단계 · 장애 대응', sub: '5단계 · 장애 대응과 복구' }, 5: { name: '6단계 · 고급 복구', sub: '6단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '7단계 · 성능 점검', sub: '7단계 · 대기 이벤트와 AWR' }, 7: { name: '8단계 · 패치', sub: '8단계 · OPatch와 분기별 RU' }, 8: { name: '9단계 · SQL 튜닝 입문', sub: '9단계 · 실행 계획과 인덱스' }, 9: { name: '10단계 · Data Guard 기초', sub: '10단계 · 주 DB와 물리 대기 DB' }, 10: { name: '4단계 · SQL 기초', sub: '4단계 · SELECT, 조인, DML, DDL' }, 11: { name: '11단계 · RAC 기초', sub: '11단계 · Clusterware와 2노드 RAC' } };
 const stageOf = (l) => l.stage || 3;
+/* 화면에 보이는 단계 번호. 내부 단계 키(stage)는 그대로 두고 course.js의 순서로 번호를 붙인다(4단계 SQL 기초를 3단계 뒤에 넣었다). */
+const dno = (st) => { const i = Course.STAGES.findIndex(x => x.st === st); return i >= 0 ? i + 1 : st; };
+LESSONS.sort((a, b) => Course.STAGES.findIndex(x => x.st === stageOf(a)) - Course.STAGES.findIndex(x => x.st === stageOf(b)));
 const stageLessons = (st) => LESSONS.filter(l => stageOf(l) === st);
 const lessonNo = (L) => stageLessons(stageOf(L)).indexOf(L) + 1;
 function renderTabs() {
@@ -5492,9 +6316,11 @@ function whyOf(t) { return typeof t.why === 'function' ? t.why() : t.why; }
 function hintBody(t) { const h = typeof t.hint === 'function' ? t.hint() : t.hint; return esc(h) + (window.Tips ? Tips.html(h, esc) : ''); }
 function renderMission() {
   const L = cur.L; const el = document.getElementById('mission');
+  if (cur.peek != null && cur.peek <= cur.idx) cur.peek = null;
   const items = L.tasks.map((t, i) => {
     const st = i < cur.idx ? 'done' : i === cur.idx ? 'cur' : 'todo';
-    return `<li class="task ${st}"><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : ''}</span><span class="txt">${t.text}</span>${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${whyOf(t)}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${whyOf(t)}</details>` : ''}</li>`;
+    const peek = st === 'todo' && cur.peek === i ? `<div class="peek">아직 잠겨 있습니다. 할 일은 목록을 눌러서가 아니라 <b>터미널에 명령을 입력</b>해서 마칩니다. 지금 할 일은 ${cur.idx + 1}번 "${L.tasks[cur.idx].text}"이고, 그것을 마치면 다음 할 일이 차례로 열립니다.<br><button class="btn" type="button" data-goto="term">지금 할 일로 가기</button></div>` : '';
+    return `<li class="task ${st}"${st === 'todo' ? ` data-i="${i}" tabindex="0" aria-label="${i + 1}번 할 일, 잠김. 앞의 할 일을 마치면 열립니다"` : ''}><div class="task-row"><span class="box" aria-hidden="true">${st === 'done' ? '✓' : st === 'todo' ? i + 1 : ''}</span><span class="txt">${t.text}</span>${st === 'todo' ? '<span class="lock">🔒 잠김</span>' : ''}${st === 'cur' ? `<button class="hint-btn" type="button" data-i="${i}">${cur.hints[i] ? '힌트 닫기' : '힌트'}</button>` : ''}</div>${st === 'cur' && cur.hints[i] ? `<div class="hint">${hintBody(t)}</div>` : ''}${st === 'done' && t.why && i === cur.idx - 1 ? `<div class="explain">${whyOf(t)}</div>` : ''}${st === 'done' && t.why && i < cur.idx - 1 ? `<details class="explain"><summary>해설 다시 보기</summary>${whyOf(t)}</details>` : ''}${peek}</li>`;
   }).join('');
   const next = LESSONS[LESSONS.indexOf(L) + 1];
   const st = stageOf(L), cnt = stageLessons(st).length, sameStage = next && stageOf(next) === st;
@@ -5502,15 +6328,17 @@ function renderMission() {
   el.innerHTML = `<div class="eyebrow"><b>${STAGES[st].name}</b> / 레슨 ${lessonNo(L)} / ${cnt}</div>
     <h1>${L.title}</h1>
     <p class="situation"><span class="who">${L.who}</span>${typeof L.situation === 'function' ? L.situation() : L.situation}</p>
-    <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2><ol class="tasks">${items}</ol></div>
-    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${st}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${st}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${st}단계를 모두 마쳤습니다.`}</div>` : ''}
-    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${stageOf(next)}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
+    <div><h2>할 일 (${cur.idx}/${L.tasks.length})</h2>${cur.done ? '' : '<p class="task-guide">할 일은 위에서부터 하나씩 열립니다. 목록을 누르는 것이 아니라 <b>터미널에 명령을 입력</b>해서, 테두리가 진한 지금 할 일을 마치면 자동으로 ✓ 표시가 되고 다음 할 일이 열립니다. 막히면 "힌트"를 누르세요.</p>'}<ol class="tasks">${items}</ol></div>
+    ${cur.done ? `<div class="lesson-done"><b>레슨 완료!</b> ${sameStage ? `다음은 "${next.title}"입니다.` : next ? `${dno(st)}단계를 모두 마쳤습니다. 다음은 ${STAGES[stageOf(next)].name}입니다.` : away ? `${dno(st)}단계를 모두 마쳤습니다. 다음은 ${away.stage}단계 · ${away.name}입니다.` : `${dno(st)}단계를 모두 마쳤습니다.`}</div>` : ''}
+    <div class="row-btns">${cur.done && next ? `<button class="btn primary" type="button" id="nextBtn">${sameStage ? '다음 레슨 →' : `${dno(stageOf(next))}단계 시작 →`}</button>` : cur.done && away ? `<a class="btn primary" href="${away.href}">${away.stage}단계 시작 →</a>` : ''}<button class="btn" type="button" id="resetBtn">레슨 다시 시작</button></div>
     <p class="autosave">작업은 이 브라우저에 자동 저장되어 새로고침해도 이어집니다. 강력 새로고침(Ctrl+F5, 맥 크롬은 Cmd+Shift+R, 맥 사파리는 Option+Cmd+R)을 하거나 "레슨 다시 시작"을 누르면 처음부터 시작합니다.</p>`;
   const ct = document.getElementById('curTask'); const t = L.tasks[cur.idx];
   ct.innerHTML = cur.done ? `<b>완료</b>레슨 ${lessonNo(L)}을 마쳤습니다. 아래에서 다음 레슨으로 넘어가세요.` : `<b>할 일 ${cur.idx + 1}/${L.tasks.length}</b>${t.text}<button class="hint-btn" type="button" data-i="${cur.idx}">${cur.hints[cur.idx] ? '힌트 닫기' : '힌트'}</button>${cur.hints[cur.idx] ? `<div class="hint">${hintBody(t)}</div>` : ''}`;
   document.querySelectorAll('#mission .hint-btn, #curTask .hint-btn').forEach(b => b.addEventListener('click', () => { cur.hints[b.dataset.i] = !cur.hints[b.dataset.i]; Sess.hints(cur.hints); renderMission(); }));
   const nb = document.getElementById('nextBtn'); if (nb) nb.addEventListener('click', () => { startLesson(next.id); window.scrollTo({ top: 0 }); });
   document.getElementById('resetBtn').addEventListener('click', () => startLesson(L.id));
+  el.querySelectorAll('.task.todo').forEach(li => { const tog = (e) => { if (e.target.closest('[data-goto]')) return; cur.peek = cur.peek === +li.dataset.i ? null : +li.dataset.i; renderMission(); const n = el.querySelector(`.task.todo[data-i="${li.dataset.i}"]`); if (n) n.focus({ preventScroll: true }); }; li.addEventListener('click', tog); li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(e); } }); });
+  el.querySelectorAll('[data-goto="term"]').forEach(b => b.addEventListener('click', () => { cur.peek = null; renderMission(); const tc = document.querySelector('.term-card'); if (tc) tc.scrollIntoView({ block: 'start', behavior: 'smooth' }); if (inputEl && !inputEl.closest('[hidden]')) inputEl.focus({ preventScroll: true }); }));
 }
 function renderNotes() {
   const L = cur.L;

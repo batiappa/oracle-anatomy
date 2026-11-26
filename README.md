@@ -25,7 +25,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/lab/
 
-실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 익히는 실습 과정입니다. 리눅스 실습실(1·2단계)과 DBA 실습(3~6단계)은 하나의 "실습 과정"으로 이어집니다. 두 화면 위쪽에 같은 단계 메뉴가 있어 1~6단계의 진행률(완료한 레슨 수)을 한눈에 보고 어느 단계로든 바로 갈 수 있습니다. 단계 메뉴는 두 화면이 함께 쓰는 `course.js`가 그리고, 진행률은 각 화면이 브라우저에 저장한 값(`ohb:lab:done`, `ohb:dba:done`)을 함께 읽어 계산합니다.
+실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 익히는 실습 과정입니다. 리눅스 실습실(1·2단계)과 DBA 실습(3~11단계)은 하나의 "실습 과정"으로 이어집니다. 두 화면 위쪽에 같은 단계 메뉴가 있어 1~11단계의 진행률(완료한 레슨 수)을 한눈에 보고 어느 단계로든 바로 갈 수 있습니다. 단계 메뉴는 두 화면이 함께 쓰는 `course.js`가 그리고, 진행률은 각 화면이 브라우저에 저장한 값(`ohb:lab:done`, `ohb:dba:done`)을 함께 읽어 계산합니다.
 
 ### 1단계 · 리눅스 기초 (Oracle 19c가 이미 돌아가는 dbserver01, oracle 계정)
 
@@ -66,7 +66,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`, 5단계가 `#lesson-41`부터 `#lesson-43`, 6단계가 `#lesson-51`부터 `#lesson-53`, 7단계가 `#lesson-61`부터 `#lesson-63`, 8단계가 `#lesson-71`부터 `#lesson-73`, 9단계가 `#lesson-81`부터 `#lesson-83`입니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd, dgmgrl, 그리고 RAC의 crsctl·srvctl·olsnodes를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-91`부터 `#lesson-96`, 5단계가 `#lesson-31`부터 `#lesson-36`, 6단계가 `#lesson-41`부터 `#lesson-43`, 7단계가 `#lesson-51`부터 `#lesson-53`, 8단계가 `#lesson-61`부터 `#lesson-63`, 9단계가 `#lesson-71`부터 `#lesson-73`, 10단계가 `#lesson-81`부터 `#lesson-83`, 11단계가 `#lesson-101`부터 `#lesson-103`입니다. 단계 번호는 배우는 순서이고 레슨 번호는 만든 순서라서 둘이 어긋납니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -82,7 +82,23 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 | 8 | 아카이브 모드로 바꾸고 첫 RMAN 백업 받기 | `archive log list`, `alter database archivelog`, `rman target /`, `backup database plus archivelog` |
 | 9 | 졸업 미션: 재부팅 뒤 아침 점검 | 배운 명령 종합, `alter user ... account unlock` |
 
-### 4단계 · 장애 대응과 복구 (dbserver02, oracle 계정, ARCHIVELOG + 백업이 있는 ORCL)
+### 4단계 · SQL 기초 (dbserver02, 실습용 STUDY 계정)
+
+SQL 문법을 처음 배우는 단계입니다. 실습용 STUDY 스키마에 부서(DEPT) 4개와 사원(EMP) 10명이 들어 있습니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | SELECT로 테이블 읽기 | `sqlplus study/...`, `user_tables`, `desc`, `select * from`, 계산 열과 별칭, `distinct` |
+| 2 | WHERE로 고르고 ORDER BY로 정렬하기 | `where`, `and`, `like`, `between`, `= null`과 `is null` 비교, `order by ... desc` |
+| 3 | 함수와 GROUP BY로 집계하기 | `count(*)`와 `count(열)`, `sum`, `round(avg())`, `to_char(날짜)`, `group by`, ORA-00937, `having` |
+| 4 | 조인과 서브쿼리 | `join ... on`, 쉼표와 WHERE 조인, `left join`(부서 없는 사원, 사원 없는 부서), 스칼라 서브쿼리, `in (서브쿼리)` |
+| 5 | INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK | `insert`, `update`, `delete`, `commit`, `rollback`, ORA-00001, ORA-01400 |
+| 6 | 졸업 미션: 테이블 만들고 보고서 뽑기 | `create table`(PRIMARY KEY, FOREIGN KEY, NOT NULL), `user_constraints`, ORA-02291, `spool` 파일 |
+
+- 근거: SQL Language Reference 19c(SELECT, 조인, 하위 질의, 집계 함수, NULL, INSERT·UPDATE·DELETE, COMMIT, CREATE TABLE과 제약 조건), Database Concepts 19c(트랜잭션, 제약 조건 위반 예시), SQL*Plus User's Guide 19c(SET FEEDBACK, EXITCOMMIT).
+- 확인하지 못한 것: "1 row created." 같은 DML 피드백 문구, ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, 01427의 화면 문구 전체. 터미널에 ⓘ 줄로 알립니다. 사원·부서 데이터는 설명용 예시입니다.
+
+### 5단계 · 장애 대응과 복구 (dbserver02, oracle 계정, ARCHIVELOG + 백업이 있는 ORCL)
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -95,7 +111,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 - 복구 순서(OFFLINE → RESTORE → RECOVER → ONLINE, MOUNT 상태 복구), 컨트롤 파일 사본 복사, ORA-19809의 해결책, FLASHBACK TABLE 문법은 Backup and Recovery User's Guide 19c, Administrator's Guide 19c, SQL Language Reference 19c와 19c 오류 도움말에서 확인했습니다. FRA가 가득 찼을 때의 대응 절은 18c 문서에서만 찾았고, 그렇다고 화면에 적었습니다.
 
-### 5단계 · 고급 복구
+### 6단계 · 고급 복구
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -103,7 +119,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 | 2 | 컨트롤 파일을 모두 잃었을 때 | `restore controlfile from autobackup`, `alter database mount`, `recover database`, `open resetlogs` |
 | 3 | 졸업 미션: 지워진 테이블과 빈 휴지통 | Flashback Drop 실패 확인 → 시점 복구 → 새 백업 → 보고서 |
 
-### 6단계 · 성능 점검
+### 7단계 · 성능 점검
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -111,9 +127,9 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 | 2 | AWR 보고서로 지난밤 배치 들여다보기 | `dba_hist_snapshot`, `dbms_workload_repository.create_snapshot`, `@$ORACLE_HOME/rdbms/admin/awrrpt.sql` |
 | 3 | 졸업 미션: 주문 저장이 멈춘 아침 | `enq: TX - row lock contention`, `blocking_session`, `alter system kill session` |
 
-- 5단계 절차는 Backup and Recovery User's Guide 19c(DBPITR, 백업 컨트롤 파일로 복구)와 Backup and Recovery Reference 19c(RESTORE, RECOVER, untilClause)를, 6단계는 Performance Tuning Guide 19c와 Database Reference 19c 부록 C(대기 이벤트)를 따랐습니다. awrrpt.sql의 질문 문구는 18c와 26ai 판 문서에서 원문을 확인했습니다(19c 해당 절은 확인한 범위 밖). AWR은 Oracle Diagnostics Pack 라이선스가 필요하다는 문서의 안내도 레슨에 적었습니다.
+- 6단계 절차는 Backup and Recovery User's Guide 19c(DBPITR, 백업 컨트롤 파일로 복구)와 Backup and Recovery Reference 19c(RESTORE, RECOVER, untilClause)를, 7단계는 Performance Tuning Guide 19c와 Database Reference 19c 부록 C(대기 이벤트)를 따랐습니다. awrrpt.sql의 질문 문구는 18c와 26ai 판 문서에서 원문을 확인했습니다(19c 해당 절은 확인한 범위 밖). AWR은 Oracle Diagnostics Pack 라이선스가 필요하다는 문서의 안내도 레슨에 적었습니다.
 
-### 7단계 · 패치 (OPatch와 분기별 RU)
+### 8단계 · 패치 (OPatch와 분기별 RU)
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -124,7 +140,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 근거: Oracle Database Patch Maintenance(19c and Later)의 RU 주기(1·4·7·10월 셋째 화요일)와 out-of-place 권장, Upgrade Guide 19c의 버전 번호 설명, Database Reference 19c의 DBA_REGISTRY_SQLPATCH, OPatch User's Guide의 lsinventory·lspatches·rollback 형식. 단일 인스턴스 패치 절차(사전 lsinventory 저장, 충돌 검사, DB와 리스너 종료, opatch apply, datapatch -sanity_checks와 -verbose, SUCCESS 확인)는 19c판 문서에서 같은 장을 찾지 못해 26ai판 "Single-Instance Maintenance with OPatch"를 인용했고, 화면에도 그렇게 적었습니다.
 - OPatch와 datapatch의 화면 예시는 공식 문서에서 찾지 못했습니다. 실습 화면은 줄인 흉내이고 ⓘ 줄로 알립니다. 패치 번호(38291812), RU 버전(19.29), OPatch 버전 번호(12.2.0.1.17, 12.2.0.1.47)는 설명용 예시 값입니다.
 
-### 8단계 · SQL 튜닝 입문 (실행 계획과 인덱스)
+### 9단계 · SQL 튜닝 입문 (실행 계획과 인덱스)
 
 | 레슨 | 내용 | 주요 명령 |
 |---|---|---|
@@ -135,7 +151,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 - 근거: SQL Tuning Guide 19c(실행 계획 만들기와 보기, 접근 경로, 인덱스를 쓰지 못하는 이유 표, 통계 수집 예), PL/SQL Packages and Types Reference 19c의 DBMS_XPLAN(DISPLAY, DISPLAY_CURSOR 인수), SQL Language Reference 19c의 EXPLAIN PLAN과 CREATE INDEX(ONLINE, 함수 기반 인덱스 예). "Explained."와 DISPLAY_CURSOR의 `SQL_ID  ..., child number 0` 머리줄, 계획 표의 열 제목은 문서 예시와 같습니다.
 - 실습의 옵티마이저는 "인덱스 첫 열에 함수 없이 = 나 범위 조건이 있으면 인덱스를 쓴다"는 단순한 규칙만 흉내 냅니다. Rows, Bytes, Cost, Time과 Plan hash value는 설명용 예시입니다.
 
-### 9단계 · Data Guard 기초 (주 DB와 물리 대기 DB)
+### 10단계 · Data Guard 기초 (주 DB와 물리 대기 DB)
 
 dbserver02의 주 DB(DB_UNIQUE_NAME orcl)와 dbserver03의 물리 대기 DB(orclstby)가 Data Guard 브로커 구성(orcl_dg, MaxPerformance)으로 묶여 있는 상황입니다.
 
@@ -148,7 +164,20 @@ dbserver02의 주 DB(DB_UNIQUE_NAME orcl)와 dbserver03의 물리 대기 DB(orcl
 - 근거: Data Guard Broker 19c의 DGMGRL 예시(SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER 출력)와 명령 설명(CONNECT, VALIDATE DATABASE), Data Guard Concepts and Administration 19c의 Redo Apply와 역할 전환(스위치오버는 데이터 손실이 없음, 브로커 사용 권장), Database Reference 19c의 V$DATAGUARD_STATS(주 DB에서는 행이 없음)와 V$DATAGUARD_PROCESS.
 - 적용 지연이 시간 단위일 때의 표시, 주 DB 쪽 SHOW DATABASE, V$DATAGUARD_PROCESS의 프로세스 이름과 PID는 문서 예시로 확인하지 못했습니다. 실습 화면에 ⓘ 줄로 알립니다. 적용을 다시 켜면 실습에서는 지연이 바로 0이 됩니다.
 
-- SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
+### 11단계 · RAC 기초 (2노드 클러스터 racnode1·racnode2)
+
+결제 DB(PAYDB)를 두 서버의 인스턴스 PAYDB1·PAYDB2가 함께 여는 Oracle RAC 19c 상황입니다. Grid 홈은 `/u01/app/19.0.0/grid`, 서비스는 `pay_oltp`(두 인스턴스 모두 preferred)와 `pay_batch`(PAYDB2 preferred, PAYDB1 available)입니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | RAC 클러스터 상태 점검 | `which srvctl crsctl`, `olsnodes -n -s`, `crsctl check cluster -all`, `crsctl stat res -t`, `srvctl status/config database -db paydb`, `gv$instance`와 `v$instance` 비교 |
+| 2 | 서비스를 옮기고 인스턴스 하나 내리기 | `srvctl status/config service`, `srvctl relocate service -db paydb -service pay_batch -oldinst PAYDB2 -newinst PAYDB1`, `gv$session` 집계, `srvctl stop instance -db paydb -instance PAYDB2 -stopoption immediate` |
+| 3 | 졸업 미션: 노드 장애 뒤 서비스 되돌리기 | `srvctl status service`, `gv$session`의 gc 대기 이벤트, 서비스를 PAYDB2로 되돌리고 확인, 보고서 |
+
+- 근거: Real Application Clusters Administration and Deployment Guide 19c(SRVCTL 명령, 서비스의 preferred·available, GV$ 뷰, Cache Fusion 대기 이벤트), Clusterware Administration and Deployment Guide 19c(CRSCTL, OLSNODES, crsctl check cluster -all 예시), Database Reference 19c(GV$ 뷰와 INST_ID, gc 대기 이벤트). `crsctl stat res -t` 표의 구조는 21c Private Cloud Appliance 문서의 예시로 확인했습니다.
+- 확인하지 못한 것: srvctl status·config 줄의 정확한 문구, crsctl 표의 열 간격과 서비스 자원 이름, check crs·activeversion 문구, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 실습은 서비스가 원래 인스턴스로 자동으로 돌아가지 않는다는 문서 설명을 따릅니다. 이름, IP, 세션 수와 시각은 설명용 예시입니다.
+
+- SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인·외부 조인·하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수, 4단계 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
 - 진행 상황은 리눅스 실습실과 따로 브라우저에 저장됩니다(`ohb:dba:done`).
 
