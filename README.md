@@ -66,7 +66,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 `#lesson-21`부터 `#lesson-29`입니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-31`부터 `#lesson-36`입니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -81,6 +81,19 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 | 7 | 락을 잡고 있는 세션 정리하기 | `v$session.blocking_session`, `v$process.spid`, `alter system kill session 'sid,serial#'` |
 | 8 | 아카이브 모드로 바꾸고 첫 RMAN 백업 받기 | `archive log list`, `alter database archivelog`, `rman target /`, `backup database plus archivelog` |
 | 9 | 졸업 미션: 재부팅 뒤 아침 점검 | 배운 명령 종합, `alter user ... account unlock` |
+
+### 4단계 · 장애 대응과 복구 (dbserver02, oracle 계정, ARCHIVELOG + 백업이 있는 ORCL)
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 지워진 데이터 파일 하나 되살리기(DB는 연 채로, ORA-01116) | `validate database`, `alter tablespace ... offline immediate`, `restore/recover tablespace`, `online` |
+| 2 | SYSTEM 데이터 파일을 잃은 DB 살리기(ORA-01157) | `startup`, `v$recover_file`, MOUNT 상태에서 `restore/recover datafile 1`, `alter database open` |
+| 3 | 컨트롤 파일 사본 하나를 잃었을 때(ORA-00205) | alert log의 ORA-00202, `show parameter control_files`, `shutdown abort`, 살아남은 사본 `cp` |
+| 4 | 빠른 복구 영역이 가득 차 DB가 멈췄을 때(ORA-00257, ORA-19809) | `v$recovery_file_dest`, `alter system set db_recovery_file_dest_size`, `delete noprompt obsolete` |
+| 5 | 실수로 지운 테이블 되살리기 | `show recyclebin`, `flashback table ... to before drop`, `dba_recyclebin` |
+| 6 | 졸업 미션: 장애가 겹친 아침 | 데이터 파일 복구 + Flashback Drop + 장애 보고서 |
+
+- 복구 순서(OFFLINE → RESTORE → RECOVER → ONLINE, MOUNT 상태 복구), 컨트롤 파일 사본 복사, ORA-19809의 해결책, FLASHBACK TABLE 문법은 Backup and Recovery User's Guide 19c, Administrator's Guide 19c, SQL Language Reference 19c와 19c 오류 도움말에서 확인했습니다. FRA가 가득 찼을 때의 대응 절은 18c 문서에서만 찾았고, 그렇다고 화면에 적었습니다.
 
 - SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인, WHERE, GROUP BY, ORDER BY, 집계 함수와 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
@@ -104,7 +117,7 @@ python3 -m http.server 8000
 ## 로드맵
 
 - 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
-- DBA 실습 4단계: 장애 대응(RMAN 복원·복구 등)
+- DBA 실습 5단계 후보: 시점 복구(PITR), 컨트롤 파일 전체 손실, 성능 점검(AWR, 대기 이벤트)
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
 ## 참고
