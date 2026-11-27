@@ -154,9 +154,9 @@
 "다음 레슨 ‘Undo와 읽기 일관성’에서는 다른 세션이 어떻게 커밋 전 값을 보는지 따라갑니다.": "In the next lesson, ‘Undo and read consistency’, we follow how other sessions see the value from before the commit.",
 "커밋 경로 · 순차 쓰기": "Commit path · sequential write",
 "나중에 · 랜덤 쓰기": "Later · random write",
-"미스터오라클": "미스터오라클",
-"미스터오라클 처음 화면": "미스터오라클 home",
-"<span class=\"logo-word\">미스터<b>오라클</b></span></a>": "<span class=\"logo-word\">미스터<b>오라클</b></span></a>",
-"만든 사람: 미스터오라클(김영조) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: 미스터오라클 (Kim Youngjo) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
-"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners."
+"미스터오라클": "Mr.Oracle",
+"미스터오라클 처음 화면": "Mr.Oracle home",
+"<span class=\"logo-word\">미스터<b>오라클</b></span></a>": "<span class=\"logo-word\">Mr.<b>Oracle</b></span></a>",
+"만든 사람: 미스터오라클(김영조) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: Mr.Oracle (Kim Youngjo) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
+"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners."
 }
