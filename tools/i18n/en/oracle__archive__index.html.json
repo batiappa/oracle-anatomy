@@ -26,7 +26,6 @@
 "파트 1 · 아키텍처": "Part 1 · Architecture",
 "인스턴스와 데이터베이스": "Instance and database",
 "완성": "Ready",
-"SGA와 PGA": "SGA and PGA",
 "백그라운드 프로세스": "Background processes",
 "파트 2 · 트랜잭션": "Part 2 · Transactions",
 "COMMIT의 여정": "The Journey of a COMMIT",
@@ -171,5 +170,6 @@
 "매일": "Daily",
 "원하는 시각": "Any time you choose",
 "④ 자동 백업": "④ autobackup",
-"얼마나 남길지는 <span class=\"term\">보관 정책</span>이 정합니다. 문서에 따르면 기본값은 <code>REDUNDANCY 1</code>이고, 정책을 넘는 오래된 백업은 OBSOLETE가 됩니다. FRA 안의 OBSOLETE 파일은 공간이 필요할 때 오라클이 자동으로 지우고, <code>DELETE OBSOLETE</code>로 언제든 직접 지울 수도 있습니다.": "The <span class=\"term\">retention policy</span> decides how much to keep. According to the guide the default is <code>REDUNDANCY 1</code>, and older backups beyond the policy become OBSOLETE. Oracle deletes obsolete files in the FRA automatically when space is needed, and you can also delete them any time with <code>DELETE OBSOLETE</code>."
+"얼마나 남길지는 <span class=\"term\">보관 정책</span>이 정합니다. 문서에 따르면 기본값은 <code>REDUNDANCY 1</code>이고, 정책을 넘는 오래된 백업은 OBSOLETE가 됩니다. FRA 안의 OBSOLETE 파일은 공간이 필요할 때 오라클이 자동으로 지우고, <code>DELETE OBSOLETE</code>로 언제든 직접 지울 수도 있습니다.": "The <span class=\"term\">retention policy</span> decides how much to keep. According to the guide the default is <code>REDUNDANCY 1</code>, and older backups beyond the policy become OBSOLETE. Oracle deletes obsolete files in the FRA automatically when space is needed, and you can also delete them any time with <code>DELETE OBSOLETE</code>.",
+"SGA·PGA와 백그라운드 프로세스": "SGA, PGA and background processes"
 }

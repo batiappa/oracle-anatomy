@@ -134,20 +134,33 @@
     { page: 'archive', step: 8, t: '복원·복구', lessons: [31, 32] },
     { page: 'archive', step: 9, t: 'FRA 가득', lessons: [34] },
     { page: 'archive', step: 10, t: '정리', lessons: [41, 34] },
+    { page: 'undo', step: 2, t: 'Undo', lessons: [95] },
+    { page: 'undo', step: 3, t: 'ROLLBACK', lessons: [95] },
+    { page: 'undo', step: 4, t: '한 시점', lessons: [95] },
+    { page: 'undo', step: 9, t: '대책', lessons: [24] },
+    { page: 'undo', step: 10, t: '정리', lessons: [95] },
+    { page: 'lock', step: 1, t: '문제', lessons: [27, 53] },
+    { page: 'lock', step: 5, t: '쓰기 줄 서기', lessons: [27] },
+    { page: 'lock', step: 7, t: '찾기', lessons: [27, 51] },
+    { page: 'lock', step: 8, t: '정리', lessons: [27, 53] },
+    { page: 'lock', step: 10, t: '정리', lessons: [53] },
+    { page: 'checkpoint', step: 1, t: '문제', lessons: [51] },
+    { page: 'checkpoint', step: 6, t: '못 따라잡음', lessons: [51] },
+    { page: 'checkpoint', step: 7, t: '확인', lessons: [51, 52] },
+    { page: 'checkpoint', step: 9, t: 'MTTR', lessons: [22] },
+    { page: 'checkpoint', step: 10, t: '정리', lessons: [52] },
   ];
   const TITLES = {
-    1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기',
-    5: 'oracle 계정과 권한 이해하기', 6: 'DB가 살아 있는지 프로세스로 확인하기', 7: '디스크가 찼다는 연락 대응하기',
-    8: 'sqlplus를 찾을 수 없다고요?', 9: '졸업 미션: 아침 점검 혼자 해 보기', 10: '새 서버 받기: 설치 전 서버 점검',
-    11: 'preinstall RPM으로 설치 준비 한 번에 하기', 12: '커널 파라미터 확인하기', 13: '자원 제한(limits) 확인하기',
-    14: 'HugePages 설정하고 THP 확인하기', 15: '디스크 I/O 스케줄러와 시계 확인하기', 16: '직무 분리 그룹과 grid 사용자 만들기',
-    17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기',
-    21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 26: '지워진 암호 파일 다시 만들기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기',
-    29: '졸업 미션: 재부팅 뒤 아침 점검', 31: '지워진 데이터 파일 하나 되살리기', 32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 42: '컨트롤 파일을 모두 잃었을 때',
-    34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', 41: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', 51: '지금 무엇을 기다리는지 보기 (대기 이벤트)',
-    52: 'AWR 보고서로 어젯밤 배치 들여다보기', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
+    1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기', 5: 'oracle 계정과 권한 이해하기', 6: 'DB가 살아 있는지 프로세스로 확인하기',
+    7: '디스크가 찼다는 연락 대응하기', 8: 'sqlplus를 찾을 수 없다고요?', 9: '졸업 미션: 아침 점검 혼자 해 보기', 10: '새 서버 받기: 설치 전 서버 점검', 11: 'preinstall RPM으로 설치 준비 한 번에 하기',
+    12: '커널 파라미터 확인하기', 13: '자원 제한(limits) 확인하기', 14: 'HugePages 설정하고 THP 확인하기', 15: '디스크 I/O 스케줄러와 시계 확인하기', 16: '직무 분리 그룹과 grid 사용자 만들기',
+    17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기', 21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 24: '꽉 찬 테이블스페이스에 공간 늘리기',
+    26: '지워진 암호 파일 다시 만들기', 27: '락을 잡고 있는 세션 정리하기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기', 29: '졸업 미션: 재부팅 뒤 아침 점검', 31: '지워진 데이터 파일 하나 되살리기',
+    32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', 41: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', 42: '컨트롤 파일을 모두 잃었을 때',
+    51: '지금 무엇을 기다리는지 보기 (대기 이벤트)', 52: 'AWR 보고서로 어젯밤 배치 들여다보기', 53: '졸업 미션: 주문 저장이 멈춘 아침', 91: 'SELECT로 테이블 읽기',
+    95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
   };
-  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' } };
+  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo와 읽기 일관성', dir: 'oracle/undo/' }, lock: { name: '잠금과 대기', dir: 'oracle/lock/' }, checkpoint: { name: '체크포인트', dir: 'oracle/checkpoint/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `${s.no}단계 레슨 ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

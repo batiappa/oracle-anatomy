@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checkpoints · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that follows, in Oracle Database 19c, dirty buffers in the buffer cache, the checkpoint position, the roles of CKPT and DBWn, and how log switches relate to checkpoints. It also covers why sessions stop on log file switch (checkpoint incomplete) when redo logs are too small, and what FAST_START_MTTR_TARGET means.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/checkpoint/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/checkpoint/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/checkpoint/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/checkpoint/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Checkpoints · Oracle Anatomy">
+<meta property="og:description" content="During the night batch, every DML stopped on log file switch (checkpoint incomplete). Follow in 10 steps why a checkpoint holds on to the redo log.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 2 · Transactions</b> / lesson 4 of 4</div>
+      <div class="head-row">
+        <h1>Checkpoints</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Learn when committed data is written to the data files, and why the redo log gets stuck when that writing falls behind.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of redo, blocks and checkpoint information moving between the LGWR, DBWn and CKPT processes, dirty buffers in the buffer cache, three online redo log groups, the data files and the control file"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Sessions · processes</li>
+            <li><i style="background:var(--c-data)"></i>Data blocks · dirty buffers</li>
+            <li><i style="background:var(--c-redo)"></i>Redo</li>
+            <li><i style="background:var(--c-undo)"></i>Checkpoint information</li>
+            <li><i style="background:var(--c-signal)"></i>Waits</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02), the three redo log groups and their file names match the virtual server in the DBA labs; log sizes, SCNs, sequence numbers, wait counts and times, and second counts are example values. The column layout of the V$LOG, V$SYSTEM_EVENT and V$INSTANCE_RECOVERY query results could not be confirmed against documentation examples. The "Checkpoint not complete" alert log wording was not found in the pages read, so it is not shown in the console; the same situation is explained with the wait event name from the documentation. Some of the CKPT and DBWn details come from a summary of the later part of the Concepts chapters. A numeric rule such as "a log switch every so many minutes" was not found in the pages read, so none is given.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Oracle Database Instance (purpose, types and position of checkpoints, instance recovery)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (CKPT, DBWn, LGWR)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (log file switch (checkpoint incomplete))</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/instance-tuning-using-performance-views.html" target="_blank" rel="noopener">Database Performance Tuning Guide 19c · Instance Tuning Using Performance Views (number and size of redo logs, FAST_START_MTTR_TARGET)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE_RECOVERY.html" target="_blank" rel="noopener">Database Reference 19c · V$INSTANCE_RECOVERY</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/LOG_CHECKPOINT_TIMEOUT.html" target="_blank" rel="noopener">Database Reference 19c · LOG_CHECKPOINT_TIMEOUT</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/user-managed-recovery-advanced.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · User-Managed Recovery: Advanced Scenarios (V$LOG status)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 2 "체크포인트". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=세션·프로세스, data=데이터 블록·더티 버퍼, redo=리두, undo=체크포인트 정보(컨트롤 파일·파일 헤더), signal=대기
+   bc 칸: dataDirty=더티 버퍼(아직 데이터 파일에 안 씀), data=깨끗한 버퍼.
+   ===================================================================== */
+const LESSON = {
+  page: 'checkpoint',
+  base: '../../',
+  storeKey: 'checkpoint:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'cur', label: 'Writing' },
+    { key: 'dirty', label: 'Dirty buffers' },
+    { key: 'ck', label: 'Checkpoint position' },
+    { key: 'act', label: 'Groups needed' },
+    { key: 'dml', label: 'DML' },
+  ],
+  goals: [
+    { text: 'Why writing to data files is deferred even after commit', step: 2 },
+    { text: 'What the checkpoint position means', step: 3 },
+    { text: 'How CKPT and DBWn split the work', step: 4 },
+    { text: 'How log switches relate to checkpoints', step: 5 },
+    { text: 'Why log file switch (checkpoint incomplete) happens', step: 6 },
+    { text: 'Fixing it with the number and size of redo logs', step: 8 },
+    { text: 'What FAST_START_MTTR_TARGET means', step: 9 },
+  ],
+  zones: [
+    { id: 'proc', from: [0.6, -1.6], to: [4.6, 7.8], label: 'Background processes', members: ['lgwr', 'dbwn', 'ckpt'] },
+    { id: 'sga', from: [5.4, -1.6], to: [10.4, 3.4], label: 'SGA', members: ['bc'] },
+    { id: 'db', from: [11.2, -1.6], to: [19.0, 7.8], label: 'Database files (/u02)', members: ['r1', 'r2', 'r3', 'dbf', 'ctl'] },
+  ],
+  entities: {
+    sess: { type: 'box', at: [-2.8, -0.4], size: [2, 2, 0.5], label: 'Batch sessions', tone: 'sql' },
+    lgwr: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'LGWR', tone: 'redo', led: true },
+    dbwn: { type: 'box', at: [1.8, 2.6], size: [1.7, 1.6, 1.1], label: 'DBWn', tone: 'data', led: true, labelPos: 'left' },
+    ckpt: { type: 'box', at: [1.8, 5.6], size: [1.7, 1.6, 1.1], label: 'CKPT', tone: 'undo', led: true, labelPos: 'left', tagDir: 'down' },
+    bc:   { type: 'box', at: [6.2, -0.6], size: [3.4, 3.0, 0.6], label: 'Buffer cache', tone: 'data', cells: [4, 3] },
+    r1:   { type: 'cyl', at: [12.6, -0.6], r: 0.7, h: 0.9, label: 'Group 1 · redo01', tone: 'redo' },
+    r2:   { type: 'cyl', at: [12.6, 2.4], r: 0.7, h: 0.9, label: 'Group 2 · redo02', tone: 'redo' },
+    r3:   { type: 'cyl', at: [12.6, 5.4], r: 0.7, h: 0.9, label: 'Group 3 · redo03', tone: 'redo', tagDir: 'down' },
+    dbf:  { type: 'cyl', at: [16.8, 0.2], r: 1.1, h: 1.8, label: 'Data files', tone: 'data' },
+    ctl:  { type: 'cyl', at: [16.8, 5.0], r: 0.9, h: 1.2, label: 'Control file', tone: 'undo', tagDir: 'down' },
+  },
+  links: {
+    dml:  { from: 'sess', to: 'bc', via: [[-1.8, -1.2], [7.9, -1.2]] },
+    w1:   { from: 'lgwr', to: 'r1', via: [[5.0, 0.2], [5.0, -1.4], [12.6, -1.4]], onDemand: true },
+    w2:   { from: 'lgwr', to: 'r2', via: [[4.8, 0.2], [4.8, 3.6], [10.8, 3.6], [10.8, 2.4]], onDemand: true },
+    w3:   { from: 'lgwr', to: 'r3', via: [[4.6, 0.2], [4.6, 4.0], [10.8, 4.0], [10.8, 5.4]], onDemand: true },
+    wr:   { from: 'bc', to: 'dbf', via: [[7.9, 3.0], [11.0, 3.0], [11.0, 7.4], [16.8, 7.4]], onDemand: true },
+    sig:  { from: 'ckpt', to: 'dbwn', onDemand: true },
+    rd:   { from: 'dbwn', to: 'bc', onDemand: true },
+    hdr:  { from: 'ckpt', to: 'ctl', via: [[3.4, 8.2], [16.8, 8.2]], onDemand: true },
+    hdr2: { from: 'ckpt', to: 'dbf', via: [[3.0, 8.6], [19.4, 8.6], [19.4, 1.1]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: '11 p.m.: every DML in the batch stops on the same wait',
+      body: [
+        'At 11 p.m., during a bulk-load batch, monitoring shows many sessions on the same wait event: <code>log file switch (checkpoint incomplete)</code>. They stall for a few seconds, resume, stall again, and the batch falls far behind schedule.',
+        'The name holds the answer: a log switch is wanted, but a checkpoint has not completed. What do redo logs have to do with checkpoints, that writing redo would wait for writing data files?',
+      ],
+      callout: { kind: 'insight', text: 'The Database Reference describes this wait as waiting for a log switch because the session cannot wrap into the next log. Why it cannot is the topic of this lesson.' },
+      changes: ['× log file switch (checkpoint incomplete)', '~ batch running late'],
+      metrics: { cur: 'Group 3', dirty: 'Many', ck: '?', act: '?', dml: 'Stalled' },
+      show: ['sess', 'lgwr', 'bc', 'r1', 'r2', 'r3'],
+      focus: ['sess', 'lgwr'],
+      dim: ['bc', 'r1', 'r2', 'r3'],
+      tags: { sess: [{ text: 'checkpoint incomplete', tone: 'signal' }] },
+      flows: [{ link: 'dml', kind: 'signal', n: 1, bounce: true }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select event, count(*) from v$session where wait_class <> \'Idle\' group by event;',
+          'EVENT                                    COUNT(*)',
+          '---------------------------------------- --------',
+          'log file switch (checkpoint incomplete)        12|warn',
+        ],
+      },
+    },
+    {
+      short: 'Dirty buffers',
+      chapter: 'technique',
+      title: 'A commit writes only redo. Data blocks stay in the buffer cache',
+      body: [
+        'As "The journey of a COMMIT" showed, the only thing that must be on disk at commit time is redo. Once LGWR writes the redo to the online redo log, the commit is done. The changed data blocks stay in the buffer cache; a buffer whose contents differ from the data file is a <span class="term">dirty buffer</span>.',
+        'Writing dirty buffers to the data files is DBWn\'s job. According to Concepts, DBWn writes asynchronously when possible, and writes when it cannot find clean reusable buffers or when the checkpoint needs to advance. Since it does not write at every commit, a block changed many times needs to be written only once.',
+      ],
+      callout: { kind: 'tip', text: 'That is why committed data is safe even in a power cut: changes not yet in the data files are in the redo. But that redo must stay as needed redo until those blocks are written to the data files.' },
+      changes: ['+ redo → group 1', '+ 4 dirty buffers (not yet in data files)'],
+      metrics: { cur: 'Group 1', dirty: '4', ck: 'SCN 5,000', act: 'Group 1', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'bc', 'r1', 'r2', 'r3', 'dbf'],
+      focus: ['bc', 'lgwr', 'r1'],
+      dim: ['dbwn', 'dbf', 'r2', 'r3'],
+      cells: { bc: { 0: 'dataDirty', 1: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { r1: [{ text: 'CURRENT', tone: 'redo' }], bc: [{ text: '4 dirty', tone: 'data' }] },
+      flows: [{ link: 'dml', kind: 'data', n: 2 }, { link: 'w1', kind: 'redo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: ['SQL> insert into sales_stage select * from ext_sales;', '250000 rows created.', 'SQL> commit;', 'Commit complete.|ok'],
+      },
+    },
+    {
+      short: 'Checkpoint position',
+      chapter: 'technique',
+      title: 'The checkpoint position: where recovery must start',
+      body: [
+        'Concepts defines a <span class="term">checkpoint</span> as a data structure that indicates the checkpoint position. The position is determined by the <b>oldest dirty buffer</b> in the buffer cache; if the instance crashes, redo only needs to be applied from this point, because earlier changes are already in the data files.',
+        'The checkpoint position is stored in the control file and in each data file header. The documentation lists the purposes of checkpoints: reduce recovery time after an instance or media failure, ensure dirty buffers are written to disk regularly, and ensure all committed data is written to disk during a consistent shutdown.',
+      ],
+      callout: { kind: 'insight', text: 'Redo after the checkpoint position is exactly the redo needed for instance recovery. An online redo log group holding that redo cannot be overwritten yet. The incident in scene 6 comes from this.' },
+      changes: ['~ oldest dirty buffer = SCN 5,000', '~ recovery starts at SCN 5,000'],
+      metrics: { cur: 'Group 1', dirty: '4', ck: 'SCN 5,000', act: 'Group 1', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['bc', 'ctl', 'dbf'],
+      dim: ['lgwr', 'dbwn', 'r2', 'r3'],
+      cells: { bc: { 0: 'dataDirty', 1: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { bc: [{ text: 'Oldest dirty: SCN 5,000', tone: 'data' }], ctl: [{ text: 'Checkpoint SCN 5,000', tone: 'undo' }] },
+      flows: [{ link: 'hdr', kind: 'undo', n: 1 }, { link: 'hdr2', kind: 'undo', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> select checkpoint_change# from v$database;', 'CHECKPOINT_CHANGE#', '------------------', '              5000'] },
+    },
+    {
+      short: 'CKPT · DBWn',
+      chapter: 'technique',
+      title: 'CKPT records, DBWn writes',
+      body: [
+        'According to Concepts, <span class="term">CKPT</span> updates the control file and data file headers with checkpoint information and signals DBWn to write blocks to disk. CKPT itself does not write data blocks to data files; DBWn does the actual writing.',
+        'Normally <span class="term">incremental checkpoints</span> run. According to the documentation, DBWn checks at least every three seconds whether it has work, writes the oldest dirty buffers first, and moves the checkpoint position forward. For these, CKPT records the position in the control file only, not in the data file headers.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'On Linux, <code>ps -ef | grep ora_</code> shows processes such as ora_ckpt_ORCL and ora_dbw0_ORCL. The lesson "SGA, PGA and background processes" revisits them with the other mandatory processes.',
+      },
+      changes: ['~ CKPT → DBWn signal', '- 2 oldest dirty buffers written → position SCN 5,600'],
+      metrics: { cur: 'Group 1', dirty: '2', ck: 'SCN 5,600', act: 'Group 1', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['ckpt', 'dbwn', 'dbf'],
+      dim: ['lgwr', 'r1', 'r2', 'r3', 'sess'],
+      cells: { bc: { 0: 'data', 1: 'data', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { ckpt: [{ text: 'Records the position', tone: 'undo' }], dbwn: [{ text: 'Writes blocks', tone: 'data' }] },
+      flows: [
+        { link: 'sig', kind: 'undo', n: 1 },
+        { link: 'rd', kind: 'data', n: 1 },
+        { link: 'wr', kind: 'data', n: 2 },
+        { link: 'hdr', kind: 'undo', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep -E "ora_(ckpt|dbw|lgwr)" | grep -v grep',
+          'oracle    2121     1  0 09:00 ?        00:00:03 ora_dbw0_ORCL',
+          'oracle    2123     1  0 09:00 ?        00:00:05 ora_lgwr_ORCL',
+          'oracle    2125     1  0 09:00 ?        00:00:01 ora_ckpt_ORCL',
+        ],
+      },
+    },
+    {
+      short: 'Log switch',
+      chapter: 'technique',
+      title: 'A log switch starts a checkpoint',
+      body: [
+        'Group 1 fills and LGWR moves on to group 2. Concepts lists an online redo log switch as one of the events that start a thread checkpoint. The checkpoint completes only when DBWn has written to the data files all dirty buffers protected by group 1\'s redo.',
+        'Until then group 1 is still needed for instance recovery. In <code>V$LOG</code> such a group shows STATUS <code>ACTIVE</code>; once its checkpoint is complete and it is no longer needed for recovery, it shows <code>INACTIVE</code>. In ARCHIVELOG mode, ARCn must also have copied it before it can be reused.',
+      ],
+      callout: {
+        kind: 'insight',
+        text: 'Before a group can be reused, two things must be finished: its checkpoint (data blocks written to data files) and, in ARCHIVELOG mode, its archiving (redo copied). Scene 9 of "Archivelog and RMAN" is the second one getting stuck; scene 6 here is the first.',
+      },
+      changes: ['~ log switch: group 1 → 2', '+ checkpoint for group 1 starts (ACTIVE)'],
+      metrics: { cur: 'Group 2', dirty: '5', ck: 'SCN 5,600', act: 'Groups 1, 2', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['lgwr', 'r1', 'r2', 'dbwn'],
+      dim: ['sess', 'r3', 'ctl'],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty', 8: 'dataDirty', 9: 'dataDirty', 10: 'dataDirty' } },
+      tags: { r1: [{ text: 'ACTIVE · needed for recovery', tone: 'redo' }], r2: [{ text: 'CURRENT', tone: 'redo' }] },
+      flows: [{ link: 'w2', kind: 'redo', n: 2 }, { link: 'rd', kind: 'data', n: 1 }, { link: 'wr', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select group#, sequence#, bytes/1024/1024 mb, status from v$log;',
+          '    GROUP#  SEQUENCE#         MB STATUS',
+          '---------- ---------- ---------- ----------------',
+          '         1        101        200 ACTIVE',
+          '         2        102        200 CURRENT',
+          '         3        100        200 INACTIVE',
+        ],
+      },
+    },
+    {
+      short: 'Falling behind',
+      chapter: 'case',
+      title: 'Case: a full lap later, the checkpoint is not finished',
+      body: [
+        'The batch generates redo very fast. Three 200 MB groups fill in under a minute, and after group 3 LGWR wants to wrap back to group 1. But DBWn has not finished writing the dirty buffers that group 1 protects. Group 1 is still ACTIVE.',
+        'Exactly as the Database Reference says, wrapping cannot be performed because the checkpoint for that log has not completed. With nowhere to write redo, every DML session that needs to generate redo waits on <code>log file switch (checkpoint incomplete)</code>. The moment the checkpoint completes they resume, and on the next lap they stall again.',
+      ],
+      callout: { kind: 'warn', text: 'Queries that generate no redo mostly keep running, so a report that "the database is half frozen" is typical of this incident. The wait event query in DBA labs stage 7 shows it at once.' },
+      changes: ['× cannot switch 3 → 1 (group 1 checkpoint not complete)', '× DML sessions wait'],
+      metrics: { cur: 'Group 3 (full)', dirty: '11', ck: 'SCN 5,900', act: 'All three', dml: 'Stalled' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['lgwr', 'r1', 'dbwn', 'sess'],
+      dim: ['ctl'],
+      cells: {
+        bc: {
+          0: 'dataDirty',
+          1: 'dataDirty',
+          2: 'dataDirty',
+          4: 'dataDirty',
+          5: 'dataDirty',
+          6: 'dataDirty',
+          7: 'dataDirty',
+          8: 'dataDirty',
+          9: 'dataDirty',
+          10: 'dataDirty',
+          11: 'dataDirty',
+        },
+      },
+      tags: {
+        r1: [{ text: 'ACTIVE · cannot reuse', tone: 'signal' }],
+        lgwr: [{ text: 'No next group', tone: 'signal' }],
+        sess: [{ text: 'checkpoint incomplete', tone: 'signal' }],
+      },
+      flows: [
+        { link: 'w1', kind: 'signal', n: 1, bounce: true },
+        { link: 'wr', kind: 'data', n: 3, rate: 1.4 },
+        { link: 'dml', kind: 'signal', n: 1, bounce: true },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select group#, sequence#, status from v$log;',
+          '    GROUP#  SEQUENCE# STATUS',
+          '---------- ---------- ----------------',
+          '         1        121 ACTIVE|warn',
+          '         2        122 ACTIVE',
+          '         3        123 CURRENT',
+        ],
+      },
+    },
+    {
+      short: 'Check',
+      chapter: 'case',
+      title: 'Case: look at wait time and log switch frequency',
+      body: [
+        'First, check how much of this wait has accumulated with <code>V$SYSTEM_EVENT</code>. Then count log switches per hour from <code>V$LOG_HISTORY</code>. Dozens of switches an hour during the batch mean the logs are small for the rate at which redo is generated.',
+        'If you have an AWR report, also look at the top wait events and redo size per second for the same period. The AWR lesson in DBA labs stage 7 walks through this.',
+      ],
+      callout: { kind: 'tip', text: 'For this wait, the Performance Tuning Guide says to check whether there are too few or too small redo logs. DBWn\'s write speed (the disks) may also be a suspect, but look at the log layout first.' },
+      changes: ['~ 74 log switches in the 11 p.m. hour', '~ checkpoint incomplete total 1,812 s'],
+      metrics: { cur: 'Group 2', dirty: 'Many', ck: '-', act: 'Two', dml: 'Stalls on and off' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['r1', 'r2', 'r3'],
+      dim: ['dbwn', 'ckpt', 'dbf', 'ctl', 'bc'],
+      tags: { r2: [{ text: '74 switches/hour', tone: 'signal' }] },
+      flows: [{ link: 'w2', kind: 'redo', n: 3, rate: 1.5 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select event, total_waits, round(time_waited_micro/1e6) secs from v$system_event where event like \'log file switch%\';',
+          'EVENT                                    TOTAL_WAITS       SECS',
+          '---------------------------------------- ----------- ----------',
+          'log file switch (checkpoint incomplete)          903       1812|warn',
+          'SQL> select to_char(first_time,\'HH24\') hh, count(*) from v$log_history where first_time > trunc(sysdate) group by to_char(first_time,\'HH24\') order by 1;',
+          'HH   COUNT(*)',
+          '-- ----------',
+          '22         21',
+          '23         74|warn',
+        ],
+      },
+    },
+    {
+      short: 'Fix',
+      chapter: 'case',
+      title: 'Case: make the logs bigger or more numerous to give checkpoints time',
+      body: [
+        'The documented fix is to increase the size or number of redo logs. If one lap takes longer, DBWn has time to finish the checkpoint in between. While the database runs, add bigger groups with <code>ALTER DATABASE ADD LOGFILE</code>, and drop the small groups once they become INACTIVE.',
+        'When choosing a size, <code>OPTIMAL_LOGFILE_SIZE</code> (MB) in <code>V$INSTANCE_RECOVERY</code> helps. The Database Reference describes it as the size to configure all online redo logs to be at least. The value is computed when FAST_START_MTTR_TARGET, from the next scene, is set.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'A CURRENT or ACTIVE group cannot be dropped. Make it INACTIVE with <code>ALTER SYSTEM SWITCH LOGFILE</code> and <code>ALTER SYSTEM CHECKPOINT</code> first, then drop it, and delete the Linux file separately.',
+      },
+      changes: ['+ add 1 GB groups 4, 5, 6', '- drop 200 MB groups 1, 2, 3 (once INACTIVE)'],
+      metrics: { cur: 'Group 4', dirty: 'Moderate', ck: 'Keeping up', act: 'Group 4', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['r1', 'r2', 'r3'],
+      dim: ['sess', 'bc', 'dbwn', 'ckpt', 'ctl'],
+      tags: { r1: [{ text: '1 GB', tone: 'redo' }], r2: [{ text: '1 GB', tone: 'redo' }], r3: [{ text: '1 GB', tone: 'redo' }] },
+      flows: [{ link: 'w1', kind: 'redo', n: 1, rate: 0.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select optimal_logfile_size from v$instance_recovery;',
+          'OPTIMAL_LOGFILE_SIZE',
+          '--------------------',
+          '                 980',
+          'SQL> alter database add logfile group 4 (\'/u02/oradata/ORCL/redo04.log\') size 1g;',
+          'Database altered.|ok',
+        ],
+      },
+    },
+    {
+      short: 'MTTR',
+      chapter: 'technique',
+      title: 'FAST_START_MTTR_TARGET: tune checkpoints by recovery time',
+      body: [
+        'Pushing the checkpoint often makes instance recovery faster but increases DBWn\'s writes; pushing it rarely does the opposite. According to the Performance Tuning Guide, <code>FAST_START_MTTR_TARGET</code> is the time in seconds it should take to start the instance and perform cache recovery, with a maximum of 3600 seconds (one hour).',
+        'Oracle sets the pace of incremental checkpoints to meet this target. Compare the target with the current estimate using <code>TARGET_MTTR</code> and <code>ESTIMATED_MTTR</code> in <code>V$INSTANCE_RECOVERY</code>. The documentation says that when using it, older settings such as LOG_CHECKPOINT_INTERVAL and LOG_CHECKPOINT_TIMEOUT should be disabled.',
+      ],
+      callout: { kind: 'tip', text: 'Instance recovery in scene 7 of "Instance and database" is exactly this time: SMON applies redo from the checkpoint position (roll forward) and undoes uncommitted changes (roll back).' },
+      changes: ['~ fast_start_mttr_target = 60', '~ incremental checkpoint pace tuned automatically'],
+      metrics: { cur: 'Group 4', dirty: 'Moderate', ck: 'Target 60 s', act: 'Group 4', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['ckpt', 'dbwn', 'bc'],
+      dim: ['sess', 'r1', 'r2', 'r3'],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { ckpt: [{ text: 'Est. recovery 41 s', tone: 'undo' }] },
+      flows: [{ link: 'sig', kind: 'undo', n: 1 }, { link: 'wr', kind: 'data', n: 2 }, { link: 'hdr', kind: 'undo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> alter system set fast_start_mttr_target = 60;',
+          'System altered.|ok',
+          'SQL> select target_mttr, estimated_mttr from v$instance_recovery;',
+          'TARGET_MTTR ESTIMATED_MTTR',
+          '----------- --------------',
+          '         60             41',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: commits go through redo; data files catch up through checkpoints',
+      body: [
+        'A commit writes only redo; changed blocks remain as dirty buffers. As DBWn writes those buffers to the data files, the checkpoint position moves forward, and CKPT records it in the control file and data file headers.',
+        'A group holding redo after the checkpoint position cannot be overwritten. If redo laps the logs faster than checkpoints complete, DML stalls on <code>log file switch (checkpoint incomplete)</code>. The fix is the size and number of logs, and the recovery-time goal is set with FAST_START_MTTR_TARGET.',
+      ],
+      callout: { kind: 'insight', text: 'The redo log is both a record of changes and insurance for changes not yet in the data files. Only when the insurance ends (the checkpoint) can its space be reused.' },
+      changes: ['~ redo → dirty buffers → DBWn writes → checkpoint position', '~ log reuse requires: checkpoint (+ archiving)'],
+      metrics: { cur: 'Group 4', dirty: 'Moderate', ck: 'Keeping up', act: 'Group 4', dml: 'Normal' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: [],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: {
+        r1: [{ text: '① redo', tone: 'redo' }],
+        bc: [{ text: '② dirty buffers', tone: 'data' }],
+        dbf: [{ text: '③ DBWn writes', tone: 'data' }],
+        ctl: [{ text: '④ checkpoint position', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'dml', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'w1', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'wr', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'hdr', kind: 'undo', n: 1, rate: 0.5 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> select event, count(*) from v$session where wait_class <> \'Idle\' group by event;', 'no rows selected|ok'] },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA, PGA and background processes'] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, 'Checkpoints'], current: 3 },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>체크포인트 · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c에서 버퍼 캐시의 더티 버퍼, 체크포인트 위치, CKPT와 DBWn의 역할, 로그 스위치와 체크포인트의 관계를 10단계 애니메이션으로 따라가는 레슨. 리두 로그가 작을 때 세션이 log file switch (checkpoint incomplete)로 멈추는 이유와 FAST_START_MTTR_TARGET의 뜻을 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/checkpoint/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/checkpoint/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/checkpoint/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/checkpoint/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="체크포인트 · Oracle 해부도">
+<meta property="og:description" content="야간 배치 중 모든 DML이 log file switch (checkpoint incomplete)에서 멈췄습니다. 체크포인트가 리두 로그를 붙잡는 이유를 10단계로 따라갑니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 2 · 트랜잭션</b> / 4개 중 4번째 레슨</div>
+      <div class="head-row">
+        <h1>체크포인트</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12분</span><span class="badge">중급</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">커밋한 데이터는 언제 데이터 파일에 쓰이는지, 그리고 그 쓰기가 늦을 때 왜 리두 로그가 막히는지 알아봅니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="LGWR·DBWn·CKPT 프로세스, 버퍼 캐시의 더티 버퍼, 온라인 리두 로그 그룹 세 개, 데이터 파일과 컨트롤 파일 사이를 리두와 블록과 체크포인트 정보가 오가는 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>세션 · 프로세스</li>
+            <li><i style="background:var(--c-data)"></i>데이터 블록 · 더티 버퍼</li>
+            <li><i style="background:var(--c-redo)"></i>리두</li>
+            <li><i style="background:var(--c-undo)"></i>체크포인트 정보</li>
+            <li><i style="background:var(--c-signal)"></i>대기</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02), 리두 로그 그룹 세 개와 파일 이름은 DBA 실습의 가상 서버와 같은 값이고, 로그 크기, SCN, 시퀀스 번호, 대기 횟수와 시간, 초 단위 값은 설명을 위한 예시 값입니다. V$LOG, V$SYSTEM_EVENT, V$INSTANCE_RECOVERY 조회 결과의 열 모양은 공식 문서 예시로 확인하지 못한 형식입니다. alert log에 남는 "Checkpoint not complete" 문구는 이번에 읽은 문서에서 확인하지 못해 콘솔에 넣지 않았고, 같은 상황을 문서의 대기 이벤트 이름으로 설명했습니다. CKPT·DBWn 설명 일부는 Concepts 장의 뒷부분을 요약본으로 읽었습니다. "리두 로그 전환은 몇 분에 한 번이 적당하다" 같은 숫자 기준은 이번에 읽은 문서에서 찾지 못해 적지 않았습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Oracle Database Instance (체크포인트의 목적·종류·위치, 인스턴스 복구)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (CKPT, DBWn, LGWR)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (log file switch (checkpoint incomplete))</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/instance-tuning-using-performance-views.html" target="_blank" rel="noopener">Database Performance Tuning Guide 19c · Instance Tuning Using Performance Views (리두 로그 수·크기, FAST_START_MTTR_TARGET)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE_RECOVERY.html" target="_blank" rel="noopener">Database Reference 19c · V$INSTANCE_RECOVERY</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/LOG_CHECKPOINT_TIMEOUT.html" target="_blank" rel="noopener">Database Reference 19c · LOG_CHECKPOINT_TIMEOUT</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/user-managed-recovery-advanced.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · User-Managed Recovery: Advanced Scenarios (V$LOG 상태)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 2 "체크포인트". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=세션·프로세스, data=데이터 블록·더티 버퍼, redo=리두, undo=체크포인트 정보(컨트롤 파일·파일 헤더), signal=대기
+   bc 칸: dataDirty=더티 버퍼(아직 데이터 파일에 안 씀), data=깨끗한 버퍼.
+   ===================================================================== */
+const LESSON = {
+  page: 'checkpoint',
+  base: '../../',
+  storeKey: 'checkpoint:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'cur', label: '쓰는 그룹' },
+    { key: 'dirty', label: '더티 버퍼' },
+    { key: 'ck', label: '체크포인트 위치' },
+    { key: 'act', label: '복구에 필요한 그룹' },
+    { key: 'dml', label: 'DML' },
+  ],
+  goals: [
+    { text: '커밋해도 데이터 파일 쓰기는 미뤄지는 이유', step: 2 },
+    { text: '체크포인트 위치가 뜻하는 것', step: 3 },
+    { text: 'CKPT와 DBWn이 나눠 하는 일', step: 4 },
+    { text: '로그 스위치와 체크포인트의 관계', step: 5 },
+    { text: 'log file switch (checkpoint incomplete)가 나는 이유', step: 6 },
+    { text: '리두 로그 수와 크기로 푸는 방법', step: 8 },
+    { text: 'FAST_START_MTTR_TARGET의 뜻', step: 9 },
+  ],
+  zones: [
+    { id: 'proc', from: [0.6, -1.6], to: [4.6, 7.8], label: '백그라운드 프로세스', members: ['lgwr', 'dbwn', 'ckpt'] },
+    { id: 'sga', from: [5.4, -1.6], to: [10.4, 3.4], label: 'SGA', members: ['bc'] },
+    { id: 'db', from: [11.2, -1.6], to: [19.0, 7.8], label: '데이터베이스 파일 (/u02)', members: ['r1', 'r2', 'r3', 'dbf', 'ctl'] },
+  ],
+  entities: {
+    sess: { type: 'box', at: [-2.8, -0.4], size: [2, 2, 0.5], label: '배치 세션', tone: 'sql' },
+    lgwr: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'LGWR', tone: 'redo', led: true },
+    dbwn: { type: 'box', at: [1.8, 2.6], size: [1.7, 1.6, 1.1], label: 'DBWn', tone: 'data', led: true, labelPos: 'left' },
+    ckpt: { type: 'box', at: [1.8, 5.6], size: [1.7, 1.6, 1.1], label: 'CKPT', tone: 'undo', led: true, labelPos: 'left', tagDir: 'down' },
+    bc:   { type: 'box', at: [6.2, -0.6], size: [3.4, 3.0, 0.6], label: '버퍼 캐시', tone: 'data', cells: [4, 3] },
+    r1:   { type: 'cyl', at: [12.6, -0.6], r: 0.7, h: 0.9, label: '그룹 1 · redo01', tone: 'redo' },
+    r2:   { type: 'cyl', at: [12.6, 2.4], r: 0.7, h: 0.9, label: '그룹 2 · redo02', tone: 'redo' },
+    r3:   { type: 'cyl', at: [12.6, 5.4], r: 0.7, h: 0.9, label: '그룹 3 · redo03', tone: 'redo', tagDir: 'down' },
+    dbf:  { type: 'cyl', at: [16.8, 0.2], r: 1.1, h: 1.8, label: '데이터 파일', tone: 'data' },
+    ctl:  { type: 'cyl', at: [16.8, 5.0], r: 0.9, h: 1.2, label: '컨트롤 파일', tone: 'undo', tagDir: 'down' },
+  },
+  links: {
+    dml:  { from: 'sess', to: 'bc', via: [[-1.8, -1.2], [7.9, -1.2]] },
+    w1:   { from: 'lgwr', to: 'r1', via: [[5.0, 0.2], [5.0, -1.4], [12.6, -1.4]], onDemand: true },
+    w2:   { from: 'lgwr', to: 'r2', via: [[4.8, 0.2], [4.8, 3.6], [10.8, 3.6], [10.8, 2.4]], onDemand: true },
+    w3:   { from: 'lgwr', to: 'r3', via: [[4.6, 0.2], [4.6, 4.0], [10.8, 4.0], [10.8, 5.4]], onDemand: true },
+    wr:   { from: 'bc', to: 'dbf', via: [[7.9, 3.0], [11.0, 3.0], [11.0, 7.4], [16.8, 7.4]], onDemand: true },
+    sig:  { from: 'ckpt', to: 'dbwn', onDemand: true },
+    rd:   { from: 'dbwn', to: 'bc', onDemand: true },
+    hdr:  { from: 'ckpt', to: 'ctl', via: [[3.4, 8.2], [16.8, 8.2]], onDemand: true },
+    hdr2: { from: 'ckpt', to: 'dbf', via: [[3.0, 8.6], [19.4, 8.6], [19.4, 1.1]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: '문제',
+      chapter: 'problem',
+      title: '밤 11시, 배치의 DML이 모두 같은 대기에서 멈췄다',
+      body: [
+        '대량 적재 배치가 돌던 밤 11시, 모니터링에 세션 여러 개가 같은 대기 이벤트로 잡힙니다. <code>log file switch (checkpoint incomplete)</code>. 몇 초씩 멈췄다 풀렸다를 반복하고, 배치는 예정보다 한참 늦어집니다.',
+        '이름에 답이 들어 있습니다. 로그를 전환(switch)하려는데 체크포인트가 끝나지 않았다는 것입니다. 리두 로그와 체크포인트가 무슨 관계이길래 리두를 쓰는 일이 데이터 파일 쓰기를 기다리는 걸까요?',
+      ],
+      callout: { kind: 'insight', text: 'Database Reference는 이 대기를 "세션이 다음 로그로 넘어갈 수 없어 로그 스위치를 기다린다"고 설명합니다. 넘어갈 수 없는 이유가 이 레슨의 주제입니다.' },
+      changes: ['× log file switch (checkpoint incomplete)', '~ 배치 지연'],
+      metrics: { cur: '그룹 3', dirty: '많음', ck: '?', act: '?', dml: '멈춤' },
+      show: ['sess', 'lgwr', 'bc', 'r1', 'r2', 'r3'],
+      focus: ['sess', 'lgwr'],
+      dim: ['bc', 'r1', 'r2', 'r3'],
+      tags: { sess: [{ text: 'checkpoint incomplete', tone: 'signal' }] },
+      flows: [{ link: 'dml', kind: 'signal', n: 1, bounce: true }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select event, count(*) from v$session where wait_class <> \'Idle\' group by event;',
+          'EVENT                                    COUNT(*)',
+          '---------------------------------------- --------',
+          'log file switch (checkpoint incomplete)        12|warn',
+        ],
+      },
+    },
+    {
+      short: '더티 버퍼',
+      chapter: 'technique',
+      title: '커밋은 리두만 쓴다. 데이터 블록은 버퍼 캐시에 남는다',
+      body: [
+        '"COMMIT의 여정"에서 본 대로, 커밋할 때 디스크에 반드시 써야 하는 것은 리두뿐입니다. LGWR가 리두를 온라인 리두 로그에 쓰면 커밋이 끝납니다. 고친 데이터 블록은 버퍼 캐시에 남아 있고, 데이터 파일과 내용이 다른 이 버퍼를 <span class="term">더티 버퍼</span>라고 합니다.',
+        '더티 버퍼를 데이터 파일에 쓰는 것은 DBWn의 일입니다. Concepts에 따르면 DBWn은 가능하면 비동기로 쓰고, 깨끗한 버퍼를 찾지 못했을 때나 체크포인트를 앞으로 밀어야 할 때 씁니다. 커밋할 때마다 쓰지 않으니, 같은 블록을 여러 번 고쳐도 한 번만 쓰면 됩니다.',
+      ],
+      callout: { kind: 'tip', text: '그래서 정전이 나도 커밋한 데이터는 안전합니다. 데이터 파일에 아직 없는 변경은 리두에 있기 때문입니다. 다만 그 리두는 해당 블록이 데이터 파일에 쓰일 때까지 "필요한 리두"로 남아야 합니다.' },
+      changes: ['+ 리두 → 그룹 1', '+ 더티 버퍼 4개 (데이터 파일엔 아직 없음)'],
+      metrics: { cur: '그룹 1', dirty: '4개', ck: 'SCN 5,000', act: '그룹 1', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'bc', 'r1', 'r2', 'r3', 'dbf'],
+      focus: ['bc', 'lgwr', 'r1'],
+      dim: ['dbwn', 'dbf', 'r2', 'r3'],
+      cells: { bc: { 0: 'dataDirty', 1: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { r1: [{ text: 'CURRENT', tone: 'redo' }], bc: [{ text: '더티 4', tone: 'data' }] },
+      flows: [{ link: 'dml', kind: 'data', n: 2 }, { link: 'w1', kind: 'redo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: ['SQL> insert into sales_stage select * from ext_sales;', '250000 rows created.', 'SQL> commit;', 'Commit complete.|ok'],
+      },
+    },
+    {
+      short: '체크포인트 위치',
+      chapter: 'technique',
+      title: '체크포인트 위치: 복구를 어디서부터 시작할지',
+      body: [
+        'Concepts는 <span class="term">체크포인트</span>를 체크포인트 위치를 나타내는 데이터 구조라고 정의합니다. 이 위치는 버퍼 캐시에서 <b>가장 오래된 더티 버퍼</b>로 정해지고, 인스턴스가 갑자기 내려가면 리두를 이 위치부터 적용하면 됩니다. 그보다 앞의 변경은 이미 데이터 파일에 있기 때문입니다.',
+        '체크포인트 위치는 컨트롤 파일과 각 데이터 파일 헤더에 저장됩니다. 문서가 꼽는 체크포인트의 목적은, 인스턴스나 미디어 장애 때 복구 시간을 줄이고, 더티 버퍼가 주기적으로 디스크에 쓰이게 하며, 정상 종료 때 커밋된 데이터가 모두 디스크에 쓰이게 하는 것입니다.',
+      ],
+      callout: { kind: 'insight', text: '체크포인트 위치보다 뒤의 리두가 바로 "인스턴스 복구에 필요한 리두"입니다. 이 리두가 들어 있는 온라인 리두 로그 그룹은 아직 덮어쓸 수 없습니다. 6장면의 장애가 여기서 나옵니다.' },
+      changes: ['~ 가장 오래된 더티 버퍼 = SCN 5,000', '~ 복구 시작점 = SCN 5,000'],
+      metrics: { cur: '그룹 1', dirty: '4개', ck: 'SCN 5,000', act: '그룹 1', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['bc', 'ctl', 'dbf'],
+      dim: ['lgwr', 'dbwn', 'r2', 'r3'],
+      cells: { bc: { 0: 'dataDirty', 1: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { bc: [{ text: '가장 오래된 더티: SCN 5,000', tone: 'data' }], ctl: [{ text: '체크포인트 SCN 5,000', tone: 'undo' }] },
+      flows: [{ link: 'hdr', kind: 'undo', n: 1 }, { link: 'hdr2', kind: 'undo', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> select checkpoint_change# from v$database;', 'CHECKPOINT_CHANGE#', '------------------', '              5000'] },
+    },
+    {
+      short: 'CKPT · DBWn',
+      chapter: 'technique',
+      title: 'CKPT는 기록하고, DBWn은 쓴다',
+      body: [
+        'Concepts에 따르면 <span class="term">CKPT</span>는 컨트롤 파일과 데이터 파일 헤더를 체크포인트 정보로 갱신하고, DBWn에게 블록을 디스크에 쓰라고 신호를 보냅니다. CKPT 자신은 데이터 블록을 데이터 파일에 쓰지 않습니다. 실제 쓰기는 DBWn이 합니다.',
+        '평소에는 <span class="term">증분 체크포인트</span>가 돕니다. 문서에 따르면 DBWn은 적어도 3초마다 쓸 일이 있는지 확인하고, 오래된 더티 버퍼부터 써서 체크포인트 위치를 앞으로 밉니다. 이때 CKPT는 위치를 컨트롤 파일에만 적고 데이터 파일 헤더에는 적지 않습니다.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: '리눅스에서 <code>ps -ef | grep ora_</code>로 보면 ora_ckpt_ORCL, ora_dbw0_ORCL 같은 프로세스가 보입니다. "SGA·PGA와 백그라운드 프로세스" 레슨에서 다른 필수 프로세스와 함께 다시 봅니다.',
+      },
+      changes: ['~ CKPT → DBWn 신호', '- 오래된 더티 버퍼 2개 씀 → 위치 SCN 5,600'],
+      metrics: { cur: '그룹 1', dirty: '2개', ck: 'SCN 5,600', act: '그룹 1', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['ckpt', 'dbwn', 'dbf'],
+      dim: ['lgwr', 'r1', 'r2', 'r3', 'sess'],
+      cells: { bc: { 0: 'data', 1: 'data', 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { ckpt: [{ text: '위치만 기록', tone: 'undo' }], dbwn: [{ text: '블록 쓰기', tone: 'data' }] },
+      flows: [
+        { link: 'sig', kind: 'undo', n: 1 },
+        { link: 'rd', kind: 'data', n: 1 },
+        { link: 'wr', kind: 'data', n: 2 },
+        { link: 'hdr', kind: 'undo', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep -E "ora_(ckpt|dbw|lgwr)" | grep -v grep',
+          'oracle    2121     1  0 09:00 ?        00:00:03 ora_dbw0_ORCL',
+          'oracle    2123     1  0 09:00 ?        00:00:05 ora_lgwr_ORCL',
+          'oracle    2125     1  0 09:00 ?        00:00:01 ora_ckpt_ORCL',
+        ],
+      },
+    },
+    {
+      short: '로그 스위치',
+      chapter: 'technique',
+      title: '로그 스위치가 나면 체크포인트가 시작된다',
+      body: [
+        '그룹 1이 차서 LGWR가 그룹 2로 넘어갑니다. Concepts는 온라인 리두 로그 스위치를 스레드 체크포인트가 시작되는 때 중 하나로 꼽습니다. 그룹 1의 리두가 보호하는 더티 버퍼를 DBWn이 모두 데이터 파일에 써야 이 체크포인트가 끝납니다.',
+        '그 전까지 그룹 1은 인스턴스 복구에 아직 필요합니다. <code>V$LOG</code>에서 이런 그룹은 STATUS가 <code>ACTIVE</code>로, 체크포인트가 끝나 복구에 더 필요 없는 그룹은 <code>INACTIVE</code>로 보입니다. 아카이브 모드라면 ARCn의 복사도 끝나야 다시 쓸 수 있습니다.',
+      ],
+      callout: {
+        kind: 'insight',
+        text: '그룹이 다시 쓰이려면 두 가지가 끝나야 합니다. 체크포인트(데이터 블록이 데이터 파일에 쓰임)와, 아카이브 모드라면 아카이브(리두가 복사됨)입니다. "Archivelog와 RMAN" 9장면은 두 번째가, 이 레슨 6장면은 첫 번째가 막힌 경우입니다.',
+      },
+      changes: ['~ 로그 스위치: 그룹 1 → 2', '+ 그룹 1 체크포인트 시작 (ACTIVE)'],
+      metrics: { cur: '그룹 2', dirty: '5개', ck: 'SCN 5,600', act: '그룹 1·2', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['lgwr', 'r1', 'r2', 'dbwn'],
+      dim: ['sess', 'r3', 'ctl'],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty', 8: 'dataDirty', 9: 'dataDirty', 10: 'dataDirty' } },
+      tags: { r1: [{ text: 'ACTIVE · 복구에 필요', tone: 'redo' }], r2: [{ text: 'CURRENT', tone: 'redo' }] },
+      flows: [{ link: 'w2', kind: 'redo', n: 2 }, { link: 'rd', kind: 'data', n: 1 }, { link: 'wr', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select group#, sequence#, bytes/1024/1024 mb, status from v$log;',
+          '    GROUP#  SEQUENCE#         MB STATUS',
+          '---------- ---------- ---------- ----------------',
+          '         1        101        200 ACTIVE',
+          '         2        102        200 CURRENT',
+          '         3        100        200 INACTIVE',
+        ],
+      },
+    },
+    {
+      short: '못 따라잡음',
+      chapter: 'case',
+      title: '사례: 한 바퀴 돌아왔는데 체크포인트가 안 끝났다',
+      body: [
+        '배치는 리두를 아주 빨리 만듭니다. 200MB짜리 그룹 세 개가 1분도 안 돼 차고, LGWR가 그룹 3 다음 다시 그룹 1로 가려 합니다. 그런데 DBWn은 아직 그룹 1이 보호하는 더티 버퍼를 다 쓰지 못했습니다. 그룹 1은 여전히 ACTIVE입니다.',
+        'Database Reference의 설명 그대로, 그 로그의 체크포인트가 끝나지 않아 로그를 한 바퀴 돌려 쓸 수 없습니다. 리두를 쓸 곳이 없으니 리두를 만들어야 하는 DML 세션은 모두 <code>log file switch (checkpoint incomplete)</code>에서 기다립니다. 체크포인트가 끝나는 순간 풀리고, 다음 바퀴에서 또 막힙니다.',
+      ],
+      callout: { kind: 'warn', text: '리두를 만들지 않는 조회는 대부분 그대로 돌기 때문에, "DB가 반쯤 멈췄다"는 신고가 이 장애의 전형적인 모습입니다. DBA 실습 7단계의 대기 이벤트 조회로 바로 보입니다.' },
+      changes: ['× 그룹 3 → 1 전환 불가 (그룹 1 체크포인트 미완료)', '× DML 세션 대기'],
+      metrics: { cur: '그룹 3 (가득)', dirty: '11개', ck: 'SCN 5,900', act: '세 그룹 모두', dml: '멈춤' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['lgwr', 'r1', 'dbwn', 'sess'],
+      dim: ['ctl'],
+      cells: {
+        bc: {
+          0: 'dataDirty',
+          1: 'dataDirty',
+          2: 'dataDirty',
+          4: 'dataDirty',
+          5: 'dataDirty',
+          6: 'dataDirty',
+          7: 'dataDirty',
+          8: 'dataDirty',
+          9: 'dataDirty',
+          10: 'dataDirty',
+          11: 'dataDirty',
+        },
+      },
+      tags: {
+        r1: [{ text: 'ACTIVE · 아직 못 씀', tone: 'signal' }],
+        lgwr: [{ text: '다음 그룹 없음', tone: 'signal' }],
+        sess: [{ text: 'checkpoint incomplete', tone: 'signal' }],
+      },
+      flows: [
+        { link: 'w1', kind: 'signal', n: 1, bounce: true },
+        { link: 'wr', kind: 'data', n: 3, rate: 1.4 },
+        { link: 'dml', kind: 'signal', n: 1, bounce: true },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select group#, sequence#, status from v$log;',
+          '    GROUP#  SEQUENCE# STATUS',
+          '---------- ---------- ----------------',
+          '         1        121 ACTIVE|warn',
+          '         2        122 ACTIVE',
+          '         3        123 CURRENT',
+        ],
+      },
+    },
+    {
+      short: '확인',
+      chapter: 'case',
+      title: '사례: 대기 시간과 로그 전환 횟수를 본다',
+      body: [
+        '먼저 이 대기가 얼마나 쌓였는지 <code>V$SYSTEM_EVENT</code>로 봅니다. 그리고 시간대별 로그 전환 횟수를 <code>V$LOG_HISTORY</code>로 셉니다. 배치 시간에 시간당 수십 번씩 전환되었다면, 리두가 만들어지는 속도에 비해 로그가 작다는 뜻입니다.',
+        'AWR 보고서가 있다면 같은 시간대의 상위 대기 이벤트와 초당 리두 크기도 함께 봅니다. DBA 실습 7단계의 AWR 레슨에서 이 순서를 따라 해 봅니다.',
+      ],
+      callout: { kind: 'tip', text: 'Performance Tuning Guide는 이 대기에 대해 "리두 로그가 너무 적거나 너무 작지 않은지 확인하라"고 안내합니다. DBWn이 쓰는 속도(디스크)도 함께 의심할 수 있지만, 먼저 로그 구성을 봅니다.' },
+      changes: ['~ 23시대 로그 전환 74회', '~ checkpoint incomplete 누적 1,812초'],
+      metrics: { cur: '그룹 2', dirty: '많음', ck: '-', act: '두 그룹', dml: '간헐 멈춤' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['r1', 'r2', 'r3'],
+      dim: ['dbwn', 'ckpt', 'dbf', 'ctl', 'bc'],
+      tags: { r2: [{ text: '시간당 74회 전환', tone: 'signal' }] },
+      flows: [{ link: 'w2', kind: 'redo', n: 3, rate: 1.5 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select event, total_waits, round(time_waited_micro/1e6) secs from v$system_event where event like \'log file switch%\';',
+          'EVENT                                    TOTAL_WAITS       SECS',
+          '---------------------------------------- ----------- ----------',
+          'log file switch (checkpoint incomplete)          903       1812|warn',
+          'SQL> select to_char(first_time,\'HH24\') hh, count(*) from v$log_history where first_time > trunc(sysdate) group by to_char(first_time,\'HH24\') order by 1;',
+          'HH   COUNT(*)',
+          '-- ----------',
+          '22         21',
+          '23         74|warn',
+        ],
+      },
+    },
+    {
+      short: '대책',
+      chapter: 'case',
+      title: '사례: 로그를 키우거나 늘려 체크포인트에 시간을 준다',
+      body: [
+        '문서의 대책은 리두 로그의 크기나 개수를 늘리는 것입니다. 한 바퀴 도는 데 걸리는 시간이 길어지면, 그 사이 DBWn이 체크포인트를 끝낼 시간이 생깁니다. 운영 중에 <code>ALTER DATABASE ADD LOGFILE</code>로 더 큰 그룹을 더하고, 작은 그룹은 INACTIVE가 된 뒤에 지웁니다.',
+        '크기를 정할 때는 <code>V$INSTANCE_RECOVERY</code>의 <code>OPTIMAL_LOGFILE_SIZE</code>(MB)가 참고가 됩니다. Database Reference는 이 값을 "모든 온라인 리두 로그를 적어도 이만큼으로 맞추라"는 크기라고 설명합니다. 이 값은 다음 장면의 FAST_START_MTTR_TARGET을 설정했을 때 계산됩니다.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'CURRENT나 ACTIVE인 그룹은 지울 수 없습니다. <code>ALTER SYSTEM SWITCH LOGFILE</code>과 <code>ALTER SYSTEM CHECKPOINT</code>로 INACTIVE가 되게 한 뒤 지우고, 리눅스의 파일은 따로 지웁니다.',
+      },
+      changes: ['+ 1GB 그룹 4·5·6 추가', '- 200MB 그룹 1·2·3 제거 (INACTIVE 뒤)'],
+      metrics: { cur: '그룹 4', dirty: '보통', ck: '따라잡음', act: '그룹 4', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['r1', 'r2', 'r3'],
+      dim: ['sess', 'bc', 'dbwn', 'ckpt', 'ctl'],
+      tags: { r1: [{ text: '1 GB', tone: 'redo' }], r2: [{ text: '1 GB', tone: 'redo' }], r3: [{ text: '1 GB', tone: 'redo' }] },
+      flows: [{ link: 'w1', kind: 'redo', n: 1, rate: 0.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select optimal_logfile_size from v$instance_recovery;',
+          'OPTIMAL_LOGFILE_SIZE',
+          '--------------------',
+          '                 980',
+          'SQL> alter database add logfile group 4 (\'/u02/oradata/ORCL/redo04.log\') size 1g;',
+          'Database altered.|ok',
+        ],
+      },
+    },
+    {
+      short: 'MTTR',
+      chapter: 'technique',
+      title: 'FAST_START_MTTR_TARGET: 복구 시간으로 체크포인트를 조절한다',
+      body: [
+        '체크포인트를 자주 밀면 인스턴스 복구가 빨라지지만 DBWn의 쓰기가 늘고, 드물게 밀면 그 반대입니다. Performance Tuning Guide에 따르면 <code>FAST_START_MTTR_TARGET</code>은 인스턴스를 시작하고 캐시 복구를 마치는 데 걸려야 할 시간(초)이고, 최대값은 3600초(1시간)입니다.',
+        '오라클은 이 목표에 맞춰 증분 체크포인트의 속도를 스스로 정합니다. <code>V$INSTANCE_RECOVERY</code>의 <code>TARGET_MTTR</code>과 <code>ESTIMATED_MTTR</code>로 목표와 지금 예상치를 비교할 수 있습니다. 문서는 이 값을 쓸 때 LOG_CHECKPOINT_INTERVAL, LOG_CHECKPOINT_TIMEOUT 같은 예전 방식의 설정은 끄라고 합니다.',
+      ],
+      callout: { kind: 'tip', text: '"인스턴스와 데이터베이스" 7장면의 인스턴스 복구가 바로 이 시간입니다. SMON이 체크포인트 위치부터 리두를 적용(롤 포워드)하고, 커밋되지 않은 변경을 되돌립니다(롤 백).' },
+      changes: ['~ fast_start_mttr_target = 60', '~ 증분 체크포인트 속도 자동 조절'],
+      metrics: { cur: '그룹 4', dirty: '보통', ck: '목표 60초', act: '그룹 4', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: ['ckpt', 'dbwn', 'bc'],
+      dim: ['sess', 'r1', 'r2', 'r3'],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: { ckpt: [{ text: '예상 복구 41초', tone: 'undo' }] },
+      flows: [{ link: 'sig', kind: 'undo', n: 1 }, { link: 'wr', kind: 'data', n: 2 }, { link: 'hdr', kind: 'undo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> alter system set fast_start_mttr_target = 60;',
+          'System altered.|ok',
+          'SQL> select target_mttr, estimated_mttr from v$instance_recovery;',
+          'TARGET_MTTR ESTIMATED_MTTR',
+          '----------- --------------',
+          '         60             41',
+        ],
+      },
+    },
+    {
+      short: '정리',
+      chapter: 'recap',
+      title: '정리: 커밋은 리두로, 데이터 파일은 체크포인트로',
+      body: [
+        '커밋할 때는 리두만 쓰고, 고친 블록은 더티 버퍼로 남습니다. DBWn이 그 버퍼를 데이터 파일에 쓰면서 체크포인트 위치가 앞으로 가고, CKPT가 그 위치를 컨트롤 파일과 데이터 파일 헤더에 적습니다.',
+        '체크포인트 위치보다 뒤의 리두가 든 그룹은 덮어쓸 수 없습니다. 리두가 체크포인트보다 빨리 한 바퀴를 돌면 DML이 <code>log file switch (checkpoint incomplete)</code>에서 멈춥니다. 대책은 로그의 크기와 개수이고, 복구 시간 목표는 FAST_START_MTTR_TARGET으로 정합니다.',
+      ],
+      callout: { kind: 'insight', text: '리두 로그는 "변경의 기록"이면서 "아직 데이터 파일에 없는 변경의 보험"입니다. 보험이 끝나야(체크포인트) 그 자리를 다시 쓸 수 있습니다.' },
+      changes: ['~ 리두 → 더티 버퍼 → DBWn 쓰기 → 체크포인트 위치', '~ 로그 재사용 조건: 체크포인트 (+ 아카이브)'],
+      metrics: { cur: '그룹 4', dirty: '보통', ck: '따라잡음', act: '그룹 4', dml: '정상' },
+      show: ['sess', 'lgwr', 'dbwn', 'ckpt', 'bc', 'r1', 'r2', 'r3', 'dbf', 'ctl'],
+      focus: [],
+      cells: { bc: { 5: 'dataDirty', 6: 'dataDirty' } },
+      tags: {
+        r1: [{ text: '① 리두', tone: 'redo' }],
+        bc: [{ text: '② 더티 버퍼', tone: 'data' }],
+        dbf: [{ text: '③ DBWn 쓰기', tone: 'data' }],
+        ctl: [{ text: '④ 체크포인트 위치', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'dml', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'w1', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'wr', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'hdr', kind: 'undo', n: 1, rate: 0.5 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> select event, count(*) from v$session where wait_class <> \'Idle\' group by event;', 'no rows selected|ok'] },
+    },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, 'SGA·PGA와 백그라운드 프로세스'] },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, '체크포인트'], current: 3 },
+    { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

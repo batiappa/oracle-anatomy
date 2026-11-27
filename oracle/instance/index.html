@@ -55,7 +55,7 @@
 <main class="wrap">
   <div class="col-main">
     <section class="lesson-head">
-      <div class="eyebrow"><b>파트 1 · 아키텍처</b> / 3개 중 1번째 레슨</div>
+      <div class="eyebrow"><b>파트 1 · 아키텍처</b> / 2개 중 1번째 레슨</div>
       <div class="head-row">
         <h1>인스턴스와 데이터베이스</h1>
         <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12분</span><span class="badge">입문</span><span class="badge" id="stepBadge">10단계</span></div>
@@ -164,8 +164,8 @@ const LESSON = {
   ],
   outline: [
     { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
-    { part: '파트 1 · 아키텍처', items: ['인스턴스와 데이터베이스', 'SGA와 PGA', '백그라운드 프로세스'], current: 0 },
-    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, 'Undo와 읽기 일관성', '잠금과 대기', '체크포인트'] },
+    { part: '파트 1 · 아키텍처', items: ['인스턴스와 데이터베이스', 'SGA·PGA와 백그라운드 프로세스'], current: 0 },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, { text: '체크포인트', href: '../checkpoint/', note: '완성' }] },
     { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
     { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
   ],
