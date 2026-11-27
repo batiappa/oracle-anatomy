@@ -1394,9 +1394,9 @@
 "4단계 · SELECT, 조인, DML, DDL": "Stage 4 · SELECT, joins, DML, DDL",
 "11단계 · RAC 기초": "Stage 11 · RAC basics",
 "11단계 · Clusterware와 2노드 RAC": "Stage 11 · Clusterware and 2-node RAC",
-"미스터오라클": "미스터오라클",
-"미스터오라클 처음 화면": "미스터오라클 home",
-"<span class=\"logo-word\">미스터<b>오라클</b></span></a>\n    <a class=\"brand\" href=\"./\"><span class=\"brand-name\">DBA 실습</span><span class=\"brand-sub\" id=\"brandSub\">3단계 · Oracle 19c 기본 운영</span></a>": "<span class=\"logo-word\">미스터<b>오라클</b></span></a>\n    <a class=\"brand\" href=\"./\"><span class=\"brand-name\">DBA Lab</span><span class=\"brand-sub\" id=\"brandSub\">Stage 3 · Oracle 19c basic operations</span></a>",
-"만든 사람: 미스터오라클(김영조) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: 미스터오라클 (Kim Youngjo) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
-"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. Linux는 Linus Torvalds의 등록상표입니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Linux is a registered trademark of Linus Torvalds."
+"미스터오라클": "Mr.Oracle",
+"미스터오라클 처음 화면": "Mr.Oracle home",
+"<span class=\"logo-word\">미스터<b>오라클</b></span></a>\n    <a class=\"brand\" href=\"./\"><span class=\"brand-name\">DBA 실습</span><span class=\"brand-sub\" id=\"brandSub\">3단계 · Oracle 19c 기본 운영</span></a>": "<span class=\"logo-word\">Mr.<b>Oracle</b></span></a>\n    <a class=\"brand\" href=\"./\"><span class=\"brand-name\">DBA Lab</span><span class=\"brand-sub\" id=\"brandSub\">Stage 3 · Oracle 19c basic operations</span></a>",
+"만든 사람: 미스터오라클(김영조) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: Mr.Oracle (Kim Youngjo) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
+"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. Linux는 Linus Torvalds의 등록상표입니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Linux is a registered trademark of Linus Torvalds."
 }
