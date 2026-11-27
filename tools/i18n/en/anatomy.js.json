@@ -1,0 +1,20 @@
+{
+"문제": "Problem",
+"원리": "Principle",
+"사례": "Case",
+"정리": "Summary",
+"핵심": "Key point",
+"알아두면 좋아요": "Good to know",
+"주의": "Caution",
+"<button class=\"dot\" type=\"button\" aria-label=\"⟦0⟧단계: ⟦1⟧\">⟦2⟧</button>": "<button class=\"dot\" type=\"button\" aria-label=\"Step ⟦0⟧: ⟦1⟧\">⟦2⟧</button>",
+"⟦0⟧단계 중 ⟦1⟧단계": "Step ⟦1⟧ of ⟦0⟧",
+"<div class=\"changes\"><span class=\"changes-k\">달라진 점</span><ul>⟦0⟧</ul></div>": "<div class=\"changes\"><span class=\"changes-k\">What changed</span><ul>⟦0⟧</ul></div>",
+"다음: ": "Next: ",
+"처음부터 다시": "Start over",
+"\n    <div class=\"step-top\"><span class=\"step-count\">⟦0⟧ / ⟦1⟧단계</span><span class=\"chap\">⟦2⟧</span></div>\n    <h2 class=\"step-title\">⟦3⟧</h2>\n    <div class=\"step-body\">⟦4⟧</div>\n    ⟦5⟧\n    ⟦6⟧\n    ⟦7⟧\n    <div class=\"nav\">\n      <button class=\"btn\" id=\"prevBtn\" type=\"button\" ⟦8⟧ aria-label=\"이전 단계\">\n        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M19 12H5M11 6l-6 6 6 6\"/></svg>뒤로</button>\n      <button class=\"btn btn-primary\" id=\"nextBtn\" type=\"button\">\n        <span>⟦9⟧</span>\n        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>\n    </div>\n    <div class=\"keys\"><kbd>←</kbd><kbd>→</kbd> 단계 · <kbd>R</kbd> 다시 보기 · <kbd>Space</kbd> 일시정지</div>": "\n    <div class=\"step-top\"><span class=\"step-count\">Step ⟦0⟧ / ⟦1⟧</span><span class=\"chap\">⟦2⟧</span></div>\n    <h2 class=\"step-title\">⟦3⟧</h2>\n    <div class=\"step-body\">⟦4⟧</div>\n    ⟦5⟧\n    ⟦6⟧\n    ⟦7⟧\n    <div class=\"nav\">\n      <button class=\"btn\" id=\"prevBtn\" type=\"button\" ⟦8⟧ aria-label=\"Previous step\">\n        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M19 12H5M11 6l-6 6 6 6\"/></svg>Back</button>\n      <button class=\"btn btn-primary\" id=\"nextBtn\" type=\"button\">\n        <span>⟦9⟧</span>\n        <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>\n    </div>\n    <div class=\"keys\"><kbd>←</kbd><kbd>→</kbd> Steps · <kbd>R</kbd> Replay · <kbd>Space</kbd> Pause</div>",
+"<div class=\"practice\"><span class=\"practice-k\">이 내용 실습하기</span><ul>⟦0⟧</ul></div>": "<div class=\"practice\"><span class=\"practice-k\">Practice this</span><ul>⟦0⟧</ul></div>",
+"지금 보는 중": "Now viewing",
+"예정": "Coming soon",
+"애니메이션 재생": "Play the animation",
+"애니메이션 일시정지": "Pause the animation"
+}

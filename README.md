@@ -236,6 +236,21 @@ python3 -m http.server 8000
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
+## 영어판(English)과 다른 언어
+
+- 영어판은 `en/` 폴더에 있습니다(예: `en/`, `en/lab/`, `en/dba/`). 머리글의 "한국어 / English" 단추로 오가고, 고른 언어는 브라우저에 기억됩니다(`lang.js`). 진행 기록과 자동 저장 세션은 두 언어판이 함께 씁니다.
+- 한국어 원본만 고칩니다. `en/`은 `tools/i18n/i18n.py`가 원본과 번역 사전(`tools/i18n/en/*.json`)으로 만들어 내는 파일이라 직접 고치지 않습니다. 터미널 명령과 출력은 원래 영어라 그대로 둡니다.
+- 레슨을 고치거나 더한 뒤에는 다음 순서로 영어판을 맞춥니다.
+
+```bash
+python3 tools/i18n/i18n.py todo en    # 새로 번역할 문장을 tools/i18n/en/_todo/에 내보냄
+# 사전(tools/i18n/en/*.json)에 "한국어 원문": "번역" 을 채움
+python3 tools/i18n/i18n.py check en   # 빠진 번역 0인지 확인
+python3 tools/i18n/i18n.py build en   # en/ 다시 만들기
+```
+
+- 일본어 같은 다른 언어를 붙일 때는 `tools/i18n/ja/` 사전을 만들고, `i18n.py`의 `LANGS`와 `lang.js`의 `LANGS`에 한 줄씩 더하면 됩니다.
+
 ## 만든 사람
 
 미스터오라클(김영조, 현업 때 쓰던 필명) · [ambrokim@gmail.com](mailto:ambrokim@gmail.com)

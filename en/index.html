@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Journey of a COMMIT · Oracle Anatomy</title>
+<meta name="description" content="An interactive lesson that follows, in a 10-step animation, how a single UPDATE and COMMIT in Oracle Database 19c pass through the Buffer Cache, Undo, Redo, LGWR, and DBWn.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="The Journey of a COMMIT · Oracle Anatomy">
+<meta property="og:description" content="Follow, in a 10-step animation, how an UPDATE and COMMIT in Oracle Database 19c pass through the Buffer Cache, Undo, Redo, LGWR, and DBWn.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="lang.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="./" aria-label="미스터오라클 home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="./"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 2 · Transactions</b> / Lesson 1 of 4</div>
+      <div class="head-row">
+        <h1>The Journey of a <code>COMMIT</code></h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Follow one UPDATE statement and a COMMIT to see why a commit is both fast and safe.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of the Oracle instance structure and data flow"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL request</li>
+            <li><i style="background:var(--c-data)"></i>Data block</li>
+            <li><i style="background:var(--c-undo)"></i>Undo</li>
+            <li><i style="background:var(--c-redo)"></i>Redo</li>
+            <li><i style="background:var(--c-signal)"></i>Commit signal</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>An interactive learning site for understanding the internals of Oracle Database 19c one step at a time. The diagrams are drawn with SVG and JavaScript without any external graphics library, and lessons grow simply by adding data.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: 미스터오라클 (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>Explanations are based on Oracle Database 19c. Numbers on screen such as SCNs, block numbers, and times are example values for illustration.</p>
+      <p>Reference documents: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (LGWR, DBW)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html" target="_blank" rel="noopener">Concepts 19c · Transactions</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Concepts 19c · Memory Architecture</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html" target="_blank" rel="noopener">SQL Language Reference 19c · COMMIT</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/lnpls/transaction-processing-and-control.html" target="_blank" rel="noopener">PL/SQL Language Reference 19c · COMMIT Statement</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   사이트 정보. 비워 두면 해당 항목은 화면에 나오지 않는다.
+   ===================================================================== */
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. lab/·dba/ 화면과 같은 문구. */
+
+/* =====================================================================
+   레슨 데이터. 엔진은 아래쪽에 있고, 새 레슨은 이 객체만 바꿔 넣으면 된다.
+   좌표는 아이소메트릭 격자 단위 [gx, gy], 높이는 z 단위.
+   ===================================================================== */
+const LESSON = {
+  metrics: [
+    { key: 'scn', label: 'SCN' },
+    { key: 'dirty', label: 'Dirty blocks' },
+    { key: 'redo', label: 'Redo buffer' },
+    { key: 'rfile', label: 'Redo log file' },
+    { key: 'wait', label: 'COMMIT wait' },
+  ],
+  goals: [
+    { text: 'How an UPDATE changes a block in the Buffer Cache', step: 2 },
+    { text: 'The two jobs of Undo', step: 3 },
+    { text: 'Redo, the commit record, and log file sync', step: 5 },
+    { text: 'Why commits are fast: LGWR and DBWn split the work', step: 7 },
+    { text: 'Cases: recovery after a power loss, a batch that commits every row', step: 9 },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: 'linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: ['Instance and database', 'SGA and PGA', 'Background processes'] },
+    { part: 'Part 2 · Transactions', items: ['The Journey of a COMMIT', 'Undo and read consistency', 'Locks and waits', 'Checkpoints'], current: 0 },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+  zones: [
+    { id: 'sga', from: [5.2, -1.4], to: [11.2, 8.4], label: 'SGA · shared memory', members: ['bc', 'lb'] },
+    { id: 'bg', from: [11.8, -0.6], to: [14.6, 7.6], label: 'Background processes', members: ['dbwr', 'lgwr', 'smon'] },
+    { id: 'disk', from: [15.0, -0.6], to: [18.0, 7.6], label: 'Disk', members: ['df', 'rl'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-1, 3], size: [2, 2, 0.5], label: 'App · SQL*Plus', tone: 'sql' },
+    sp:   { type: 'box', at: [2.6, 3.4], size: [1.5, 1.5, 1.3], label: 'Server process', tone: 'sql', led: true },
+    bc:   { type: 'box', at: [6.2, -0.6], size: [4, 3, 0.6], label: 'Buffer Cache', tone: 'data', cells: [4, 3] },
+    lb:   { type: 'box', at: [6.2, 5.6], size: [4, 1.1, 0.45], label: 'Redo Log Buffer', tone: 'redo', segs: 8, labelPos: 'left' },
+    dbwr: { type: 'box', at: [12.5, 0.2], size: [1.4, 1.4, 1.2], label: 'DBWn', tone: 'data', led: true },
+    lgwr: { type: 'box', at: [12.5, 5.45], size: [1.4, 1.4, 1.2], label: 'LGWR', tone: 'redo', led: true },
+    smon: { type: 'box', at: [12.5, 2.85], size: [1.4, 1.4, 1.2], label: 'SMON', tone: 'signal', led: true, labelPos: 'left' },
+    df:   { type: 'cyl', at: [16.5, 0.9], r: 1.05, h: 1.7, label: 'Data files', tone: 'data' },
+    rl:   { type: 'cyl', at: [16.5, 6.15], r: 1.05, h: 1.7, label: 'Online redo logs', tone: 'redo', labelPos: 'right', tagDir: 'down' },
+  },
+  // onDemand 링크는 그 링크를 쓰는 흐름이 있을 때만 보인다.
+  links: {
+    sql:     { from: 'app', to: 'sp' },
+    sp_bc:   { from: 'sp', to: 'bc' },
+    sp_lb:   { from: 'sp', to: 'lb' },
+    lb_lgwr: { from: 'lb', to: 'lgwr' },
+    lgwr_rl: { from: 'lgwr', to: 'rl' },
+    bc_dbwr: { from: 'bc', to: 'dbwr' },
+    dbwr_df: { from: 'dbwr', to: 'df' },
+    read:    { from: 'df', to: 'bc', via: [[16.5, -1.1], [9.4, -1.1]], onDemand: true },
+    post:    { from: 'sp', to: 'lgwr', arc: 120, onDemand: true },
+    rl_smon: { from: 'rl', to: 'smon', via: [[16.5, 3.55]], onDemand: true },
+    smon_bc: { from: 'smon', to: 'bc', via: [[9.6, 3.55], [9.6, 1.9]], onDemand: true },
+  },
+  baseCells: { 0: 'other', 2: 'other', 3: 'other', 7: 'other', 8: 'other' },
+  steps: [
+    {
+      short: 'Problem', chapter: 'problem',
+      title: 'Did COMMIT really write to disk?',
+      body: [
+        'You change order 1042 to "paid" and type <code>COMMIT;</code>. About 1 ms later, <code>Commit complete.</code> appears.',
+        'The data files are tens of GB, and the block to change is somewhere inside them. Did it really write all the way there in that short time? Let\'s follow one SQL statement.',
+      ],
+      callout: { kind: 'insight', text: 'A commit is not the act of fixing the data file. It is the act of leaving a short record of what changed on disk.' },
+      changes: ['+ App session', '+ Server process'],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp'], focus: ['app'],
+      tags: { app: [{ text: "1042 → 'PAID'", tone: 'sql' }] },
+      flows: [{ link: 'sql', kind: 'sql', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> UPDATE orders', "  2  SET status = 'PAID'", '  3  WHERE order_id = 1042;'] },
+    },
+    {
+      short: 'Block read', chapter: 'technique',
+      title: 'First, bring the block into memory',
+      body: [
+        'The server process does not change the row on disk directly. It first looks for the 8 KB <span class="term">block</span> holding the row in the SGA\'s <span class="term">Buffer Cache</span>.',
+        'If the block is not in the cache, it is read from the data file. This is called a physical read.',
+      ],
+      callout: { kind: 'tip', text: 'When the same block is used again, it is found straight in memory (a logical read). The longer frequently used blocks stay in the cache, the less the disk is read.' },
+      changes: ['+ Buffer Cache (SGA)', '+ Data file', '+ Read 1 block: 8 KB'],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'df'], focus: ['bc'],
+      cells: { 5: 'data' },
+      tags: { bc: [{ text: 'Block 4471 loaded', tone: 'data' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_bc', kind: 'sql', n: 1, bounce: true }, { link: 'read', kind: 'data', n: 1, rate: 0.8 }],
+      console: { same: true },
+    },
+    {
+      short: 'Undo', chapter: 'technique',
+      title: 'Keep the before-value in Undo',
+      body: [
+        "Before changing the value, Oracle creates <span class=\"term\">Undo</span> information holding the original value <code>'NEW'</code>. Undo goes into blocks of an undo segment, and those blocks are also in the Buffer Cache. The undo block is actually changed in the next step, together with the data block, while generating redo.",
+        'Undo has two jobs. On <code>ROLLBACK</code> it restores this value, and when another session reads this row it shows the row as it was before the commit.',
+      ],
+      callout: { kind: 'insight', text: "Until I commit, other sessions see 'NEW'. They do not wait for the lock to be released; they build the old image from Undo and read it. This is read consistency." },
+      changes: ['+ Undo block (in the Buffer Cache)', "+ Prepare undo: previous value 'NEW'"],
+      metrics: { scn: null, dirty: '0', redo: '0 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'df'], focus: ['bc'],
+      cells: { 5: 'data', 10: 'undo' },
+      tags: { bc: [{ text: "Undo ready: previous value 'NEW'", tone: 'undo' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_bc', kind: 'undo', n: 2 }],
+      console: { same: true },
+    },
+    {
+      short: 'Redo', chapter: 'technique',
+      title: 'Record the change as Redo',
+      body: [
+        "This change touches two places: the data block (<code>'NEW'</code> → <code>'PAID'</code>) and the undo block. Oracle turns each change into a <span class=\"term\">change vector</span>, puts them into the <span class=\"term\">Redo Log Buffer</span>, and changes both blocks. In the words of Concepts 19c, \"a redo record contains both the change to the data block and the change to the undo block.\"",
+        'The changed block now differs from what is on disk. Such a block is called a <span class="term">dirty</span> block. The data file is still unchanged.',
+      ],
+      callout: { kind: 'tip', text: 'Redo also includes the change to the undo block. So even after a failure, Redo alone is enough to rebuild Undo as well.' },
+      changes: ['+ Redo Log Buffer (SGA)', '+ 2 change vectors ≈ 450 B', '~ Data and undo blocks dirty'],
+      metrics: { scn: null, dirty: '2', redo: '≈ 450 B', rfile: null, wait: null },
+      show: ['app', 'sp', 'bc', 'lb', 'df'], focus: ['lb'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo'],
+      tags: { bc: [{ text: '2 dirty blocks', tone: 'data' }], lb: [{ text: '2 change vectors', tone: 'redo' }], df: [{ text: "1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'sp_lb', kind: 'redo', n: 2 }, { link: 'sp_bc', kind: 'data', n: 1 }],
+      console: { add: ['1 row updated.|ok'] },
+    },
+    {
+      short: 'COMMIT;', chapter: 'technique',
+      title: 'When you type COMMIT',
+      body: [
+        'The server process gets a new <span class="term">SCN</span> (system change number) <code>8104230</code> and puts a commit record into the Redo Log Buffer.',
+        'Then it wakes the background process <span class="term">LGWR</span> and waits until the write is reported finished. This wait is the wait event <code>log file sync</code>.',
+      ],
+      callout: { kind: 'insight', text: 'Even at the moment of commit, the data block is only in memory. Only Redo goes to disk.' },
+      changes: ['+ LGWR (log writer process)', '+ Commit record · SCN 8104230', '~ Session: waiting on log file sync'],
+      metrics: { scn: '8104230', dirty: '2', redo: '≈ 520 B', rfile: 'Waiting', wait: 'Waiting' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'df'], focus: ['lgwr'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo', 'commit'],
+      tags: { sp: [{ text: 'log file sync wait', tone: 'signal' }], lb: [{ text: '+ Commit record', tone: 'signal' }], lgwr: [{ text: 'Woken', tone: 'signal' }] },
+      flows: [{ link: 'sp_lb', kind: 'signal', n: 1 }, { link: 'post', kind: 'signal', n: 1, rate: 0.8 }],
+      console: { add: ['', 'SQL> COMMIT;'] },
+    },
+    {
+      short: 'LGWR write', chapter: 'technique',
+      title: 'LGWR writes Redo to disk',
+      body: [
+        'LGWR appends the Redo accumulated in the buffer to the end of the <span class="term">online redo log</span> file. Appending to the end of a file is a fast sequential write, and when many sessions commit at once they are written together in one go.',
+        'When the write finishes, LGWR notifies the server process, and only then does <code>Commit complete.</code> appear on screen. It usually takes around 1 ms, depending on the storage.',
+        'LGWR does not write only at commit. According to Concepts 19c it also writes every 3 seconds, when the Redo Log Buffer is one-third full or holds 1 MB, at a log switch, and before DBW writes dirty blocks. So Redo from before the commit may already be on disk, and at commit only the remaining Redo has to be written.',
+      ],
+      callout: { kind: 'insight', text: 'A guaranteed commit means the Redo is on disk. Even if the power goes out now, this change survives.' },
+      changes: ['+ Online redo log file', '+ Sequential write ≈ 1.2 ms', '~ Redo Log Buffer emptied'],
+      metrics: { scn: '8104230', dirty: '2', redo: '0 B', rfile: 'Written', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'df'], focus: ['rl'],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: [],
+      tags: { sp: [{ text: 'Commit complete.', tone: 'data' }], rl: [{ text: 'Written up to SCN 8104230', tone: 'redo' }], df: [{ text: "Still 1042 = 'NEW'", tone: 'muted' }] },
+      flows: [{ link: 'lb_lgwr', kind: 'redo', n: 2 }, { link: 'lgwr_rl', kind: 'redo', n: 2 }, { link: 'post', kind: 'data', n: 1, rev: true, rate: 0.8 }],
+      console: { add: ['Commit complete.|ok'] },
+    },
+    {
+      short: 'DBWn', chapter: 'technique',
+      title: 'Data files are written later, in batches',
+      body: [
+        'Dirty blocks stay in memory for a while even after the commit. <span class="term">DBWn</span> writes many blocks together to the data files later, when a checkpoint comes or free buffers run short.',
+        'There is one rule. Before a block is written to the data file, that block\'s Redo must already be on disk. This is called <span class="term">write-ahead logging</span>.',
+      ],
+      callout: { kind: 'tip', text: 'Writing data files is slow because it is random writing to scattered locations. Commits are fast because this work was taken out of the commit path.' },
+      changes: ['+ DBWn (database writer process)', "~ Data file: 1042 = 'PAID'", '~ 0 dirty blocks'],
+      metrics: { scn: '8104230', dirty: '0', redo: '0 B', rfile: 'Written', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: ['dbwr'],
+      cells: { 5: 'data', 10: 'undo' },
+      segs: [],
+      tags: { dbwr: [{ text: 'In batches at checkpoint', tone: 'data' }], df: [{ text: "1042 = 'PAID'", tone: 'data' }] },
+      flows: [{ link: 'bc_dbwr', kind: 'data', n: 2 }, { link: 'dbwr_df', kind: 'data', n: 2 }],
+      console: { same: true },
+    },
+    {
+      short: 'Power loss', chapter: 'case',
+      title: 'Case: the server went down right after the commit',
+      body: [
+        "The commit finished, but the power went out before DBWn wrote the block. The SGA is gone, and the data file still holds <code>'NEW'</code>.",
+        'On restart, <span class="term">SMON</span> performs instance recovery. It first reads Redo and reapplies every change since the last checkpoint (roll forward), then rolls back uncommitted transactions using Undo (roll back).',
+      ],
+      callout: { kind: 'insight', text: "The committed 'PAID' comes back thanks to Redo, and uncommitted changes disappear. Because Redo exists, it is safe to postpone writing the data files." },
+      changes: ['× Power cut: SGA contents lost', '+ SMON: roll forward (reapply Redo)', '+ SMON: roll back (undo with Undo)'],
+      metrics: { scn: '8104230', dirty: '2 (recovered)', redo: '0 B', rfile: 'Written', wait: null },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'smon', 'df'], dim: ['app', 'sp'], focus: ['smon'],
+      noBaseCells: true,
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: [],
+      tags: { df: [{ text: "1042 = 'NEW' (power lost before write)", tone: 'muted' }], bc: [{ text: "1042 = 'PAID' restored", tone: 'data' }], rl: [{ text: 'Re-reading Redo', tone: 'redo' }] },
+
+      flows: [{ link: 'rl_smon', kind: 'redo', n: 2 }, { link: 'smon_bc', kind: 'redo', n: 2 }, { link: 'read', kind: 'data', n: 1, rate: 0.8 }],
+      console: { title: 'alert.log', lines: ['Beginning crash recovery of 1 threads', 'Started redo scan', 'Completed redo scan', 'Started redo application at', 'Completed redo application of 0.01MB', 'Completed crash recovery at|ok'] },
+    },
+    {
+      short: 'Frequent commits', chapter: 'case',
+      title: 'Case: a batch that COMMITs every row',
+      body: [
+        'A batch program (Java, JDBC) that processes one million orders sends an <code>UPDATE</code> and a <code>COMMIT</code> for each row. A <code>COMMIT</code> sent by a client defaults to <code>WRITE WAIT IMMEDIATE</code> (SQL Language Reference 19c), so every commit waits for LGWR\'s write. Even at just 1 ms each, the waiting alone comes to about 1,000 seconds, close to 17 minutes.',
+        'In the AWR report, <code>log file sync</code> rises to the top wait events. If you commit once at the end of each business unit of work, for example every 5,000 rows, the number of commits drops to 200.',
+      ],
+      callout: { kind: 'warn', text: 'Doing the same loop inside a PL/SQL block is different. According to the PL/SQL Language Reference 19c, PL/SQL\'s default commit behavior is <code>BATCH NOWAIT</code> (when COMMIT_LOGGING and COMMIT_WAIT are not set), so it does not wait for the write on every row, and the calculation above does not apply. You can also remove the wait on the client with <code>COMMIT WRITE NOWAIT</code>, but a failure can lose changes you just committed, so use it only for data you can afford to lose.' },
+      changes: ['× 1,000,000 commits', '× log file sync ≈ 1,000 s', '~ Commit every 5,000 rows: 200 times'],
+      metrics: { scn: '+1,000,000', dirty: 'Thousands', redo: 'Keeps piling up', rfile: 'Written a million times', wait: '≈ 1,000 s' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: ['lgwr'],
+      cells: { 1: 'dataDirty', 4: 'dataDirty', 5: 'dataDirty', 6: 'dataDirty', 10: 'undoDirty', 11: 'undoDirty' },
+      segs: ['redo', 'commit', 'redo', 'commit', 'redo', 'commit', 'redo', 'commit'],
+      tags: { sp: [{ text: 'COMMIT × 1,000,000', tone: 'signal' }], lgwr: [{ text: 'Writes × 1,000,000', tone: 'signal' }] },
+      flows: [
+        { link: 'sql', kind: 'sql', n: 3, rate: 2.4 },
+        { link: 'sp_lb', kind: 'signal', n: 3, rate: 2.4 },
+        { link: 'post', kind: 'signal', n: 2, rate: 2, bounce: true },
+        { link: 'lb_lgwr', kind: 'redo', n: 3, rate: 2.4 },
+        { link: 'lgwr_rl', kind: 'redo', n: 3, rate: 2.4 },
+      ],
+      console: { title: 'Java (JDBC)', lines: ['for (long id : orderIds) {', '  ps.setLong(1, id);', "  ps.executeUpdate();   // UPDATE orders SET status = 'PAID' ...", '  conn.commit();        // every row|warn', '}'] },
+    },
+    {
+      short: 'Summary', chapter: 'recap',
+      title: 'Summary: a commit is the moment Redo reaches disk',
+      body: [
+        'UPDATE changes the block in the Buffer Cache and records the change in Undo and Redo.',
+        'COMMIT writes only Redo to disk and returns. It is a fast sequential write that LGWR appends to the end of the file.',
+        'DBWn writes the data files later, in batches. Even if a failure happens in between, Redo recovers it.',
+      ],
+      callout: { kind: 'tip', text: 'In the next lesson, ‘Undo and read consistency’, we follow how other sessions see the value from before the commit.' },
+      changes: [],
+      metrics: { scn: '8104230', dirty: '2 → 0', redo: '0 B', rfile: 'Written', wait: '1.2 ms' },
+      show: ['app', 'sp', 'bc', 'lb', 'lgwr', 'rl', 'dbwr', 'df'], focus: [],
+      cells: { 5: 'dataDirty', 10: 'undoDirty' },
+      segs: ['redo', 'redo', 'commit'],
+      tags: { lgwr: [{ text: 'Commit path · sequential write', tone: 'redo' }], dbwr: [{ text: 'Later · random write', tone: 'data' }] },
+      flows: [
+        { link: 'sql', kind: 'sql', n: 1 },
+        { link: 'sp_bc', kind: 'data', n: 1 },
+        { link: 'sp_lb', kind: 'redo', n: 1 },
+        { link: 'lb_lgwr', kind: 'redo', n: 2 },
+        { link: 'lgwr_rl', kind: 'redo', n: 2 },
+        { link: 'bc_dbwr', kind: 'data', n: 1, rate: 0.45 },
+        { link: 'dbwr_df', kind: 'data', n: 1, rate: 0.45 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> UPDATE orders', "  2  SET status = 'PAID'", '  3  WHERE order_id = 1042;', '1 row updated.|ok', '', 'SQL> COMMIT;', 'Commit complete.|ok'] },
+    },
+  ],
+};
+
+</script>
+<script src="course.js"></script>
+<script src="anatomy.js"></script>
+
+</body>
+</html>
