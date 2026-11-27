@@ -7,7 +7,7 @@
    이 파일 하나만 고치면 한국어판과 영어판의 모든 페이지에 적용된다(영어판은 tools/i18n/i18n.py build가 그대로 복사한다). */
 (function () {
   'use strict';
-  var CODE = '';
+  var CODE = 'mroracle';
   if (!CODE || location.hostname !== 'batiappa.github.io') return;
   var s = document.createElement('script');
   s.async = true;
