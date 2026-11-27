@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>B-tree indexes · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects the structure of an Oracle Database 19c B-tree index (root, branch and leaf blocks, height, rowids), index unique scans, range scans, the clustering factor, and what indexes cost. It also covers a case where a condition searching for NULL cannot use an index.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/btree/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/btree/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/btree/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="B-tree indexes · Oracle Anatomy">
+<meta property="og:description" content="There is an index on ship_date, yet the unshipped (ship_date IS NULL) query reads the whole table. Dissect the inside of a B-tree index in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 3 · SQL execution</b> / lesson 3 of 3</div>
+      <div class="head-row">
+        <h1>B-tree indexes</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13 min</span><span class="badge">Beginner</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">An index is a sorted structure of keys and locations (rowids), like the index at the back of a book. Follow, block by block, how a row is found by descending from the root to a leaf.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of a B-tree index's root block, branch blocks and linked leaf blocks, and how a leaf's rowid leads to a table block"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL · search path</li>
+            <li><i style="background:var(--c-data)"></i>Keys found · table blocks</li>
+            <li><i style="background:var(--c-undo)"></i>Leaf links (range scan)</li>
+            <li><i style="background:var(--c-redo)"></i>Index maintenance cost</li>
+            <li><i style="background:var(--c-signal)"></i>Problems</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02) and the app account (APP) match the DBA labs; the DELIVERY_LOG table, index names, key ranges, heights, block counts, clustering factors, row counts and costs are example values. The Bytes and Time columns are dropped from the plan screens to fit. That a single-column B-tree index does not store NULLs, and that rows whose indexed columns are all NULL are not indexed, was confirmed in the documentation. The fix in scene 9 (a composite index with a NOT NULL column appended, so that every row is indexed) is derived from that statement; the documentation does not describe this fix as such. Always check the execution plan with the same data before applying it in production.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/indexes-and-index-organized-tables.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Indexes and Index-Organized Tables (B-tree structure, height, leaf links, unique and range scans, clustering factor, NULLs, composite indexes, index maintenance)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Access Paths (rowids, index unique and range scans, reasons for full scans)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 3 "B-tree 인덱스". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=SQL·탐색 경로, data=찾은 키·테이블 블록, undo=리프 연결, redo=인덱스 유지 비용, signal=문제
+   DELIVERY_LOG와 IX_DLOG_CUST는 "옵티마이저와 실행계획" 레슨과 같은 예시 테이블·인덱스다.
+   ===================================================================== */
+const LESSON = {
+  page: 'btree',
+  base: '../../',
+  storeKey: 'btree:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'h', label: 'Index height' },
+    { key: 'io', label: 'Index blocks read' },
+    { key: 'rows', label: 'Rowids found' },
+    { key: 'path', label: 'Access path' },
+    { key: 'note', label: 'Note' },
+  ],
+  goals: [
+    { text: 'Root, branch and leaf blocks', step: 2 },
+    { text: 'Balanced trees and height', step: 3 },
+    { text: 'Keys and rowids in leaf blocks', step: 4 },
+    { text: 'Index unique scans', step: 5 },
+    { text: 'Index range scans and leaf links', step: 6 },
+    { text: 'Clustering factor', step: 7 },
+    { text: 'What indexes cost DML', step: 8 },
+  ],
+  zones: [
+    { id: 'ix', from: [-1.2, -1.2], to: [11.6, 11.6], label: 'B-tree indexes', members: ['root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4'] },
+    { id: 'tb', from: [12.6, 1.8], to: [18.2, 7.4], label: 'Table (DELIVERY_LOG)', members: ['tab'] },
+  ],
+  entities: {
+    sql:  { type: 'box', at: [-4.2, 0.0], size: [2.2, 1.8, 0.5], label: 'SQL', tone: 'sql' },
+    root: { type: 'box', at: [-0.2, -0.2], size: [2.4, 1.6, 0.6], label: 'Root block', tone: 'sql', cells: [2, 1] },
+    b1:   { type: 'box', at: [-0.2, 4.8], size: [2.4, 1.6, 0.6], label: 'Branch 1', tone: 'sql', cells: [2, 1], labelPos: 'left' },
+    b2:   { type: 'box', at: [4.8, -0.2], size: [2.4, 1.6, 0.6], label: 'Branch 2', tone: 'sql', cells: [2, 1], labelPos: 'right' },
+    l1:   { type: 'box', at: [1.1, 8.7], size: [2.2, 1.6, 0.4], label: 'Leaf 1', tone: 'data', cells: [4, 1], tagDir: 'down' },
+    l2:   { type: 'box', at: [3.6, 6.2], size: [2.2, 1.6, 0.4], label: 'Leaf 2', tone: 'data', cells: [4, 1], tagDir: 'down' },
+    l3:   { type: 'box', at: [6.1, 3.7], size: [2.2, 1.6, 0.4], label: 'Leaf 3', tone: 'data', cells: [4, 1], tagDir: 'down' },
+    l4:   { type: 'box', at: [8.6, 1.2], size: [2.2, 1.6, 0.4], label: 'Leaf 4', tone: 'data', cells: [4, 1], tagDir: 'down' },
+    tab:  { type: 'box', at: [13.2, 2.4], size: [4.4, 4.4, 0.8], label: 'Table blocks', tone: 'data', cells: [5, 6] },
+  },
+  links: {
+    q:    { from: 'sql', to: 'root' },
+    r1:   { from: 'root', to: 'b1' },
+    r2:   { from: 'root', to: 'b2' },
+    b11:  { from: 'b1', to: 'l1' },
+    b12:  { from: 'b1', to: 'l2' },
+    b23:  { from: 'b2', to: 'l3' },
+    b24:  { from: 'b2', to: 'l4' },
+    n12:  { from: 'l1', to: 'l2', onDemand: true },
+    n23:  { from: 'l2', to: 'l3', onDemand: true },
+    n34:  { from: 'l3', to: 'l4', onDemand: true },
+    rid2: { from: 'l2', to: 'tab', onDemand: true },
+    rid3: { from: 'l3', to: 'tab', onDemand: true },
+    full: { from: 'sql', to: 'tab', via: [[-3.1, -2.0], [15.4, -2.0]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'There is an index on ship_date, yet the unshipped-orders query reads the whole table',
+      body: [
+        'The logistics team\'s "not yet shipped" screen is slow. The SQL is <code>where ship_date is null</code>, and of 3.2 million rows only 1,250 have an empty ship date. The <code>ship_date</code> column has an index, <code>IX_DLOG_SHIP</code>, and statistics were gathered fresh yesterday.',
+        'Few rows are selected, there is an index, and the statistics are current. Yet the plan is <code>TABLE ACCESS FULL</code>. The answer lies in what is actually stored inside the index.',
+      ],
+      callout: { kind: 'insight', text: 'The case in "The optimizer and execution plans" had wrong statistics. This time the statistics and SQL are right, but the index is structurally unable to answer the question.' },
+      changes: ['+ where ship_date is null (1,250 rows)', '× IX_DLOG_SHIP exists, yet FULL'],
+      metrics: { h: '-', io: '0', rows: '-', path: 'FULL', note: '2.9 s' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['sql', 'tab'],
+      dim: ['root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4'],
+      cells: {
+        tab: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+          24: 'signal',
+          25: 'signal',
+          26: 'signal',
+          27: 'signal',
+          28: 'signal',
+          29: 'signal',
+        },
+      },
+      tags: { tab: [{ text: 'Reading all 3.2M rows', tone: 'signal' }], root: [{ text: 'Unused', tone: 'signal' }] },
+      flows: [{ link: 'full', kind: 'signal', n: 4, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> explain plan for select dlv_id, cust_id from delivery_log where ship_date is null;',
+          'SQL> select * from table(dbms_xplan.display);',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              | 1250 |  9120   (1)|',
+          '|* 1 |  TABLE ACCESS FULL                  | DELIVERY_LOG | 1250 |  9120   (1)||warn',
+          '',
+          '   1 - filter("SHIP_DATE" IS NULL)',
+        ],
+      },
+    },
+    {
+      short: 'Structure',
+      chapter: 'technique',
+      title: 'The three layers of a B-tree: root, branch, leaf',
+      body: [
+        'According to Concepts, a B-tree index has two kinds of blocks. The <span class="term">branch blocks</span> at the top are for searching (the topmost is the <span class="term">root</span>), and the <span class="term">leaf blocks</span> at the bottom store the actual key values.',
+        'Branch blocks say "keys in this range are in that lower block". As in the documentation figure, the root covers 0–40 and branches below it cover ranges like 0–10 and 11–19, so a search picks the right side at each level on the way down.',
+      ],
+      callout: { kind: 'tip', text: 'Think of the index at the back of a book: a guide like "A–D start on page 300" is a branch, and the actual list of words and page numbers is a leaf.' },
+      changes: ['+ root → branch → leaf', '~ branch: navigation, leaf: keys'],
+      metrics: { h: '3', io: '-', rows: '-', path: '-', note: 'IX_DLOG_CUST' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4'],
+      dim: ['sql', 'tab'],
+      tags: {
+        root: [{ text: '1~200', tone: 'sql' }],
+        b1: [{ text: '1~100', tone: 'sql' }],
+        b2: [{ text: '101~200', tone: 'sql' }],
+        l1: [{ text: '1~50', tone: 'data' }],
+        l2: [{ text: '51~100', tone: 'data' }],
+        l3: [{ text: '101~150', tone: 'data' }],
+        l4: [{ text: '151~200', tone: 'data' }],
+      },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select index_name, blevel, leaf_blocks, num_rows from user_indexes where table_name = \'DELIVERY_LOG\';',
+          'INDEX_NAME       BLEVEL LEAF_BLOCKS   NUM_ROWS',
+          '------------ ---------- ----------- ----------',
+          'PK_DLOG               2        6680    3200800',
+          'IX_DLOG_CUST          2        7104    3200800',
+          'IX_DLOG_SHIP          2        7060    3199550',
+        ],
+      },
+    },
+    {
+      short: 'Height',
+      chapter: 'technique',
+      title: 'A balanced tree: every leaf at the same depth, reached in "height" reads',
+      body: [
+        'According to the documentation, a B-tree is balanced, so all leaf blocks are at the same depth. Finding any value reads the same number of blocks from root to leaf, which the documentation describes as finding a value in n I/Os, where n is the height.',
+        'Height is the number of blocks from root to leaf, and <code>BLEVEL</code> in the statistics is the number of branch levels, height − 1. BLEVEL 2 on the previous screen means height 3: root → branch → leaf, three blocks. Even with millions of rows, the height usually stays at a few levels.',
+      ],
+      callout: { kind: 'insight', text: 'Finding one row out of 3.2 million takes 3 index blocks plus 1 table block. A full table scan would be tens of thousands of blocks.' },
+      changes: ['~ height 3 = BLEVEL 2 + 1', '~ any value: 3 index blocks'],
+      metrics: { h: '3', io: '3', rows: '-', path: '-', note: 'BLEVEL 2' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['root', 'b1', 'l2'],
+      dim: ['b2', 'l1', 'l3', 'l4', 'tab'],
+      cells: { root: { 0: 'data' }, b1: { 1: 'data' }, l2: { 1: 'data' } },
+      tags: { root: [{ text: '① 1', tone: 'sql' }], b1: [{ text: '② 2', tone: 'sql' }], l2: [{ text: '③ 3', tone: 'sql' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 1 }, { link: 'r1', kind: 'sql', n: 1 }, { link: 'b12', kind: 'sql', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> -- height = BLEVEL + 1',
+          'SQL> select index_name, blevel + 1 height from user_indexes where index_name = \'IX_DLOG_CUST\';',
+          'INDEX_NAME       HEIGHT',
+          '------------ ----------',
+          'IX_DLOG_CUST          3',
+        ],
+      },
+    },
+    {
+      short: 'Key and rowid',
+      chapter: 'technique',
+      title: 'Leaf blocks: sorted keys and where each row lives (the rowid)',
+      body: [
+        'Leaf blocks hold pairs of an index key value and that row\'s <span class="term">rowid</span>. According to the SQL Tuning Guide, a rowid is a 10-byte physical address that specifies which block of which data file holds the row. With the key and rowid, the table row is found directly.',
+        'Keys in leaves are sorted in ascending order by default. If the same key value appears in several rows (a nonunique index), the same key has several rowids. If customer 73 has 40 deliveries, key 73 has 40 rowids in a row.',
+      ],
+      callout: { kind: 'tip', text: 'You can see rowids directly with <code>select rowid from table</code>. This value is how an index points to a table row.' },
+      changes: ['+ leaf: sorted list of (key, rowid)', '~ rowid = file + block + row position'],
+      metrics: { h: '3', io: '3', rows: '40', path: '-', note: 'key 73' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['l2', 'tab'],
+      dim: ['root', 'b1', 'b2', 'l1', 'l3', 'l4'],
+      cells: { l2: { 1: 'data' }, tab: { 7: 'data' } },
+      tags: { l2: [{ text: '73 → rowid × 40', tone: 'data' }], tab: [{ text: 'file · block · row', tone: 'data' }] },
+      flows: [{ link: 'rid2', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select rowid, dlv_id, cust_id from delivery_log where cust_id = 73 and rownum <= 2;',
+          'ROWID                  DLV_ID    CUST_ID',
+          '------------------ ---------- ----------',
+          'AAAS1dAAMAAAAnTAAF    5108821         73',
+          'AAAS1dAAMAAAAoBAAC    5109977         73',
+        ],
+      },
+    },
+    {
+      short: 'Unique scan',
+      chapter: 'technique',
+      title: 'Index unique scan: one descent, one rowid',
+      body: [
+        'Indexes are created automatically for primary and unique keys. An equality condition on all columns of a unique index returns at most one row, so the optimizer uses an <span class="term">index unique scan</span> (INDEX UNIQUE SCAN). The documentation says a unique scan returns at most one rowid.',
+        'The blocks read are as many as the height (root, branch, leaf) plus one table block. That is why the screen that looks up one delivery by number is always fast.',
+      ],
+      callout: { kind: 'tip', text: 'In DBA lab 71 you read the Operation column of a plan. INDEX UNIQUE SCAN followed by TABLE ACCESS BY INDEX ROWID is exactly this scene.' },
+      changes: ['+ dlv_id = :b1 (primary key)', '~ 3 index blocks + 1 table block'],
+      metrics: { h: '3', io: '3', rows: '1', path: 'UNIQUE SCAN', note: 'PK_DLOG' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['sql', 'root', 'b2', 'l3', 'tab'],
+      dim: ['b1', 'l1', 'l2', 'l4'],
+      cells: { root: { 1: 'data' }, b2: { 0: 'data' }, l3: { 2: 'data' }, tab: { 14: 'data' } },
+      tags: { l3: [{ text: '1 rowid', tone: 'data' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 1 }, { link: 'r2', kind: 'sql', n: 1 }, { link: 'b23', kind: 'sql', n: 1 }, { link: 'rid3', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> explain plan for select * from delivery_log where dlv_id = 5108821;',
+          'SQL> select * from table(dbms_xplan.display);',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |    1 |     4   (0)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID        | DELIVERY_LOG |    1 |     4   (0)|',
+          '|* 2 |   INDEX UNIQUE SCAN                 | PK_DLOG      |    1 |     3   (0)||ok',
+        ],
+      },
+    },
+    {
+      short: 'Range scan',
+      chapter: 'technique',
+      title: 'Index range scan: descend once, then walk sideways along the leaves',
+      body: [
+        'Leaf blocks are linked to each other forwards and backwards (a doubly linked list). An <span class="term">index range scan</span> descends once to the leaf holding the first key of the range, then follows the links sideways to the next leaves, reading in key order. In the documentation\'s words, a range scan proceeds horizontally through the linked list of leaf nodes.',
+        'For each rowid found in the leaves, the table block is read (TABLE ACCESS BY INDEX ROWID). A key can have several rowids, so an equality condition on a nonunique index (<code>cust_id = 73</code>) is also a range scan. And because the scan reads in key order, a range scan can sometimes avoid a separate sort when sorted results are needed.',
+      ],
+      callout: { kind: 'tip', text: 'In DBA lab 72, changing to a date range condition gave INDEX RANGE SCAN: it descended to the leaf holding the November 1 key and read sideways up to just before December 1.' },
+      changes: ['~ leaf ⇄ leaf links', '+ cust_id between 90 and 120'],
+      metrics: { h: '3', io: '3 + 1 leaf', rows: '1,240', path: 'RANGE SCAN', note: 'IX_DLOG_CUST' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['root', 'b1', 'l2', 'l3', 'tab'],
+      dim: ['b2', 'l1', 'l4'],
+      cells: {
+        root: { 0: 'data' },
+        b1: { 1: 'data' },
+        l2: { 2: 'data', 3: 'data' },
+        l3: { 0: 'data' },
+        tab: { 3: 'data', 7: 'data', 12: 'data', 20: 'data', 26: 'data' },
+      },
+      tags: { l2: [{ text: 'from 90', tone: 'undo' }], l3: [{ text: 'to 120', tone: 'undo' }] },
+      flows: [
+        { link: 'q', kind: 'sql', n: 1 },
+        { link: 'r1', kind: 'sql', n: 1 },
+        { link: 'b12', kind: 'sql', n: 1 },
+        { link: 'n23', kind: 'undo', n: 2 },
+        { link: 'rid2', kind: 'data', n: 2 },
+        { link: 'rid3', kind: 'data', n: 2 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> explain plan for select * from delivery_log where cust_id between 90 and 120;',
+          'SQL> select * from table(dbms_xplan.display);',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              | 1240 |   652   (0)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG | 1240 |   652   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_CUST | 1240 |     6   (0)||ok',
+        ],
+      },
+    },
+    {
+      short: 'Clustering factor',
+      chapter: 'technique',
+      title: 'Clustering factor: how closely table order follows index order',
+      body: [
+        'A range scan reads a table block for each rowid. If keys in the same range sit in the same table blocks, a few blocks suffice; if they are scattered, each rowid means a different block. The value that measures this is the <span class="term">clustering factor</span>.',
+        'According to Concepts, the more closely table rows follow index order, the lower the clustering factor. When it is low, keys in a range point to the same blocks, and the value matters in deciding whether an index is used for large range scans.',
+      ],
+      callout: { kind: 'insight', text: 'Delivery records pile up in time order, so the dlv_id (sequence number) index resembles table order, while the cust_id index does not, since customers are scattered. The same 1,000 rows can mean very different numbers of table blocks.' },
+      changes: ['~ PK_DLOG: low clustering factor', '~ IX_DLOG_CUST: high'],
+      metrics: { h: '3', io: '-', rows: '-', path: '-', note: 'Compare CF' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['l2', 'l3', 'tab'],
+      dim: ['root', 'b1', 'b2', 'l1', 'l4', 'sql'],
+      cells: { l2: { 0: 'data', 1: 'data', 2: 'data', 3: 'data' }, tab: { 0: 'data', 6: 'data', 13: 'data', 19: 'data', 22: 'data', 29: 'data' } },
+      tags: { tab: [{ text: 'Scattered blocks', tone: 'data' }] },
+      flows: [{ link: 'rid2', kind: 'data', n: 4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select i.index_name, i.clustering_factor, t.blocks, t.num_rows',
+          '  2  from user_indexes i join user_tables t on t.table_name = i.table_name',
+          '  3  where i.table_name = \'DELIVERY_LOG\';',
+          'INDEX_NAME   CLUSTERING_FACTOR     BLOCKS   NUM_ROWS',
+          '------------ ----------------- ---------- ----------',
+          'PK_DLOG                  41870      41890    3200800',
+          'IX_DLOG_CUST           2951340      41890    3200800',
+          'IX_DLOG_SHIP            612400      41890    3200800',
+        ],
+      },
+    },
+    {
+      short: 'Index cost',
+      chapter: 'technique',
+      title: 'Indexes are not free: they are updated with every DML',
+      body: [
+        'According to Concepts, indexes change automatically when table data changes. One INSERT must find the right leaf in every index and put a key there. The documentation explains that many indexes degrade DML performance.',
+        'A composite (multicolumn) index is sorted by its leading column first, so it works best when the condition includes the leading column. Without the leading column it can only be used by a skip scan, when the leading column has few distinct values. That is why you check for an existing index starting with the same columns before creating a new one.',
+      ],
+      callout: { kind: 'warn', text: 'This is also why DBA lab 73 created the index ONLINE during business hours. Both building an index and every insert afterwards have a cost.' },
+      changes: ['+ 1 INSERT → 3 indexes updated', '~ find a leaf and add a key in each index'],
+      metrics: { h: '3', io: 'Per index', rows: '1', path: 'INSERT', note: '3 indexes' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['l4', 'tab', 'sql'],
+      dim: ['l1', 'l2', 'l3'],
+      cells: { l4: { 3: 'redoDirty' }, tab: { 29: 'redoDirty' } },
+      tags: { l4: [{ text: 'Key added', tone: 'redo' }], tab: [{ text: 'Row added', tone: 'redo' }] },
+      flows: [{ link: 'q', kind: 'redo', n: 1 }, { link: 'r2', kind: 'redo', n: 1 }, { link: 'b24', kind: 'redo', n: 1 }, { link: 'full', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> insert into delivery_log (dlv_id, cust_id, ship_date) values (5200801, 188, null);',
+          '1 row created.',
+          'SQL> select count(*) from user_indexes where table_name = \'DELIVERY_LOG\';',
+          '  COUNT(*)',
+          '----------',
+          '         3',
+        ],
+      },
+    },
+    {
+      short: 'NULL',
+      chapter: 'case',
+      title: 'Case: a single-column B-tree index holds no NULLs',
+      body: [
+        'This is the cause from scene 1. According to Concepts, a single-column B-tree index does not store NULLs, and rows whose indexed columns are all NULL are not indexed. The 1,250 unshipped rows have a NULL <code>ship_date</code>, so they are not in <code>IX_DLOG_SHIP</code> at all. That is why this index had 1,250 fewer rows than the table on the earlier screen.',
+        'Rows not in the index cannot be found through it, so the optimizer has no choice but a full scan. The fix that follows from this statement is to make sure the indexed columns are never "all NULL". A composite index <code>(ship_date, dlv_id)</code> with the NOT NULL column <code>dlv_id</code> appended puts every row in the index. It is business hours, so build it ONLINE and recheck the plan.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'This fix is derived from the NULL rule in the documentation. Before applying it in production, always check the execution plan with the same data, and also weigh the DML cost of a new index (scene 8) and whether to retire the existing IX_DLOG_SHIP.',
+      },
+      changes: ['× 1,250 NULL rows: not in the index', '+ composite index (ship_date, dlv_id) ONLINE', '~ FULL → INDEX RANGE SCAN'],
+      metrics: { h: '3', io: '3 + a few leaves', rows: '1,250', path: 'FULL → RANGE', note: '2.9 s → 0.02 s' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: ['l4', 'tab', 'sql'],
+      dim: ['l1', 'l2'],
+      cells: { l4: { 2: 'data', 3: 'data' }, tab: { 2: 'data', 11: 'data', 25: 'data' } },
+      tags: { l4: [{ text: 'NULL keys included', tone: 'data' }], sql: [{ text: 'ship_date is null', tone: 'sql' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 1 }, { link: 'r2', kind: 'sql', n: 1 }, { link: 'b24', kind: 'sql', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> create index ix_dlog_ship_id on delivery_log (ship_date, dlv_id) online;',
+          'Index created.|ok',
+          'SQL> explain plan for select dlv_id, cust_id from delivery_log where ship_date is null;',
+          'SQL> select * from table(dbms_xplan.display);',
+          '| Id | Operation                           | Name            | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |                 | 1250 |   612   (0)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG    | 1250 |   612   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_SHIP_ID | 1250 |     5   (0)||ok',
+          '',
+          '   2 - access("SHIP_DATE" IS NULL)',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: descend from the top, read sideways, jump by rowid',
+      body: [
+        'A B-tree index is a balanced tree of branch blocks (including the root) and leaf blocks. Any key is reached by reading as many blocks as the height, and leaves hold sorted keys and rowids. A unique scan returns one rowid; a range scan reads sideways along the linked leaves.',
+        'Table reads in a range scan depend on the clustering factor, and indexes cost something on every DML. And a single-column index holds no NULLs, which is another common reason for "there is an index but it is not used".',
+      ],
+      callout: { kind: 'insight', text: 'Part 3 is complete. SQL is parsed (Parsing and the shared pool), a plan is chosen (The optimizer and execution plans), and rows are found along an index (B-tree indexes), all in one chain.' },
+      changes: ['~ root → branch → leaf → rowid → table', '+ NULLs are not in single-column indexes'],
+      metrics: { h: '3', io: '3+', rows: '-', path: 'UNIQUE · RANGE', note: '-' },
+      show: ['sql', 'root', 'b1', 'b2', 'l1', 'l2', 'l3', 'l4', 'tab'],
+      focus: [],
+      cells: { root: { 0: 'data' }, b1: { 1: 'data' }, l2: { 2: 'data', 3: 'data' }, l3: { 0: 'data' }, tab: { 3: 'data', 12: 'data' } },
+      tags: { root: [{ text: '① descend', tone: 'sql' }], l3: [{ text: '② sideways', tone: 'undo' }], tab: [{ text: '③ by rowid', tone: 'data' }] },
+      flows: [
+        { link: 'q', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'r1', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'b12', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'n23', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'rid2', kind: 'data', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select index_name, blevel + 1 height, clustering_factor from user_indexes where table_name = \'DELIVERY_LOG\';',
+          'INDEX_NAME         HEIGHT CLUSTERING_FACTOR',
+          '--------------- ---------- -----------------',
+          'PK_DLOG                  3             41870',
+          'IX_DLOG_CUST             3           2951340',
+          'IX_DLOG_SHIP             3            612400',
+          'IX_DLOG_SHIP_ID          3            609210',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the shared pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, 'B-tree indexes'], current: 2 },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

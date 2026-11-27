@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The optimizer and execution plans · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects how the Oracle Database 19c optimizer chooses an execution plan (transformer, estimator, plan generator), selectivity, cardinality and cost, optimizer statistics, access paths, and how to read an execution plan. It also covers a case where stale statistics after a bulk migration led to a full scan despite an index.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="The optimizer and execution plans · Oracle Anatomy">
+<meta property="og:description" content="After a morning migration, the delivery lookup screen is slow. There is an index, but the plan says TABLE ACCESS FULL. Dissect how the optimizer chooses a plan in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 3 · SQL execution</b> / lesson 2 of 3</div>
+      <div class="head-row">
+        <h1>The optimizer and execution plans</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14 min</span><span class="badge">Beginner</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">The optimizer looks at statistics and picks the lowest-cost plan. If the statistics differ from reality, so does the plan. Follow the process alongside the execution plan screen.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of a SQL statement passing through the optimizer's transformer, estimator and plan generator, consulting statistics in the data dictionary to build an execution plan, and reading the table or index according to that plan"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL · planning stages</li>
+            <li><i style="background:var(--c-data)"></i>Table · index reads</li>
+            <li><i style="background:var(--c-undo)"></i>Statistics</li>
+            <li><i style="background:var(--c-redo)"></i>Execution plan</li>
+            <li><i style="background:var(--c-signal)"></i>Problems</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02) and the app account (APP) match the DBA labs; the DELIVERY_LOG table, the IX_DLOG_CUST index, the migration scenario and numbers such as row counts, block counts, costs and times are example values. The execution plan screens follow the column headings in the documentation (Id, Operation, Name, Rows, Bytes, Cost (%CPU), Time), but the Bytes and Time columns are dropped to fit the screen. The reason the optimizer chose a full scan in this example is explained with the "small table" entry in the SQL Tuning Guide's table of reasons for full scans; the actual cost formula is not published in the documentation. When a cursor already in the shared pool is hard parsed again after new statistics are gathered (the invalidation timing) was not confirmed, so it is described only as "at the next hard parse". Part of the description of the default dynamic statistics level and automatic statistics collection comes from a summary of the documentation.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/query-optimizer-concepts.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Query Optimizer Concepts (transformer, estimator, plan generator; selectivity, cardinality, cost; adaptive plans)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-statistics-concepts.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Statistics Concepts (kinds of statistics, dynamic statistics, automatic statistics collection)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Access Paths (reasons for full scans, index range scans)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Generating and Displaying Execution Plans (DISPLAY_CURSOR, difference from EXPLAIN PLAN)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/sql-processing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · SQL Processing (hard parse and optimization)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 3 "옵티마이저와 실행계획". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=SQL·계획 단계, data=테이블·인덱스 읽기, undo=통계, redo=실행 계획, signal=문제
+   DELIVERY_LOG는 이 페이지만의 예시 테이블이다. 실행 계획 읽기는 DBA 실습 9단계(레슨 71~73)와 이어진다.
+   ===================================================================== */
+const LESSON = {
+  page: 'optimizer',
+  base: '../../',
+  storeKey: 'optimizer:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'stat', label: 'Rows in statistics' },
+    { key: 'real', label: 'Actual rows' },
+    { key: 'card', label: 'Estimated rows (cardinality)' },
+    { key: 'path', label: 'Access paths' },
+    { key: 'time', label: 'Response time' },
+  ],
+  goals: [
+    { text: 'The three components of the optimizer', step: 2 },
+    { text: 'Selectivity, cardinality and cost', step: 3 },
+    { text: 'Optimizer statistics', step: 4 },
+    { text: 'Full scans and index access', step: 5 },
+    { text: 'Choosing the lowest-cost plan', step: 6 },
+    { text: 'Reading an execution plan', step: 7 },
+    { text: 'How stale statistics lead to a wrong plan', step: 8 },
+  ],
+  zones: [
+    { id: 'opt', from: [0.4, -1.6], to: [10.8, 2.0], label: 'Optimizer (during a hard parse)', members: ['tr', 'est', 'gen'] },
+    { id: 'disk', from: [12.2, -1.6], to: [17.6, 8.0], label: 'Data files', members: ['tab', 'idx'] },
+  ],
+  entities: {
+    sql:   { type: 'box', at: [-3.0, -0.4], size: [2.2, 1.8, 0.5], label: 'SQL (cust_id = :b1)', tone: 'sql' },
+    tr:    { type: 'box', at: [1.0, -0.8], size: [2.4, 2.0, 0.8], label: 'Transformer', tone: 'sql', led: true },
+    est:   { type: 'box', at: [4.6, -0.8], size: [2.4, 2.0, 0.8], label: 'Estimator', tone: 'sql', led: true },
+    gen:   { type: 'box', at: [8.2, -0.8], size: [2.4, 2.0, 0.8], label: 'Plan generator', tone: 'sql', led: true },
+    stats: { type: 'cyl', at: [5.4, 3.6], r: 1.0, h: 1.2, label: 'Data dictionary · statistics', tone: 'undo', tagDir: 'down' },
+    plan:  { type: 'box', at: [8.4, 3.4], size: [2.2, 2.4, 0.4], label: 'Execution plan', tone: 'redo', cells: [1, 3], labelPos: 'right' },
+    tab:   { type: 'box', at: [12.8, -0.8], size: [4.2, 3.4, 0.8], label: 'DELIVERY_LOG', tone: 'data', cells: [6, 4] },
+    idx:   { type: 'box', at: [13.4, 4.6], size: [3.0, 2.2, 0.6], label: 'IX_DLOG_CUST', tone: 'data', cells: [4, 2], tagDir: 'down' },
+  },
+  links: {
+    in:   { from: 'sql', to: 'tr' },
+    te:   { from: 'tr', to: 'est' },
+    eg:   { from: 'est', to: 'gen' },
+    st:   { from: 'stats', to: 'est', onDemand: true },
+    gp:   { from: 'gen', to: 'plan', onDemand: true },
+    full: { from: 'plan', to: 'tab', via: [[11.6, 4.2], [11.6, 0.8]], onDemand: true },
+    ix:   { from: 'plan', to: 'idx', via: [[11.6, 5.0], [11.6, 5.7]], onDemand: true },
+    rid:  { from: 'idx', to: 'tab', onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'Delivery lookups are slow after a migration. There is an index, but the plan is a full scan',
+      body: [
+        'This morning, 3.2 million delivery records from the old system were moved into the <code>DELIVERY_LOG</code> table on dbserver02. Since then, the per-customer delivery lookup screen takes several seconds. The customer number column has an index, <code>IX_DLOG_CUST</code>.',
+        'The cursor\'s plan in the shared pool says <code>TABLE ACCESS FULL</code>, with an estimate of only 4 rows in the Rows column. Why did the optimizer decide to read the whole table instead of using the index? And why did it think 4 rows?',
+      ],
+      callout: { kind: 'insight', text: 'In DBA labs stage 9 you fixed "SQL that cannot use an index because of a function" and "SQL with no index". This time both the SQL and the index are fine, but the optimizer\'s judgment is wrong.' },
+      changes: ['+ 3.2 million rows migrated', '× index exists, yet TABLE ACCESS FULL'],
+      metrics: { stat: '?', real: '3,200,000', card: '4', path: 'FULL', time: '3.8 s' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['plan', 'tab'],
+      dim: ['tr', 'est', 'gen', 'stats'],
+      cells: {
+        plan: { 0: 'signal' },
+        tab: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { plan: [{ text: 'TABLE ACCESS FULL', tone: 'signal' }], idx: [{ text: 'Unused', tone: 'signal' }] },
+      flows: [{ link: 'full', kind: 'signal', n: 4, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select * from table(dbms_xplan.display_cursor(\'5k2v9d7r1wqfm\'));',
+          'SQL_ID  5k2v9d7r1wqfm, child number 0',
+          'select dlv_id, status, upd_time from delivery_log where cust_id = :b1',
+          '',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |     4 (100)|',
+          '|* 1 |  TABLE ACCESS FULL                  | DELIVERY_LOG |    4 |     4   (0)||warn',
+        ],
+      },
+    },
+    {
+      short: 'Three parts',
+      chapter: 'technique',
+      title: 'The optimizer: transformer, estimator, plan generator',
+      body: [
+        'As seen in "Parsing and the shared pool", the optimizer builds the execution plan during a hard parse. The SQL Tuning Guide describes the optimizer in three parts. The <b>transformer</b> tries rewriting the SQL into equivalent forms that might allow a better plan, the <b>estimator</b> estimates the cost of each step, and the <b>plan generator</b> builds several plans and compares them.',
+        'The result is one execution plan. The plan is stored in the shared pool and reused by soft parses when the same SQL comes again. So a plan chosen badly once keeps being used until the next hard parse.',
+      ],
+      callout: { kind: 'tip', text: 'The optimizer does not change the result. Every plan returns the same result; what differs is the amount of work needed to get it.' },
+      changes: ['~ transformer → estimator → plan generator', '+ execution plan → shared pool'],
+      metrics: { stat: '-', real: '-', card: '-', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['sql', 'tr', 'est', 'gen', 'plan'],
+      dim: ['stats', 'tab', 'idx'],
+      cells: { plan: { 0: 'redo', 1: 'redo' } },
+      tags: { tr: [{ text: 'Same meaning, other form', tone: 'sql' }], gen: [{ text: 'Compare plans', tone: 'sql' }] },
+      flows: [{ link: 'in', kind: 'sql', n: 1 }, { link: 'te', kind: 'sql', n: 1 }, { link: 'eg', kind: 'sql', n: 1 }, { link: 'gp', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter optimizer_mode',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'optimizer_mode                       string      ALL_ROWS',
+        ],
+      },
+    },
+    {
+      short: 'Estimates',
+      chapter: 'technique',
+      title: 'What the estimator estimates: selectivity, cardinality, cost',
+      body: [
+        '<span class="term">Selectivity</span> is the fraction (0 to 1) of all rows a condition picks. <span class="term">Cardinality</span> is the number of rows each step is expected to return, and the <b>Rows</b> column of an execution plan is exactly this estimate. <span class="term">Cost</span> is an internal unit for the amount of work, combining disk I/O, CPU and memory.',
+        'For example, if the statistics say 800 rows with 200 distinct cust_id values, <code>cust_id = :b1</code> is estimated at 800 × 1/200 = 4 rows. The documentation explains that cost is an internal optimizer unit, not something you tune directly.',
+      ],
+      callout: { kind: 'warn', text: 'The estimates are calculations from statistics. If the 800 in the statistics is wrong, so is the 4, and then so are the cost and the plan chosen by that cost.' },
+      changes: ['~ selectivity = 1/200', '~ cardinality = 800 × 1/200 = 4'],
+      metrics: { stat: '800', real: '-', card: '4', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['est', 'stats'],
+      dim: ['tr', 'gen', 'tab', 'idx', 'plan'],
+      tags: { est: [{ text: '800 × 1/200 = 4', tone: 'sql' }], stats: [{ text: 'NUM_ROWS 800 · NDV 200', tone: 'undo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select column_name, num_distinct from user_tab_col_statistics',
+          '  2  where table_name = \'DELIVERY_LOG\' and column_name = \'CUST_ID\';',
+          'COLUMN_NAME     NUM_DISTINCT',
+          '--------------- ------------',
+          'CUST_ID                  200',
+        ],
+      },
+    },
+    {
+      short: 'Statistics',
+      chapter: 'technique',
+      title: 'Optimizer statistics: tables, columns and indexes as described in the data dictionary',
+      body: [
+        'According to the SQL Tuning Guide, optimizer statistics are gathered for tables (row count, block count), columns (number of distinct values and more) and indexes (height, leaf block count and more) and stored in the data dictionary. The optimizer looks at these statistics instead of counting the actual data.',
+        'If there are no statistics at all, dynamic statistics read a sample at parse time. And the database automatically runs <code>DBMS_STATS</code> for objects with missing or stale statistics. This automatic job runs in the maintenance window, so the 3.2 million rows loaded this morning are not yet reflected in the statistics.',
+      ],
+      callout: { kind: 'tip', text: '<code>LAST_ANALYZED</code> is when statistics were gathered, and <code>STALE_STATS</code> says whether a lot has changed since. In DBA lab 73 you found 41-day-old statistics with these columns.' },
+      changes: ['~ statistics: last night 22:00, 800 rows', '× actual: 3,200,800 rows'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'tab'],
+      dim: ['tr', 'gen', 'plan', 'idx'],
+      cells: {
+        tab: {
+          0: 'data',
+          1: 'data',
+          2: 'data',
+          3: 'data',
+          4: 'data',
+          5: 'data',
+          6: 'data',
+          7: 'data',
+          8: 'data',
+          9: 'data',
+          10: 'data',
+          11: 'data',
+          12: 'data',
+          13: 'data',
+          14: 'data',
+          15: 'data',
+          16: 'data',
+          17: 'data',
+          18: 'data',
+          19: 'data',
+          20: 'data',
+          21: 'data',
+          22: 'data',
+          23: 'data',
+        },
+      },
+      tags: { stats: [{ text: 'Last night 22:00 · 800 rows', tone: 'signal' }], tab: [{ text: 'Actually 3,200,800 rows', tone: 'data' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select num_rows, blocks, last_analyzed, stale_stats from user_tab_statistics',
+          '  2  where table_name = \'DELIVERY_LOG\';',
+          '  NUM_ROWS     BLOCKS LAST_ANALYZED       STALE_STATS',
+          '---------- ---------- ------------------- -----------',
+          '       800         10 2026-11-26 22:00:14 YES|warn',
+          'SQL> select count(*) from delivery_log;',
+          '  COUNT(*)',
+          '----------',
+          '   3200800',
+        ],
+      },
+    },
+    {
+      short: 'Access paths',
+      chapter: 'technique',
+      title: 'Access paths: read it all, or go through the index?',
+      body: [
+        'The method for retrieving rows is called an <span class="term">access path</span>. According to the documentation, full scans are efficient when reading a large portion of a table, and index access is efficient when selecting a small subset. With an index, the rowid comes from the index and only that block is read (TABLE ACCESS BY INDEX ROWID).',
+        'The SQL Tuning Guide lists in a table the reasons the optimizer chooses a full scan: no usable index, most blocks must be read, a function is applied to the column (unless there is a function-based index), and <b>the table is small</b> (fewer blocks below the high water mark than <code>DB_FILE_MULTIBLOCK_READ_COUNT</code>).',
+      ],
+      callout: { kind: 'tip', text: 'DBA lab 72 fixed the "function applied to the column" entry in this table. This case is the "small table" entry of the same table.' },
+      changes: ['~ reading a lot → FULL', '~ picking a few → INDEX → ROWID'],
+      metrics: { stat: '-', real: '-', card: '-', path: 'FULL or INDEX', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['tab', 'idx', 'plan'],
+      dim: ['tr', 'est', 'gen', 'stats', 'sql'],
+      cells: { idx: { 1: 'data' }, tab: { 9: 'data' } },
+      tags: { idx: [{ text: 'rowid', tone: 'data' }], tab: [{ text: 'Only that block', tone: 'data' }] },
+      flows: [{ link: 'ix', kind: 'redo', n: 1 }, { link: 'rid', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter db_file_multiblock_read_count',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'db_file_multiblock_read_count        integer     128',
+        ],
+      },
+    },
+    {
+      short: 'Choosing',
+      chapter: 'technique',
+      title: 'The plan generator picks the lowest-cost plan',
+      body: [
+        'The plan generator builds candidate plans by varying access paths, join methods and join orders, compares the costs the estimator assigned, and picks <b>the lowest-cost plan</b>. In the documentation\'s words, the optimizer compares the possible plans and chooses the one with the lowest cost.',
+        'In 19c, adaptive plans are enabled by default, so some join methods can be switched during execution based on actual row counts. But the overall shape, such as which path reads a table, still depends on costs computed from statistics.',
+      ],
+      callout: { kind: 'insight', text: 'According to the statistics, DELIVERY_LOG is a small table of 10 blocks. Ten blocks can be read in one multiblock read, so to the optimizer a full scan looks cheaper than going through the index.' },
+      changes: ['~ FULL cost 4 vs INDEX cost 5 (by statistics)', '→ FULL chosen'],
+      metrics: { stat: '800', real: '-', card: '4', path: 'FULL', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['gen', 'plan', 'est'],
+      dim: ['tab', 'idx', 'tr', 'sql'],
+      cells: { plan: { 0: 'redo' } },
+      tags: { gen: [{ text: 'FULL 4 < INDEX 5', tone: 'sql' }], plan: [{ text: 'TABLE ACCESS FULL', tone: 'redo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 1 }, { link: 'eg', kind: 'sql', n: 2 }, { link: 'gp', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select index_name, blevel, leaf_blocks, num_rows, last_analyzed from user_ind_statistics',
+          '  2  where index_name = \'IX_DLOG_CUST\';',
+          'INDEX_NAME       BLEVEL LEAF_BLOCKS   NUM_ROWS LAST_ANALYZED',
+          '------------ ---------- ----------- ---------- -------------------',
+          'IX_DLOG_CUST          0           1        800 2026-11-26 22:00:14',
+        ],
+      },
+    },
+    {
+      short: 'Reading plans',
+      chapter: 'technique',
+      title: 'Reading a plan: Operation, Rows, Cost, and the *',
+      body: [
+        '<code>DBMS_XPLAN.DISPLAY_CURSOR</code> shows the actual plan of a cursor in the cursor cache (the shared pool). The documentation warns that a plan seen with <code>EXPLAIN PLAN</code> can differ from the actual execution plan, and with bind variables may not represent it.',
+        'Read the table from the innermost indented line. <b>Operation</b> is what is done, <b>Name</b> the object, <b>Rows</b> the estimated row count (cardinality), and <b>Cost</b> the estimated cost. A <code>*</code> before the Id means the condition for that line is in the Predicate Information below.',
+      ],
+      callout: { kind: 'tip', text: 'A large gap between the Rows estimate (4) and the rows actually returned (about 40) is a signal to suspect the statistics. Here the gap looks small because few rows come back, but for the whole table it is 800 against 3.2 million, a factor of 4,000.' },
+      changes: ['~ Operation · Name · Rows · Cost', '~ * = has a predicate'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: 'FULL', time: '3.8 s' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['plan'],
+      dim: ['tr', 'est', 'gen', 'stats', 'idx', 'sql'],
+      cells: { plan: { 0: 'redo' } },
+      tags: { plan: [{ text: 'Rows 4', tone: 'signal' }] },
+      flows: [{ link: 'full', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |     4 (100)|',
+          '|* 1 |  TABLE ACCESS FULL                  | DELIVERY_LOG |    4 |     4   (0)|',
+          '',
+          'Predicate Information (identified by operation id):',
+          '   1 - filter("CUST_ID"=:B1)',
+        ],
+      },
+    },
+    {
+      short: 'Stale stats',
+      chapter: 'case',
+      title: 'Diagnosis: 800 rows in the statistics, 3.2 million in reality',
+      body: [
+        'Putting the cause from scene 1 together: the statistics were gathered last night at 22:00, before the migration, when the table had 800 rows and 10 blocks. From these the optimizer judged it a "small table" and chose a full scan; in reality every execution reads tens of thousands of blocks holding 3.2 million rows.',
+        'Neither the SQL nor the index is at fault; the picture the optimizer saw (the statistics) simply differed from reality. Right after a bulk load or migration, gather statistics for that table immediately instead of waiting for automatic collection.',
+      ],
+      callout: { kind: 'warn', text: 'Put one line, "gather statistics after loading", in the migration runbook. Leaving it out is a common reason screens are slow the next morning.' },
+      changes: ['× statistics 800 rows · 10 blocks (pre-migration)', '× actually 3.2 million rows'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: 'FULL', time: '3.8 s' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'tab', 'plan'],
+      dim: ['tr', 'gen', 'sql'],
+      cells: {
+        plan: { 0: 'signal' },
+        tab: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { stats: [{ text: '800 rows (pre-migration)', tone: 'signal' }], tab: [{ text: 'Reads all 3.2M rows', tone: 'signal' }] },
+      flows: [{ link: 'st', kind: 'signal', n: 1 }, { link: 'full', kind: 'signal', n: 4, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select executions, round(elapsed_time/executions/1000) ms_per_exec, round(buffer_gets/executions) gets_per_exec',
+          '  2  from v$sql where sql_id = \'5k2v9d7r1wqfm\';',
+          'EXECUTIONS MS_PER_EXEC GETS_PER_EXEC',
+          '---------- ----------- -------------',
+          '      1844        3812         41203|warn',
+        ],
+      },
+    },
+    {
+      short: 'Regather',
+      chapter: 'case',
+      title: 'Fix: with fresh statistics, the next hard parse picks the index',
+      body: [
+        'Gather statistics for DELIVERY_LOG with <code>DBMS_STATS.GATHER_TABLE_STATS</code>. Now the statistics say 3.2 million rows and tens of thousands of blocks, and the estimate for the cust_id condition is about 40 rows. To the optimizer, too, the condition now "selects a small subset".',
+        'The new statistics take effect at the next hard parse. The new plan finds rowids with <code>INDEX RANGE SCAN IX_DLOG_CUST</code> and reads only those blocks with <code>TABLE ACCESS BY INDEX ROWID BATCHED</code>. The condition is now <code>access("CUST_ID"=:B1)</code>, used to navigate the index.',
+      ],
+      callout: { kind: 'tip', text: 'After the fix, always recheck the actual cursor\'s plan and reads per execution (buffer gets) with DISPLAY_CURSOR, and ask for a recheck on the app screen too.' },
+      changes: ['~ statistics 800 → 3,200,800 rows', '~ FULL → INDEX RANGE SCAN', '~ 3.8 s → 0.01 s'],
+      metrics: { stat: '3,200,800', real: '3,200,800', card: '40', path: 'INDEX RANGE', time: '0.01 s' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'idx', 'plan', 'tab'],
+      dim: ['tr', 'sql'],
+      cells: { plan: { 0: 'redo', 1: 'redo', 2: 'redo' }, idx: { 2: 'data' }, tab: { 4: 'data', 15: 'data' } },
+      tags: { stats: [{ text: 'Just gathered · 3.2M rows', tone: 'undo' }], plan: [{ text: 'INDEX RANGE SCAN', tone: 'redo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 2 }, { link: 'gp', kind: 'redo', n: 1 }, { link: 'ix', kind: 'data', n: 1 }, { link: 'rid', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> exec dbms_stats.gather_table_stats(\'APP\', \'DELIVERY_LOG\')',
+          'PL/SQL procedure successfully completed.|ok',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |    43 (100)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG |   40 |    43   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_CUST |   40 |     3   (0)||ok',
+          '',
+          '   2 - access("CUST_ID"=:B1)',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: the optimizer picks the cheapest path in the world its statistics describe',
+      body: [
+        'During a hard parse, the optimizer\'s transformer tries other forms of the SQL, the estimator uses statistics to estimate selectivity, cardinality and cost, and the plan generator picks the lowest-cost plan. The plan stays in the shared pool and is used until the next hard parse.',
+        'In an execution plan, first look at the access path (FULL or INDEX), the Rows estimate, and whether conditions are access or filter. If estimates differ greatly from reality, suspect the statistics, and after a bulk load gather statistics first.',
+      ],
+      callout: { kind: 'insight', text: 'How an INDEX RANGE SCAN actually moves inside the index is the subject of the next lesson, "B-tree indexes".' },
+      changes: ['~ statistics → estimates → cost → plan', '+ gather statistics after bulk loads'],
+      metrics: { stat: '3,200,800', real: '3,200,800', card: '40', path: 'INDEX RANGE', time: '0.01 s' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: [],
+      cells: { plan: { 0: 'redo', 1: 'redo', 2: 'redo' }, idx: { 2: 'data' }, tab: { 4: 'data', 15: 'data' } },
+      tags: {
+        stats: [{ text: '① statistics', tone: 'undo' }],
+        est: [{ text: '② estimate', tone: 'sql' }],
+        plan: [{ text: '③ plan', tone: 'redo' }],
+        idx: [{ text: '④ access path', tone: 'data' }],
+      },
+      flows: [
+        { link: 'in', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'st', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'gp', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'ix', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'rid', kind: 'data', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |    43 (100)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG |   40 |    43   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_CUST |   40 |     3   (0)|',
+          '',
+          '   2 - access("CUST_ID"=:B1)',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the shared pool', href: '../parse/', note: 'Ready' }, 'The optimizer and execution plans', { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }], current: 1 },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

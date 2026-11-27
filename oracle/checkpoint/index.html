@@ -496,9 +496,9 @@ const LESSON = {
   ],
   outline: [
     { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
-    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, 'SGA·PGA와 백그라운드 프로세스'] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, { text: 'SGA·PGA와 백그라운드 프로세스', href: '../memory/', note: '완성' }] },
     { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, '체크포인트'], current: 3 },
-    { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
+    { part: '파트 3 · SQL 실행', items: [{ text: '파싱과 Shared Pool', href: '../parse/', note: '완성' }, { text: '옵티마이저와 실행계획', href: '../optimizer/', note: '완성' }, { text: 'B-tree 인덱스', href: '../btree/', note: '완성' }] },
     { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
   ],
 };

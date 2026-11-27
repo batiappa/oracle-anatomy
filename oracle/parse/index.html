@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>파싱과 Shared Pool · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c가 SQL을 받아 실행하기까지의 과정(파싱, 최적화, 로우 소스 생성, 실행)과 공유 풀의 라이브러리 캐시를 10단계 애니메이션으로 해부하는 레슨. 하드 파스와 소프트 파스, 부모·자식 커서, 바인드 변수, 리터럴 SQL 때문에 CPU가 치솟는 사례를 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/parse/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="파싱과 Shared Pool · Oracle 해부도">
+<meta property="og:description" content="새 버전 배포 뒤 DB 서버 CPU가 90%입니다. 공유 풀에는 거의 같은 SQL 수천 개가 쌓여 있습니다. SQL이 파싱되는 과정을 10단계로 해부합니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 3 · SQL 실행</b> / 3개 중 1번째 레슨</div>
+      <div class="head-row">
+        <h1>파싱과 Shared Pool</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13분</span><span class="badge">입문</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">같은 일을 하는 SQL인데 왜 매번 새로 파싱될까요? SQL이 공유 풀에서 재사용되는 조건과, 재사용되지 못할 때 생기는 일을 따라갑니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="앱, 서버 프로세스와 PGA의 개인 SQL 영역, 옵티마이저, 공유 풀의 라이브러리 캐시와 데이터 사전 캐시 사이에서 SQL이 파싱되는 흐름을 보여 주는 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL · 프로세스</li>
+            <li><i style="background:var(--c-data)"></i>공유 SQL 영역 (공유 풀)</li>
+            <li><i style="background:var(--c-undo)"></i>개인 SQL 영역 (PGA)</li>
+            <li><i style="background:var(--c-redo)"></i>최적화 (하드 파스)</li>
+            <li><i style="background:var(--c-signal)"></i>문제</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02)과 ORDER_HIST 테이블은 DBA 실습과 같은 이름이고, 배포 상황, CPU 사용률, SQL_ID, 실행 횟수, 파스 횟수 같은 숫자는 설명을 위한 예시 값입니다. V$SQL·V$SYSSTAT 화면은 문서의 열과 통계 이름을 따랐지만 줄 배치는 실제와 다를 수 있습니다. CURSOR_SHARING=FORCE로 바뀐 SQL의 시스템 바인드 이름(SYS_B_0)은 문서의 예를 따랐고, 이 설정이 파스 횟수를 줄이지 않는다는 설명은 문서 뒷부분을 요약본으로 읽어 확인했습니다. 같은 모양의 SQL을 묶어 세는 FORCE_MATCHING_SIGNATURE 열과 ORA-04031, SESSION_CACHED_CURSORS는 이번에 읽은 문서로 확인하지 못해 다루지 않았습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/sql-processing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · SQL Processing (파싱 단계, 하드·소프트 파스, SQL ID)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/improving-rwp-cursor-sharing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Improving Real-World Performance Through Cursor Sharing (같은 SQL의 조건, 부모·자식 커서, 바인드 변수, CURSOR_SHARING, 바인드 피킹)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/tuning-shared-pool-and-large-pool.html" target="_blank" rel="noopener">Database Performance Tuning Guide 19c · Tuning the Shared Pool and the Large Pool (라이브러리 캐시, 데이터 사전 캐시, 리터럴 SQL)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Concepts 19c · Memory Architecture (개인 SQL 영역, 커서)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (library cache: mutex X)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 3 "파싱과 Shared Pool". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=SQL·프로세스, data=공유 SQL 영역, undo=개인 SQL 영역, redo=최적화(하드 파스), signal=문제
+   ORDER_HIST는 DBA 실습 9단계(레슨 71~73)와 같은 테이블이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'parse',
+  base: '../../',
+  storeKey: 'parse:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'sql', label: '보낸 SQL' },
+    { key: 'parse', label: '파스 종류' },
+    { key: 'cur', label: '공유 풀의 커서' },
+    { key: 'hard', label: '하드 파스/초' },
+    { key: 'cpu', label: 'CPU' },
+  ],
+  goals: [
+    { text: 'SQL 처리의 네 단계', step: 2 },
+    { text: '파싱에서 하는 세 가지 확인', step: 3 },
+    { text: '공유 풀의 라이브러리 캐시와 데이터 사전 캐시', step: 4 },
+    { text: '하드 파스와 소프트 파스', step: 5 },
+    { text: '공유 SQL 영역과 개인 SQL 영역, 부모·자식 커서', step: 6 },
+    { text: '같은 SQL로 인정받는 조건', step: 7 },
+    { text: '바인드 변수', step: 8 },
+  ],
+  zones: [
+    { id: 'srv', from: [0.6, -1.6], to: [4.4, 7.0], label: '서버 프로세스', members: ['proc', 'pga', 'opt'] },
+    { id: 'sp', from: [5.6, -1.6], to: [12.4, 7.0], label: '공유 풀 (SGA)', members: ['lc', 'dc'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-2.8, -0.2], size: [2, 2, 0.5], label: '주문 앱', tone: 'sql' },
+    proc: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: '서버 프로세스', tone: 'sql', led: true },
+    opt:  { type: 'box', at: [1.8, 2.2], size: [1.7, 1.6, 0.8], label: '옵티마이저', tone: 'redo', led: true, labelPos: 'left' },
+    pga:  { type: 'box', at: [1.6, 4.8], size: [2.0, 1.6, 0.4], label: 'PGA · 개인 SQL 영역', tone: 'undo', cells: [2, 1], labelPos: 'left', tagDir: 'down' },
+    lc:   { type: 'box', at: [6.2, -0.8], size: [5.4, 3.6, 0.6], label: '라이브러리 캐시', tone: 'data', cells: [6, 4] },
+    dc:   { type: 'box', at: [6.2, 4.2], size: [3.2, 2.0, 0.5], label: '데이터 사전 캐시', tone: 'data', cells: [3, 2], tagDir: 'down' },
+  },
+  links: {
+    conn:  { from: 'app', to: 'proc' },
+    chk:   { from: 'proc', to: 'lc', onDemand: true },
+    dict:  { from: 'proc', to: 'dc', via: [[5.0, 0.2], [5.0, 5.2]], onDemand: true },
+    opt:   { from: 'proc', to: 'opt', onDemand: true },
+    store: { from: 'opt', to: 'lc', via: [[4.7, 3.0], [4.7, 1.8]], onDemand: true },
+    priv:  { from: 'proc', to: 'pga', via: [[0.9, 0.2], [0.9, 5.6]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: '문제',
+      chapter: 'problem',
+      title: '배포 뒤 CPU 90%, 공유 풀에는 거의 같은 SQL 수천 개',
+      body: [
+        '주문 앱 새 버전이 배포된 오후, dbserver02의 CPU가 90%를 넘었습니다. 처리하는 주문 수는 어제와 비슷합니다. <code>V$SQL</code>을 보니 <code>order_id = 5100231</code>, <code>= 5100232</code>처럼 숫자만 다른 SQL이 수천 개 있고, 하나하나는 한 번씩만 실행되었습니다.',
+        '일의 양은 같은데 CPU만 늘었습니다. SQL을 "실행"하는 데가 아니라 "실행할 준비"를 하는 데 CPU를 쓰고 있다는 뜻일 수 있습니다. 그 준비 과정이 파싱입니다.',
+      ],
+      callout: {
+        kind: 'insight',
+        text: 'Database Performance Tuning Guide는 리터럴 값만 다른 SQL은 같은 공유 SQL 영역을 쓰지 못하고, 하드 파스에는 CPU가 더 든다고 설명합니다. 이 레슨은 그 문장을 그림으로 풀어 봅니다.',
+      },
+      changes: ['+ 리터럴만 다른 SQL 수천 개', '× CPU 90%'],
+      metrics: { sql: '수천 종류', parse: '?', cur: '4,812', hard: '310', cpu: '92%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'app'],
+      dim: ['opt', 'pga', 'dc'],
+      cells: {
+        lc: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { lc: [{ text: '거의 같은 SQL 수천 개', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 4, rate: 1.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sql_id, executions, sql_text from v$sql',
+          '  2  where sql_text like \'select status from order_hist%\' and rownum <= 3;',
+          'SQL_ID        EXECUTIONS SQL_TEXT',
+          '------------- ---------- ------------------------------------------------------',
+          '4h1m8x0c2qz7v          1 select status from order_hist where order_id = 5100231|warn',
+          'bq0t5w9n3k2rd          1 select status from order_hist where order_id = 5100232|warn',
+          '7gq3d1v8m6xya          1 select status from order_hist where order_id = 5100233|warn',
+        ],
+      },
+    },
+    {
+      short: '네 단계',
+      chapter: 'technique',
+      title: 'SQL 하나가 실행되기까지: 파싱, 최적화, 로우 소스 생성, 실행',
+      body: [
+        'SQL Tuning Guide는 SQL 처리를 네 단계로 나눕니다. <b>파싱</b>(문장을 확인하고 공유 풀에서 찾기), <b>최적화</b>(옵티마이저가 실행 계획을 고르기), <b>로우 소스 생성</b>(계획을 실행할 수 있는 형태로 만들기), <b>실행</b>입니다.',
+        '이 일을 하는 것은 앱에 연결된 서버 프로세스입니다. 핵심은 둘째와 셋째 단계가 비싸다는 것, 그리고 이미 한 번 한 결과가 공유 풀에 있으면 건너뛸 수 있다는 것입니다.',
+      ],
+      callout: { kind: 'tip', text: '"SGA·PGA와 백그라운드 프로세스" 5장면에서 본 서버 프로세스가 바로 이 일을 합니다. 파싱도 실행도 앱이 아니라 DB 서버의 CPU를 씁니다.' },
+      changes: ['① 파싱 → ② 최적화 → ③ 로우 소스 생성 → ④ 실행'],
+      metrics: { sql: '1', parse: '-', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['app', 'proc', 'opt', 'lc'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'data' } },
+      tags: { proc: [{ text: '① 파싱', tone: 'sql' }], opt: [{ text: '② 최적화 ③ 생성', tone: 'redo' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 1 }, { link: 'opt', kind: 'redo', n: 1 }, { link: 'store', kind: 'data', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> select status from order_hist where order_id = 5100231;', 'STATUS', '----------', 'SHIPPED|ok'] },
+    },
+    {
+      short: '세 가지 확인',
+      chapter: 'technique',
+      title: '파싱: 문법 확인, 의미 확인, 공유 풀 확인',
+      body: [
+        '문서가 말하는 파싱은 세 가지 확인입니다. <b>문법 확인</b>은 SQL이 문법에 맞는지(예: FROM 철자), <b>의미 확인</b>은 테이블과 열이 있고 권한이 있는지 봅니다. 의미 확인에 필요한 테이블·열 정보는 공유 풀의 <span class="term">데이터 사전 캐시</span>에서 가져옵니다.',
+        '마지막은 <b>공유 풀 확인</b>입니다. 문장 텍스트로 해시 값을 계산해 라이브러리 캐시에 같은 SQL이 이미 있는지 찾습니다. 문서에 따르면 이 해시 값이 <code>V$SQL.SQL_ID</code>에 보이는 SQL ID입니다.',
+      ],
+      callout: { kind: 'tip', text: '문법이 틀리면 첫 확인에서, 없는 테이블이면 둘째 확인에서 오류가 납니다. 오류 난 SQL은 실행 단계까지 가지 않습니다.' },
+      changes: ['~ 문법 → 의미 → 공유 풀 확인', '~ 텍스트 해시 = SQL_ID'],
+      metrics: { sql: '1', parse: '확인 중', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['proc', 'dc', 'lc'],
+      dim: ['opt', 'pga', 'app'],
+      cells: { dc: { 0: 'data', 1: 'data' } },
+      tags: { dc: [{ text: 'ORDER_HIST 열·권한', tone: 'data' }], lc: [{ text: '해시로 찾기', tone: 'sql' }] },
+      flows: [{ link: 'dict', kind: 'data', n: 2, bounce: true }, { link: 'chk', kind: 'sql', n: 1, bounce: true }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> selct status from order_hist where order_id = 5100231;',
+          'ORA-00900: invalid SQL statement|warn',
+          'SQL> select stat from order_hist where order_id = 5100231;',
+          'ORA-00904: "STAT": invalid identifier|warn',
+        ],
+      },
+    },
+    {
+      short: '공유 풀',
+      chapter: 'technique',
+      title: '공유 풀: 라이브러리 캐시와 데이터 사전 캐시',
+      body: [
+        'Database Performance Tuning Guide에 따르면 <span class="term">라이브러리 캐시</span>는 최근에 쓰인 SQL과 PL/SQL의 실행 가능한 형태를 담고, <span class="term">데이터 사전 캐시</span>는 데이터 사전(테이블·열·사용자 정보)을 담습니다. 둘 다 SGA의 공유 풀 안에 있습니다.',
+        '공간은 한정되어 있어서, 오래 안 쓰인 항목은 밀려납니다(aged out). 한 번만 쓰고 말 SQL이 수천 개 들어오면, 자주 쓰는 SQL까지 밀려나 다시 파싱해야 할 수 있습니다.',
+      ],
+      callout: { kind: 'insight', text: '버퍼 캐시가 데이터 블록을 다시 읽지 않으려는 캐시라면, 라이브러리 캐시는 SQL을 다시 파싱하지 않으려는 캐시입니다.' },
+      changes: ['+ 라이브러리 캐시: 실행 가능한 SQL·PL/SQL', '+ 데이터 사전 캐시: 사전 정보'],
+      metrics: { sql: '-', parse: '-', cur: '자주 쓰는 SQL', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'dc'],
+      dim: ['app', 'proc', 'opt', 'pga'],
+      cells: {
+        lc: { 0: 'data', 1: 'data', 2: 'data', 6: 'data', 7: 'data', 12: 'data', 13: 'data', 18: 'data' },
+        dc: { 0: 'data', 1: 'data', 3: 'data', 4: 'data' },
+      },
+      tags: { lc: [{ text: 'SQL · PL/SQL 실행 형태', tone: 'data' }], dc: [{ text: '테이블 · 열 · 사용자', tone: 'data' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, round(bytes/1024/1024) mb from v$sgainfo where name = \'Shared Pool Size\';',
+          'NAME                                     MB',
+          '-------------------------------- ----------',
+          'Shared Pool Size                       1024',
+        ],
+      },
+    },
+    {
+      short: '하드 · 소프트',
+      chapter: 'technique',
+      title: '찾으면 소프트 파스, 못 찾으면 하드 파스',
+      body: [
+        '공유 풀 확인에서 같은 SQL을 찾으면 <span class="term">소프트 파스</span>(라이브러리 캐시 적중)입니다. 문서대로 소프트 파스는 최적화와 로우 소스 생성을 건너뛰고 바로 실행합니다. 못 찾으면 <span class="term">하드 파스</span>(캐시 미스)이고, 옵티마이저가 계획을 새로 만들어 라이브러리 캐시에 넣습니다.',
+        '하드 파스는 CPU를 더 쓸 뿐 아니라, 공유 풀의 구조를 고치는 동안 다른 세션과 겹치지 않게 직렬화 장치(래치·뮤텍스)를 잡아야 합니다. 하드 파스가 몰리면 이 장치를 기다리는 시간도 늘어납니다. Database Reference의 대기 이벤트 목록에 있는 <code>library cache: mutex X</code>가 이런 뮤텍스를 기다리는 대기입니다.',
+      ],
+      callout: { kind: 'warn', text: '소프트 파스도 공짜는 아닙니다. 그래도 최적화를 건너뛰므로 하드 파스보다 훨씬 쌉니다. 목표는 "같은 일을 하는 SQL은 한 번만 하드 파스"입니다.' },
+      changes: ['~ 적중 → 소프트 파스 (최적화 생략)', '~ 미스 → 하드 파스 (옵티마이저)'],
+      metrics: { sql: '2', parse: '소프트 · 하드', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['proc', 'opt', 'lc'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'data', 1: 'redo' } },
+      tags: { lc: [{ text: '적중: 바로 실행', tone: 'data' }], opt: [{ text: '미스: 새 계획', tone: 'redo' }] },
+      flows: [{ link: 'chk', kind: 'data', n: 1, bounce: true }, { link: 'opt', kind: 'redo', n: 2 }, { link: 'store', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, value from v$sysstat where name like \'parse count%\';',
+          'NAME                               VALUE',
+          '------------------------------ ----------',
+          'parse count (total)              8417220',
+          'parse count (hard)               1203381|warn',
+        ],
+      },
+    },
+    {
+      short: '커서',
+      chapter: 'technique',
+      title: '공유 SQL 영역은 함께, 개인 SQL 영역은 세션마다',
+      body: [
+        '하드 파스의 결과(파스 트리와 실행 계획)는 라이브러리 캐시의 <span class="term">공유 SQL 영역</span>에 들어가 여러 세션이 함께 씁니다. 반면 바인드 값과 실행 상태는 세션마다 다르므로 각 서버 프로세스 PGA의 <span class="term">개인 SQL 영역</span>에 둡니다. Concepts는 <span class="term">커서</span>를 이 개인 SQL 영역을 가리키는 핸들이라고 설명합니다.',
+        '같은 SQL 텍스트 하나(부모 커서) 아래에 계획이 여러 개(자식 커서) 생길 수도 있습니다. 예를 들어 같은 텍스트라도 다른 사용자의 같은 이름 테이블을 가리키면 자식 커서가 따로 생깁니다. <code>V$SQL</code>의 <code>CHILD_NUMBER</code>가 그 번호입니다.',
+      ],
+      callout: { kind: 'tip', text: 'DBA 실습 9단계 레슨 71의 <code>dbms_xplan.display_cursor(\'8wzq2k1ptm6c4\')</code>가 바로 라이브러리 캐시에 있는 이 공유 SQL 영역의 계획을 읽는 명령입니다.' },
+      changes: ['+ 공유 SQL 영역 (계획) → 라이브러리 캐시', '+ 개인 SQL 영역 (바인드 값, 상태) → PGA'],
+      metrics: { sql: '1', parse: '소프트', cur: '부모 1 · 자식 1', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'pga', 'proc'],
+      dim: ['opt', 'dc', 'app'],
+      cells: { lc: { 0: 'data' }, pga: { 0: 'undoDirty', 1: 'undo' } },
+      tags: { lc: [{ text: '공유 SQL 영역', tone: 'data' }], pga: [{ text: '바인드 값 · 실행 상태', tone: 'undo' }] },
+      flows: [{ link: 'chk', kind: 'data', n: 1, bounce: true }, { link: 'priv', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sql_id, child_number, executions, parse_calls from v$sql',
+          '  2  where sql_id = \'8wzq2k1ptm6c4\';',
+          'SQL_ID        CHILD_NUMBER EXECUTIONS PARSE_CALLS',
+          '------------- ------------ ---------- -----------',
+          '8wzq2k1ptm6c4            0      12408       12408',
+        ],
+      },
+    },
+    {
+      short: '같은 SQL',
+      chapter: 'technique',
+      title: '"같은 SQL"은 글자 하나까지 같아야 한다',
+      body: [
+        'SQL Tuning Guide에 따르면 공유되려면 SQL 텍스트가 공백, 대소문자, 주석까지 <b>글자 하나하나 같아야</b> 합니다. <code>SELECT</code>와 <code>select</code>, 공백 한 칸 차이도 다른 SQL입니다. 문서는 하드 파스가 사실상 문장을 다시 컴파일하는 것이라고 설명합니다.',
+        '그래서 <code>order_id = 5100231</code>과 <code>order_id = 5100232</code>는 다른 SQL입니다. 문서의 예처럼 리터럴만 다른 세 문장은 서로 다른 부모 커서 세 개가 됩니다. 1장면의 수천 개 SQL은 각자 하드 파스를 거쳐 각자 커서를 만든 것입니다.',
+      ],
+      callout: { kind: 'warn', text: '문서는 "문법이 같다는 것만으로는 충분하지 않다"고도 적습니다. 텍스트가 같아도 가리키는 객체나 환경이 다르면 같은 계획을 쓸 수 없습니다(앞 장면의 자식 커서).' },
+      changes: ['× 5100231 ≠ 5100232 → 다른 부모 커서', '× SELECT ≠ select'],
+      metrics: { sql: '3', parse: '하드 × 3', cur: '부모 3', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'opt'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'redo', 1: 'redo', 2: 'redo' } },
+      tags: { lc: [{ text: '부모 커서 3개', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 3 }, { link: 'opt', kind: 'redo', n: 3 }, { link: 'store', kind: 'redo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select status from order_hist where order_id = 5100231;',
+          'SQL> select status from order_hist where order_id = 5100232;',
+          'SQL> SELECT status FROM order_hist WHERE order_id = 5100231;',
+          'SQL> select count(*) from v$sql where lower(sql_text) like \'select status from order_hist%\';',
+          '  COUNT(*)',
+          '----------',
+          '         3|warn',
+        ],
+      },
+    },
+    {
+      short: '바인드 변수',
+      chapter: 'technique',
+      title: '바인드 변수: 값은 바꾸고 텍스트는 그대로',
+      body: [
+        '값 자리를 <code>:b1</code> 같은 <span class="term">바인드 변수</span>로 두면 SQL 텍스트는 늘 같고 값만 바뀝니다. 첫 실행 때 한 번 하드 파스하고, 그 뒤로는 소프트 파스로 같은 공유 SQL 영역을 씁니다. 문서의 예에서 바인드를 쓴 SQL은 <code>VERSION_COUNT</code>가 1입니다. 값은 각 세션의 개인 SQL 영역에 있습니다.',
+        '하드 파스할 때 옵티마이저는 바인드에 처음 들어온 값을 들여다보고(바인드 피킹) 계획을 고릅니다. 값에 따라 좋은 계획이 다를 때를 위해 적응형 커서 공유(adaptive cursor sharing)가 있다는 것도 문서에 나옵니다.',
+      ],
+      callout: { kind: 'tip', text: 'DBA 실습 레슨 71에서 앱이 보낸 SQL이 <code>TO_CHAR(O.ORDER_DATE,\'YYYYMM\')=:B1</code>이었던 것을 떠올려 보세요. 앱이 바인드 변수를 제대로 쓰고 있었다는 뜻입니다.' },
+      changes: ['~ order_id = :b1', '+ 하드 파스 1번, 그 뒤 소프트 파스'],
+      metrics: { sql: '1 종류', parse: '소프트', cur: '부모 1', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'pga', 'proc'],
+      dim: ['opt', 'dc'],
+      cells: { lc: { 0: 'data' }, pga: { 0: 'undoDirty', 1: 'undoDirty' } },
+      tags: { lc: [{ text: 'VERSION_COUNT 1', tone: 'data' }], pga: [{ text: ':b1 = 5100231, 5100232 …', tone: 'undo' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 3 }, { link: 'chk', kind: 'data', n: 3, bounce: true }, { link: 'priv', kind: 'undo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> variable b1 number',
+          'SQL> exec :b1 := 5100231',
+          'SQL> select status from order_hist where order_id = :b1;',
+          'SQL> exec :b1 := 5100232',
+          'SQL> select status from order_hist where order_id = :b1;',
+          'SQL> select executions, version_count from v$sqlarea where sql_text like \'%order_id = :b1\';',
+          'EXECUTIONS VERSION_COUNT',
+          '---------- -------------',
+          '         2             1|ok',
+        ],
+      },
+    },
+    {
+      short: '리터럴 SQL',
+      chapter: 'case',
+      title: '사례: 새 버전이 값을 SQL 텍스트에 붙여 보냈다',
+      body: [
+        '1장면의 원인입니다. 새 버전 앱이 주문 번호를 바인드 변수로 넘기지 않고 SQL 문자열에 이어 붙여 보냈습니다. 주문마다 SQL 텍스트가 달라져 매번 하드 파스가 일어났고, 그 CPU와 공유 풀 경합이 CPU 90%가 되었습니다. <code>parse count (hard)</code>가 크게 늘고, 같은 앞부분을 가진 SQL이 수천 개인 것으로 확인합니다.',
+        '근본 해결은 개발팀이 바인드 변수로 고치는 것입니다. 그 전까지 문서에 나오는 임시 방법이 <code>CURSOR_SHARING=FORCE</code>입니다. 리터럴을 시스템 바인드(<code>:"SYS_B_0"</code>)로 바꿔 비슷한 SQL이 커서를 함께 쓰게 합니다. 다만 문서는 이 설정이 파스 횟수 자체를 줄이지는 않는다고 적고 있어, 앱 수정을 대신하지는 못합니다.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'CURSOR_SHARING은 인스턴스 전체 SQL에 영향을 줍니다. 운영에서 바꿀 때는 변경 승인을 받고, 앱이 고쳐지면 원래 값(EXACT)으로 되돌리는 계획을 함께 세웁니다. AWR 보고서의 파스 통계로 배포 전후를 비교해 두면 개발팀에 설명하기 좋습니다.',
+      },
+      changes: ['× 주문마다 다른 SQL 텍스트', '~ cursor_sharing = FORCE (임시)', '~ 앱: 바인드 변수로 수정'],
+      metrics: { sql: '수천 → 1 종류', parse: '하드 → 소프트', cur: '4,812 → 1', hard: '310 → 2', cpu: '92% → 35%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'opt', 'app'],
+      dim: ['dc'],
+      cells: { lc: { 0: 'data', 1: 'signal', 2: 'signal', 3: 'signal', 4: 'signal', 5: 'signal', 6: 'signal', 7: 'signal', 8: 'signal' } },
+      tags: { app: [{ text: '값을 문자열에 이어 붙임', tone: 'signal' }], lc: [{ text: ':"SYS_B_0"', tone: 'data' }] },
+      flows: [{ link: 'conn', kind: 'signal', n: 4, rate: 1.6 }, { link: 'opt', kind: 'redo', n: 3, rate: 1.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select substr(sql_text, 1, 46) head, count(*) cnt from v$sql',
+          '  2  group by substr(sql_text, 1, 46) having count(*) > 100;',
+          'HEAD                                                  CNT',
+          '---------------------------------------------- ----------',
+          'select status from order_hist where order_id =       4796|warn',
+          'SQL> alter system set cursor_sharing = force;',
+          'System altered.|ok',
+          'SQL> select sql_text from v$sql where sql_text like \'select status from order_hist%SYS_B%\';',
+          'select status from order_hist where order_id = :"SYS_B_0"|ok',
+        ],
+      },
+    },
+    {
+      short: '정리',
+      chapter: 'recap',
+      title: '정리: 한 번 파싱하고 여러 번 실행한다',
+      body: [
+        'SQL은 파싱(문법·의미·공유 풀 확인), 최적화, 로우 소스 생성, 실행을 거칩니다. 공유 풀의 라이브러리 캐시에 같은 SQL이 있으면 소프트 파스로 최적화를 건너뛰고, 없으면 하드 파스로 옵티마이저가 계획을 새로 만듭니다.',
+        '"같은 SQL"은 글자 하나까지 같아야 하므로, 값은 바인드 변수로 넘겨 텍스트를 고정합니다. 계획은 공유 SQL 영역에서 함께 쓰고, 바인드 값과 실행 상태는 각자의 PGA에 둡니다.',
+      ],
+      callout: { kind: 'insight', text: '하드 파스 때 옵티마이저가 계획을 고르는 방법은 다음 레슨 "옵티마이저와 실행계획"에서 봅니다.' },
+      changes: ['~ 파싱 → 최적화 → 생성 → 실행', '+ 바인드 변수로 커서 공유'],
+      metrics: { sql: '1 종류', parse: '소프트', cur: '부모 1', hard: '2', cpu: '35%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: [],
+      cells: { lc: { 0: 'data', 6: 'data', 12: 'data' }, dc: { 0: 'data', 1: 'data' }, pga: { 0: 'undoDirty' } },
+      tags: {
+        proc: [{ text: '① 파싱', tone: 'sql' }],
+        opt: [{ text: '② 하드 파스 때만', tone: 'redo' }],
+        lc: [{ text: '③ 공유 SQL 영역', tone: 'data' }],
+        pga: [{ text: '④ 개인 SQL 영역', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'conn', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'chk', kind: 'data', n: 1, rate: 0.6, bounce: true },
+        { link: 'priv', kind: 'undo', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, value from v$sysstat where name = \'parse count (hard)\';',
+          'NAME                               VALUE',
+          '------------------------------ ----------',
+          'parse count (hard)               1205710|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, { text: 'SGA·PGA와 백그라운드 프로세스', href: '../memory/', note: '완성' }] },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, { text: '체크포인트', href: '../checkpoint/', note: '완성' }] },
+    { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', { text: '옵티마이저와 실행계획', href: '../optimizer/', note: '완성' }, { text: 'B-tree 인덱스', href: '../btree/', note: '완성' }], current: 0 },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

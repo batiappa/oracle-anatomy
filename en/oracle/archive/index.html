@@ -158,9 +158,9 @@ const LESSON = {
   ],
   outline: [
     { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
-    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA, PGA and background processes'] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
     { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
-    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the Shared Pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }] },
     { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'], current: 0 },
   ],
   zones: [

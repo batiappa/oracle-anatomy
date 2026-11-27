@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>옵티마이저와 실행계획 · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c의 옵티마이저가 실행 계획을 고르는 과정(변환기, 추정기, 계획 생성기)과 선택도·카디널리티·비용, 옵티마이저 통계, 접근 경로, 실행 계획 읽는 법을 10단계 애니메이션으로 해부하는 레슨. 대량 이관 뒤 낡은 통계 때문에 인덱스를 두고 전체 스캔을 고른 사례를 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="옵티마이저와 실행계획 · Oracle 해부도">
+<meta property="og:description" content="아침 이관 뒤 배송 조회 화면이 느려졌습니다. 인덱스가 있는데 실행 계획은 TABLE ACCESS FULL입니다. 옵티마이저가 계획을 고르는 과정을 10단계로 해부합니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 3 · SQL 실행</b> / 3개 중 2번째 레슨</div>
+      <div class="head-row">
+        <h1>옵티마이저와 실행계획</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14분</span><span class="badge">입문</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">옵티마이저는 통계를 보고 비용이 가장 낮은 계획을 고릅니다. 통계가 실제와 다르면 계획도 틀립니다. 그 과정을 실행 계획 화면과 함께 따라갑니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="SQL이 옵티마이저의 변환기, 추정기, 계획 생성기를 거치며 데이터 사전의 통계를 참고해 실행 계획을 만들고, 그 계획대로 테이블이나 인덱스를 읽는 흐름을 보여 주는 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL · 계획 단계</li>
+            <li><i style="background:var(--c-data)"></i>테이블 · 인덱스 읽기</li>
+            <li><i style="background:var(--c-undo)"></i>통계</li>
+            <li><i style="background:var(--c-redo)"></i>실행 계획</li>
+            <li><i style="background:var(--c-signal)"></i>문제</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02)과 앱 계정(APP)은 DBA 실습과 같은 이름이고, DELIVERY_LOG 테이블과 IX_DLOG_CUST 인덱스, 이관 상황, 행 수·블록 수·비용·시간 같은 숫자는 설명을 위한 예시 값입니다. 실행 계획 화면은 문서의 열 머리글(Id, Operation, Name, Rows, Bytes, Cost (%CPU), Time)을 따랐지만 화면 폭 때문에 Bytes와 Time 열을 뺐습니다. 이 예에서 옵티마이저가 전체 스캔을 고른 이유는 SQL Tuning Guide의 "전체 스캔을 고르는 이유" 표 가운데 "작은 테이블" 항목으로 설명했고, 실제 비용 계산식은 문서에 공개되어 있지 않습니다. 통계를 새로 모은 뒤 이미 공유 풀에 있는 커서가 언제 다시 하드 파스되는지(무효화 시점)는 이번에 확인하지 못해 "다음 하드 파스 때"로만 적었습니다. 동적 통계의 기본 수준과 자동 통계 수집에 관한 설명 일부는 문서를 요약본으로 읽었습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/query-optimizer-concepts.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Query Optimizer Concepts (변환기·추정기·계획 생성기, 선택도·카디널리티·비용, 적응형 계획)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-statistics-concepts.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Statistics Concepts (통계 종류, 동적 통계, 자동 통계 수집)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Access Paths (전체 스캔을 고르는 이유, 인덱스 범위 스캔)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/generating-and-displaying-execution-plans.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Generating and Displaying Execution Plans (DISPLAY_CURSOR, EXPLAIN PLAN과의 차이)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/sql-processing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · SQL Processing (하드 파스와 최적화)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 3 "옵티마이저와 실행계획". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=SQL·계획 단계, data=테이블·인덱스 읽기, undo=통계, redo=실행 계획, signal=문제
+   DELIVERY_LOG는 이 페이지만의 예시 테이블이다. 실행 계획 읽기는 DBA 실습 9단계(레슨 71~73)와 이어진다.
+   ===================================================================== */
+const LESSON = {
+  page: 'optimizer',
+  base: '../../',
+  storeKey: 'optimizer:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'stat', label: '통계의 행 수' },
+    { key: 'real', label: '실제 행 수' },
+    { key: 'card', label: '예상 행 (카디널리티)' },
+    { key: 'path', label: '접근 경로' },
+    { key: 'time', label: '응답 시간' },
+  ],
+  goals: [
+    { text: '옵티마이저의 세 구성 요소', step: 2 },
+    { text: '선택도, 카디널리티, 비용', step: 3 },
+    { text: '옵티마이저 통계', step: 4 },
+    { text: '전체 스캔과 인덱스 접근', step: 5 },
+    { text: '비용이 가장 낮은 계획 고르기', step: 6 },
+    { text: '실행 계획 읽기', step: 7 },
+    { text: '낡은 통계가 계획을 틀리게 하는 과정', step: 8 },
+  ],
+  zones: [
+    { id: 'opt', from: [0.4, -1.6], to: [10.8, 2.0], label: '옵티마이저 (하드 파스 때)', members: ['tr', 'est', 'gen'] },
+    { id: 'disk', from: [12.2, -1.6], to: [17.6, 8.0], label: '데이터 파일', members: ['tab', 'idx'] },
+  ],
+  entities: {
+    sql:   { type: 'box', at: [-3.0, -0.4], size: [2.2, 1.8, 0.5], label: 'SQL (cust_id = :b1)', tone: 'sql' },
+    tr:    { type: 'box', at: [1.0, -0.8], size: [2.4, 2.0, 0.8], label: '변환기', tone: 'sql', led: true },
+    est:   { type: 'box', at: [4.6, -0.8], size: [2.4, 2.0, 0.8], label: '추정기', tone: 'sql', led: true },
+    gen:   { type: 'box', at: [8.2, -0.8], size: [2.4, 2.0, 0.8], label: '계획 생성기', tone: 'sql', led: true },
+    stats: { type: 'cyl', at: [5.4, 3.6], r: 1.0, h: 1.2, label: '데이터 사전 · 통계', tone: 'undo', tagDir: 'down' },
+    plan:  { type: 'box', at: [8.4, 3.4], size: [2.2, 2.4, 0.4], label: '실행 계획', tone: 'redo', cells: [1, 3], labelPos: 'right' },
+    tab:   { type: 'box', at: [12.8, -0.8], size: [4.2, 3.4, 0.8], label: 'DELIVERY_LOG', tone: 'data', cells: [6, 4] },
+    idx:   { type: 'box', at: [13.4, 4.6], size: [3.0, 2.2, 0.6], label: 'IX_DLOG_CUST', tone: 'data', cells: [4, 2], tagDir: 'down' },
+  },
+  links: {
+    in:   { from: 'sql', to: 'tr' },
+    te:   { from: 'tr', to: 'est' },
+    eg:   { from: 'est', to: 'gen' },
+    st:   { from: 'stats', to: 'est', onDemand: true },
+    gp:   { from: 'gen', to: 'plan', onDemand: true },
+    full: { from: 'plan', to: 'tab', via: [[11.6, 4.2], [11.6, 0.8]], onDemand: true },
+    ix:   { from: 'plan', to: 'idx', via: [[11.6, 5.0], [11.6, 5.7]], onDemand: true },
+    rid:  { from: 'idx', to: 'tab', onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: '문제',
+      chapter: 'problem',
+      title: '이관 뒤 배송 조회가 느리다. 인덱스가 있는데 계획은 전체 스캔',
+      body: [
+        '오늘 아침 옛 시스템의 배송 기록 320만 건을 dbserver02의 <code>DELIVERY_LOG</code> 테이블로 옮겼습니다. 그 뒤로 고객별 배송 조회 화면이 몇 초씩 걸립니다. 고객 번호 열에는 인덱스 <code>IX_DLOG_CUST</code>가 있습니다.',
+        '공유 풀의 커서 계획을 보니 <code>TABLE ACCESS FULL</code>이고, Rows 열의 예상은 고작 4행입니다. 옵티마이저는 왜 인덱스를 두고 테이블 전체를 읽기로 했을까요? 그리고 왜 4행이라고 생각했을까요?',
+      ],
+      callout: { kind: 'insight', text: 'DBA 실습 9단계에서는 "함수 때문에 인덱스를 못 쓰는 SQL"과 "인덱스가 없는 SQL"을 고쳤습니다. 이번에는 SQL도 인덱스도 멀쩡한데 옵티마이저의 판단이 틀린 경우입니다.' },
+      changes: ['+ 320만 건 이관', '× 인덱스 있는데 TABLE ACCESS FULL'],
+      metrics: { stat: '?', real: '3,200,000', card: '4', path: 'FULL', time: '3.8초' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['plan', 'tab'],
+      dim: ['tr', 'est', 'gen', 'stats'],
+      cells: {
+        plan: { 0: 'signal' },
+        tab: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { plan: [{ text: 'TABLE ACCESS FULL', tone: 'signal' }], idx: [{ text: '안 쓰임', tone: 'signal' }] },
+      flows: [{ link: 'full', kind: 'signal', n: 4, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select * from table(dbms_xplan.display_cursor(\'5k2v9d7r1wqfm\'));',
+          'SQL_ID  5k2v9d7r1wqfm, child number 0',
+          'select dlv_id, status, upd_time from delivery_log where cust_id = :b1',
+          '',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |     4 (100)|',
+          '|* 1 |  TABLE ACCESS FULL                  | DELIVERY_LOG |    4 |     4   (0)||warn',
+        ],
+      },
+    },
+    {
+      short: '세 구성 요소',
+      chapter: 'technique',
+      title: '옵티마이저: 변환기, 추정기, 계획 생성기',
+      body: [
+        '"파싱과 Shared Pool"에서 본 것처럼 하드 파스 때 옵티마이저가 실행 계획을 만듭니다. SQL Tuning Guide는 옵티마이저를 세 부분으로 설명합니다. <b>변환기</b>는 더 좋은 계획이 나올 수 있게 SQL을 같은 뜻의 다른 모양으로 바꿔 보고, <b>추정기</b>는 각 단계의 비용을 어림하고, <b>계획 생성기</b>는 여러 계획을 만들어 비교합니다.',
+        '결과는 하나의 실행 계획입니다. 계획은 공유 풀에 저장되어, 같은 SQL이 다시 오면 소프트 파스로 그대로 쓰입니다. 그래서 한 번 잘못 고른 계획은 다음 하드 파스 때까지 계속 쓰입니다.',
+      ],
+      callout: { kind: 'tip', text: '옵티마이저는 결과를 바꾸지 않습니다. 어떤 계획이든 SQL의 결과는 같고, 달라지는 것은 그 결과를 얻는 데 드는 일의 양입니다.' },
+      changes: ['~ 변환기 → 추정기 → 계획 생성기', '+ 실행 계획 → 공유 풀'],
+      metrics: { stat: '-', real: '-', card: '-', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['sql', 'tr', 'est', 'gen', 'plan'],
+      dim: ['stats', 'tab', 'idx'],
+      cells: { plan: { 0: 'redo', 1: 'redo' } },
+      tags: { tr: [{ text: '같은 뜻, 다른 모양', tone: 'sql' }], gen: [{ text: '여러 계획 비교', tone: 'sql' }] },
+      flows: [{ link: 'in', kind: 'sql', n: 1 }, { link: 'te', kind: 'sql', n: 1 }, { link: 'eg', kind: 'sql', n: 1 }, { link: 'gp', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter optimizer_mode',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'optimizer_mode                       string      ALL_ROWS',
+        ],
+      },
+    },
+    {
+      short: '추정',
+      chapter: 'technique',
+      title: '추정기가 어림하는 세 가지: 선택도, 카디널리티, 비용',
+      body: [
+        '<span class="term">선택도</span>는 조건이 전체 행 가운데 몇 분의 일을 고르는지(0~1)입니다. <span class="term">카디널리티</span>는 각 단계가 돌려줄 것으로 예상하는 행 수이고, 실행 계획의 <b>Rows</b> 열이 바로 이 예상값입니다. <span class="term">비용</span>은 디스크 I/O, CPU, 메모리를 합친 일의 양을 나타내는 내부 단위입니다.',
+        '예를 들어 통계에 행이 800개, cust_id 값의 종류가 200개로 되어 있으면 <code>cust_id = :b1</code>은 800 × 1/200 = 4행으로 어림됩니다. 문서는 비용이 옵티마이저 내부 단위라 직접 조정하는 값이 아니라고 설명합니다.',
+      ],
+      callout: { kind: 'warn', text: '추정은 통계를 보고 하는 계산입니다. 통계의 800이 틀리면 4행도 틀리고, 4행이 틀리면 비용도, 그 비용으로 고른 계획도 틀립니다.' },
+      changes: ['~ 선택도 = 1/200', '~ 카디널리티 = 800 × 1/200 = 4'],
+      metrics: { stat: '800', real: '-', card: '4', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['est', 'stats'],
+      dim: ['tr', 'gen', 'tab', 'idx', 'plan'],
+      tags: { est: [{ text: '800 × 1/200 = 4', tone: 'sql' }], stats: [{ text: 'NUM_ROWS 800 · NDV 200', tone: 'undo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select column_name, num_distinct from user_tab_col_statistics',
+          '  2  where table_name = \'DELIVERY_LOG\' and column_name = \'CUST_ID\';',
+          'COLUMN_NAME     NUM_DISTINCT',
+          '--------------- ------------',
+          'CUST_ID                  200',
+        ],
+      },
+    },
+    {
+      short: '통계',
+      chapter: 'technique',
+      title: '옵티마이저 통계: 데이터 사전에 적힌 테이블·열·인덱스의 모습',
+      body: [
+        'SQL Tuning Guide에 따르면 옵티마이저 통계는 테이블(행 수, 블록 수), 열(서로 다른 값의 수 등), 인덱스(높이, 리프 블록 수 등)에 대해 모아 데이터 사전에 저장합니다. 옵티마이저는 실제 데이터를 세지 않고 이 통계를 봅니다.',
+        '통계가 아예 없으면 최적화할 때 표본을 읽어 보는 동적 통계를 씁니다. 그리고 데이터베이스는 통계가 없거나 낡은(stale) 객체를 골라 자동으로 <code>DBMS_STATS</code>를 돌립니다. 이 자동 작업은 유지보수 시간에 돌기 때문에, 오늘 아침 넣은 320만 건은 아직 통계에 반영되지 않았습니다.',
+      ],
+      callout: { kind: 'tip', text: '<code>LAST_ANALYZED</code>는 통계를 모은 시각, <code>STALE_STATS</code>는 그 뒤로 많이 바뀌었는지입니다. DBA 실습 레슨 73에서 41일 지난 통계를 이 열로 찾았습니다.' },
+      changes: ['~ 통계: 어젯밤 22:00, 800행', '× 실제: 3,200,800행'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: '-', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'tab'],
+      dim: ['tr', 'gen', 'plan', 'idx'],
+      cells: {
+        tab: {
+          0: 'data',
+          1: 'data',
+          2: 'data',
+          3: 'data',
+          4: 'data',
+          5: 'data',
+          6: 'data',
+          7: 'data',
+          8: 'data',
+          9: 'data',
+          10: 'data',
+          11: 'data',
+          12: 'data',
+          13: 'data',
+          14: 'data',
+          15: 'data',
+          16: 'data',
+          17: 'data',
+          18: 'data',
+          19: 'data',
+          20: 'data',
+          21: 'data',
+          22: 'data',
+          23: 'data',
+        },
+      },
+      tags: { stats: [{ text: '어젯밤 22:00 · 800행', tone: 'signal' }], tab: [{ text: '실제 3,200,800행', tone: 'data' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select num_rows, blocks, last_analyzed, stale_stats from user_tab_statistics',
+          '  2  where table_name = \'DELIVERY_LOG\';',
+          '  NUM_ROWS     BLOCKS LAST_ANALYZED       STALE_STATS',
+          '---------- ---------- ------------------- -----------',
+          '       800         10 2026-11-26 22:00:14 YES|warn',
+          'SQL> select count(*) from delivery_log;',
+          '  COUNT(*)',
+          '----------',
+          '   3200800',
+        ],
+      },
+    },
+    {
+      short: '접근 경로',
+      chapter: 'technique',
+      title: '접근 경로: 전체를 읽을까, 인덱스로 찾아갈까',
+      body: [
+        '행을 가져오는 방법을 <span class="term">접근 경로</span>라고 합니다. 문서에 따르면 전체 스캔은 테이블의 많은 부분을 읽을 때 효율적이고, 인덱스 접근은 적은 부분만 고를 때 효율적입니다. 인덱스로 찾으면 인덱스에서 rowid를 얻고 그 블록만 읽습니다(TABLE ACCESS BY INDEX ROWID).',
+        'SQL Tuning Guide는 옵티마이저가 전체 스캔을 고르는 이유를 표로 정리합니다. 쓸 수 있는 인덱스가 없을 때, 대부분의 블록을 읽어야 할 때, 열에 함수를 씌웠을 때(함수 기반 인덱스가 아니면), 그리고 <b>테이블이 작을 때</b>(고수위 표시 아래 블록 수가 <code>DB_FILE_MULTIBLOCK_READ_COUNT</code>보다 적을 때)입니다.',
+      ],
+      callout: { kind: 'tip', text: 'DBA 실습 레슨 72는 이 표의 "열에 함수를 씌움" 항목을 고친 실습입니다. 이번 사례는 같은 표의 "작은 테이블" 항목입니다.' },
+      changes: ['~ 많이 읽으면 FULL', '~ 조금 고르면 INDEX → ROWID'],
+      metrics: { stat: '-', real: '-', card: '-', path: 'FULL 또는 INDEX', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['tab', 'idx', 'plan'],
+      dim: ['tr', 'est', 'gen', 'stats', 'sql'],
+      cells: { idx: { 1: 'data' }, tab: { 9: 'data' } },
+      tags: { idx: [{ text: 'rowid', tone: 'data' }], tab: [{ text: '그 블록만', tone: 'data' }] },
+      flows: [{ link: 'ix', kind: 'redo', n: 1 }, { link: 'rid', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter db_file_multiblock_read_count',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'db_file_multiblock_read_count        integer     128',
+        ],
+      },
+    },
+    {
+      short: '계획 고르기',
+      chapter: 'technique',
+      title: '계획 생성기: 비용이 가장 낮은 계획을 고른다',
+      body: [
+        '계획 생성기는 접근 경로, 조인 방법, 조인 순서를 바꿔 가며 계획 후보를 만들고, 추정기가 매긴 비용을 비교해 <b>비용이 가장 낮은 계획</b>을 고릅니다. 문서의 표현대로, 옵티마이저는 가능한 계획들을 비교해 비용이 가장 낮은 것을 택합니다.',
+        '19c에서는 적응형 계획이 기본으로 켜져 있어, 일부 조인 방법은 실행 중에 실제 행 수를 보고 바꿀 수 있습니다. 하지만 테이블을 어떤 경로로 읽을지 같은 큰 틀은 여전히 통계로 정한 비용에 달려 있습니다.',
+      ],
+      callout: { kind: 'insight', text: '통계상 DELIVERY_LOG는 10블록짜리 작은 테이블입니다. 10블록은 한 번의 다중 블록 읽기로 끝나므로, 옵티마이저 입장에서는 인덱스를 거치는 것보다 전체 스캔이 싸 보입니다.' },
+      changes: ['~ FULL 비용 4 vs INDEX 비용 5 (통계 기준)', '→ FULL 선택'],
+      metrics: { stat: '800', real: '-', card: '4', path: 'FULL', time: '-' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['gen', 'plan', 'est'],
+      dim: ['tab', 'idx', 'tr', 'sql'],
+      cells: { plan: { 0: 'redo' } },
+      tags: { gen: [{ text: 'FULL 4 < INDEX 5', tone: 'sql' }], plan: [{ text: 'TABLE ACCESS FULL', tone: 'redo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 1 }, { link: 'eg', kind: 'sql', n: 2 }, { link: 'gp', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select index_name, blevel, leaf_blocks, num_rows, last_analyzed from user_ind_statistics',
+          '  2  where index_name = \'IX_DLOG_CUST\';',
+          'INDEX_NAME       BLEVEL LEAF_BLOCKS   NUM_ROWS LAST_ANALYZED',
+          '------------ ---------- ----------- ---------- -------------------',
+          'IX_DLOG_CUST          0           1        800 2026-11-26 22:00:14',
+        ],
+      },
+    },
+    {
+      short: '계획 읽기',
+      chapter: 'technique',
+      title: '실행 계획 읽기: Operation, Rows, Cost, 그리고 *',
+      body: [
+        '<code>DBMS_XPLAN.DISPLAY_CURSOR</code>는 커서 캐시(공유 풀)에 있는 커서의 실제 계획을 보여 줍니다. 문서는 <code>EXPLAIN PLAN</code>으로 본 계획은 실제 실행 계획과 다를 수 있고, 특히 바인드 변수가 있으면 실제를 나타내지 않을 수 있다고 경고합니다.',
+        '표는 들여 쓴 안쪽 줄부터 읽습니다. <b>Operation</b>은 무엇을 하는지, <b>Name</b>은 대상 객체, <b>Rows</b>는 예상 행 수(카디널리티), <b>Cost</b>는 추정 비용입니다. Id 앞의 <code>*</code>는 아래 Predicate Information에 그 줄의 조건이 있다는 표시입니다.',
+      ],
+      callout: { kind: 'tip', text: 'Rows 예상(4)과 실제로 돌아오는 행 수(약 40)가 크게 다르면 통계를 의심하라는 신호입니다. 이 사례는 행이 적어 차이가 작아 보이지만, 테이블 전체로 보면 800과 320만, 4천 배 차이입니다.' },
+      changes: ['~ Operation · Name · Rows · Cost', '~ * = 조건 있음'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: 'FULL', time: '3.8초' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['plan'],
+      dim: ['tr', 'est', 'gen', 'stats', 'idx', 'sql'],
+      cells: { plan: { 0: 'redo' } },
+      tags: { plan: [{ text: 'Rows 4', tone: 'signal' }] },
+      flows: [{ link: 'full', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |     4 (100)|',
+          '|* 1 |  TABLE ACCESS FULL                  | DELIVERY_LOG |    4 |     4   (0)|',
+          '',
+          'Predicate Information (identified by operation id):',
+          '   1 - filter("CUST_ID"=:B1)',
+        ],
+      },
+    },
+    {
+      short: '낡은 통계',
+      chapter: 'case',
+      title: '사례 진단: 통계는 800행, 실제는 320만 행',
+      body: [
+        '1장면의 원인을 이어 붙이면 이렇습니다. 통계는 어젯밤 22시, 이관 전 800행·10블록일 때 모은 것입니다. 옵티마이저는 이 통계로 "작은 테이블"이라 판단해 전체 스캔을 골랐고, 실제로는 실행할 때마다 320만 행이 든 수만 블록을 읽습니다.',
+        'SQL도 인덱스도 잘못이 없습니다. 옵티마이저가 본 그림(통계)이 실제와 달랐을 뿐입니다. 대량 적재나 이관 직후에는 자동 통계 수집을 기다리지 말고 그 테이블의 통계를 바로 모으는 것이 좋습니다.',
+      ],
+      callout: { kind: 'warn', text: '이관 작업 절차서에 "적재 후 통계 수집"을 한 줄 넣어 두세요. 이 한 줄이 없어서 다음 날 아침 화면이 느려지는 일이 흔합니다.' },
+      changes: ['× 통계 800행·10블록 (이관 전)', '× 실제 320만 행'],
+      metrics: { stat: '800', real: '3,200,800', card: '4', path: 'FULL', time: '3.8초' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'tab', 'plan'],
+      dim: ['tr', 'gen', 'sql'],
+      cells: {
+        plan: { 0: 'signal' },
+        tab: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { stats: [{ text: '800행 (이관 전)', tone: 'signal' }], tab: [{ text: '320만 행 전체를 읽음', tone: 'signal' }] },
+      flows: [{ link: 'st', kind: 'signal', n: 1 }, { link: 'full', kind: 'signal', n: 4, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select executions, round(elapsed_time/executions/1000) ms_per_exec, round(buffer_gets/executions) gets_per_exec',
+          '  2  from v$sql where sql_id = \'5k2v9d7r1wqfm\';',
+          'EXECUTIONS MS_PER_EXEC GETS_PER_EXEC',
+          '---------- ----------- -------------',
+          '      1844        3812         41203|warn',
+        ],
+      },
+    },
+    {
+      short: '통계 다시 모으기',
+      chapter: 'case',
+      title: '사례 해결: 통계를 모으면 다음 하드 파스에서 인덱스를 고른다',
+      body: [
+        '<code>DBMS_STATS.GATHER_TABLE_STATS</code>로 DELIVERY_LOG의 통계를 모읍니다. 이제 통계는 320만 행, 수만 블록이고, cust_id 조건의 예상 행은 약 40행입니다. 옵티마이저가 보기에도 "적은 부분만 고르는" 조건이 되었습니다.',
+        '새 통계는 다음 하드 파스 때 반영됩니다. 새 계획은 <code>INDEX RANGE SCAN IX_DLOG_CUST</code>로 rowid를 찾고 <code>TABLE ACCESS BY INDEX ROWID BATCHED</code>로 그 블록만 읽습니다. 조건도 <code>access("CUST_ID"=:B1)</code>, 인덱스로 찾아가는 데 쓰입니다.',
+      ],
+      callout: { kind: 'tip', text: '고친 뒤에는 꼭 DISPLAY_CURSOR로 실제 커서의 계획과 실행당 읽기(buffer gets)를 다시 봅니다. 앱 화면에서 다시 확인해 달라는 요청도 함께 합니다.' },
+      changes: ['~ 통계 800 → 3,200,800행', '~ FULL → INDEX RANGE SCAN', '~ 3.8초 → 0.01초'],
+      metrics: { stat: '3,200,800', real: '3,200,800', card: '40', path: 'INDEX RANGE', time: '0.01초' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: ['stats', 'idx', 'plan', 'tab'],
+      dim: ['tr', 'sql'],
+      cells: { plan: { 0: 'redo', 1: 'redo', 2: 'redo' }, idx: { 2: 'data' }, tab: { 4: 'data', 15: 'data' } },
+      tags: { stats: [{ text: '방금 모음 · 320만 행', tone: 'undo' }], plan: [{ text: 'INDEX RANGE SCAN', tone: 'redo' }] },
+      flows: [{ link: 'st', kind: 'undo', n: 2 }, { link: 'gp', kind: 'redo', n: 1 }, { link: 'ix', kind: 'data', n: 1 }, { link: 'rid', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> exec dbms_stats.gather_table_stats(\'APP\', \'DELIVERY_LOG\')',
+          'PL/SQL procedure successfully completed.|ok',
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |    43 (100)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG |   40 |    43   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_CUST |   40 |     3   (0)||ok',
+          '',
+          '   2 - access("CUST_ID"=:B1)',
+        ],
+      },
+    },
+    {
+      short: '정리',
+      chapter: 'recap',
+      title: '정리: 옵티마이저는 통계로 본 세상에서 가장 싼 길을 고른다',
+      body: [
+        '하드 파스 때 옵티마이저의 변환기가 SQL 모양을 바꿔 보고, 추정기가 통계로 선택도·카디널리티·비용을 어림하고, 계획 생성기가 비용이 가장 낮은 계획을 고릅니다. 계획은 공유 풀에 남아 다음 하드 파스까지 쓰입니다.',
+        '실행 계획에서는 접근 경로(FULL인지 INDEX인지), Rows 예상, 조건이 access인지 filter인지를 먼저 봅니다. 예상이 실제와 크게 다르면 통계를 의심하고, 대량 적재 뒤에는 통계부터 모읍니다.',
+      ],
+      callout: { kind: 'insight', text: 'INDEX RANGE SCAN이 인덱스 안에서 실제로 어떻게 움직이는지는 다음 레슨 "B-tree 인덱스"에서 봅니다.' },
+      changes: ['~ 통계 → 추정 → 비용 → 계획', '+ 대량 적재 뒤 통계 수집'],
+      metrics: { stat: '3,200,800', real: '3,200,800', card: '40', path: 'INDEX RANGE', time: '0.01초' },
+      show: ['sql', 'tr', 'est', 'gen', 'stats', 'plan', 'tab', 'idx'],
+      focus: [],
+      cells: { plan: { 0: 'redo', 1: 'redo', 2: 'redo' }, idx: { 2: 'data' }, tab: { 4: 'data', 15: 'data' } },
+      tags: {
+        stats: [{ text: '① 통계', tone: 'undo' }],
+        est: [{ text: '② 추정', tone: 'sql' }],
+        plan: [{ text: '③ 계획', tone: 'redo' }],
+        idx: [{ text: '④ 접근 경로', tone: 'data' }],
+      },
+      flows: [
+        { link: 'in', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'st', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'gp', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'ix', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'rid', kind: 'data', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          '| Id | Operation                           | Name         | Rows | Cost (%CPU)|',
+          '|  0 | SELECT STATEMENT                    |              |      |    43 (100)|',
+          '|  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| DELIVERY_LOG |   40 |    43   (0)|',
+          '|* 2 |   INDEX RANGE SCAN                  | IX_DLOG_CUST |   40 |     3   (0)|',
+          '',
+          '   2 - access("CUST_ID"=:B1)',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, { text: 'SGA·PGA와 백그라운드 프로세스', href: '../memory/', note: '완성' }] },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, { text: '체크포인트', href: '../checkpoint/', note: '완성' }] },
+    { part: '파트 3 · SQL 실행', items: [{ text: '파싱과 Shared Pool', href: '../parse/', note: '완성' }, '옵티마이저와 실행계획', { text: 'B-tree 인덱스', href: '../btree/', note: '완성' }], current: 1 },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

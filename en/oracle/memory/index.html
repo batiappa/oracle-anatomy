@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SGA, PGA and background processes · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects the memory (SGA and PGA) and processes (server processes and mandatory background processes) of an Oracle Database 19c instance. It also covers memory management methods (AMM, ASMM), PGA_AGGREGATE_LIMIT, Linux HugePages, and a case where the instance will not start after the SGA was enlarged.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="SGA, PGA and background processes · Oracle Anatomy">
+<meta property="og:description" content="The SGA was raised from 8G to 12G and the instance will not start after the restart. Dissect the instance's memory and processes in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 1 · Architecture</b> / lesson 2 of 2</div>
+      <div class="head-row">
+        <h1>SGA, PGA and background processes</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13 min</span><span class="badge">Beginner</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">In "instance = memory + processes", open up that memory and those processes one by one, and see how they fit with Linux HugePages.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of how an app connection, a server process and its PGA, the SGA's buffer cache, shared pool, redo log buffer and large pool, the mandatory background processes, and Linux HugePages relate"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Processes · commands</li>
+            <li><i style="background:var(--c-data)"></i>SGA (shared memory)</li>
+            <li><i style="background:var(--c-undo)"></i>PGA (private memory)</li>
+            <li><i style="background:var(--c-redo)"></i>Redo log buffer · LGWR</li>
+            <li><i style="background:var(--c-signal)"></i>Errors</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02), SGA_TARGET of 8G, the 4096 HugePages and the sysctl file name, and the sizes on the STARTUP screen match the virtual servers in the Linux and DBA labs; the change to 12G, PIDs and times are example values. That background processes on Linux are named ora_name_SID was not confirmed directly in the pages read; it matches the lab screens. The alert log wording and error number when HugePages run short are not given in the documentation, so they are shortened with an ellipsis (…). The shared pool subcomponents and part of the PGA_AGGREGATE_LIMIT description come from a summary of the later part of the pages, and the formula for the PGA_AGGREGATE_LIMIT default was not confirmed, so it is not given. Of the USE_LARGE_PAGES values, only ONLY and AUTO_ONLY were confirmed in the pages read.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Memory Architecture (SGA and PGA contents, memory management methods, STARTUP output)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (server processes, mandatory background processes)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-memory.html" target="_blank" rel="noopener">Administrator's Guide 19c · Managing Memory (AMM, ASMM, PGA_AGGREGATE_TARGET and LIMIT, V$SGAINFO)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html" target="_blank" rel="noopener">Administrator's Reference 19c · Administering Oracle Database on Linux (HugePages, relation to AMM, Transparent HugePages, computing the number of pages)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/haovw/oracle-ai-database-configuration-best-practices.html" target="_blank" rel="noopener">High Availability Overview and Best Practices · Database Configuration Best Practices (USE_LARGE_PAGES=ONLY)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 1 "SGA·PGA와 백그라운드 프로세스". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=프로세스·명령, data=SGA, undo=PGA, redo=리두 로그 버퍼·LGWR, signal=오류
+   SGA_TARGET 8G, vm.nr_hugepages 4096, STARTUP 크기 값은 리눅스 실습(lab/) 14번과 DBA 실습 22번과 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'memory',
+  base: '../../',
+  storeKey: 'memory:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'sga', label: 'SGA' },
+    { key: 'pga', label: 'PGA' },
+    { key: 'hp', label: 'HugePages' },
+    { key: 'proc', label: 'Processes' },
+    { key: 'inst', label: 'Instance' },
+  ],
+  goals: [
+    { text: 'The difference between the SGA and the PGA', step: 2 },
+    { text: 'The areas that make up the SGA', step: 3 },
+    { text: 'What the PGA holds', step: 4 },
+    { text: 'What a server process does', step: 5 },
+    { text: 'Mandatory background processes and their roles', step: 6 },
+    { text: 'Memory management methods and the PGA limit', step: 7 },
+    { text: 'HugePages and the SGA', step: 8 },
+  ],
+  zones: [
+    { id: 'srv', from: [0.6, -1.6], to: [4.4, 5.8], label: 'Server process', members: ['proc', 'pga'] },
+    { id: 'sga', from: [5.2, -1.6], to: [13.0, 6.2], label: 'SGA (shared memory)', members: ['bc', 'sp', 'lb', 'lp'] },
+    { id: 'bg', from: [13.8, -1.6], to: [19.4, 9.0], label: 'Background processes', members: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'] },
+    { id: 'os', from: [5.2, 7.0], to: [13.0, 9.6], label: 'Linux memory', members: ['hp'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-2.8, -0.2], size: [2, 2, 0.5], label: 'App (client)', tone: 'sql' },
+    proc: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'Server process', tone: 'sql', led: true },
+    pga:  { type: 'box', at: [1.6, 2.4], size: [2.0, 2.4, 0.5], label: 'PGA', tone: 'undo', cells: [2, 3], labelPos: 'left' },
+    bc:   { type: 'box', at: [5.8, -0.8], size: [3.4, 2.8, 0.6], label: 'Buffer cache', tone: 'data', cells: [4, 3] },
+    sp:   { type: 'box', at: [10.0, -0.8], size: [2.4, 2.8, 0.6], label: 'Shared pool', tone: 'data', cells: [2, 2] },
+    lb:   { type: 'box', at: [6.0, 3.4], size: [2.6, 1.4, 0.5], label: 'Redo log buffer', tone: 'redo', tagDir: 'down' },
+    lp:   { type: 'box', at: [9.8, 3.4], size: [2.0, 1.6, 0.5], label: 'Large pool · others', tone: 'data', tagDir: 'down' },
+    hp:   { type: 'box', at: [5.8, 7.6], size: [6.6, 1.4, 0.3], label: 'HugePages (2 MB pages)', tone: 'muted', cells: [8, 1], tagDir: 'down' },
+    pmon: { type: 'box', at: [14.4, -1.0], size: [1.4, 1.2, 0.8], label: 'PMON', tone: 'sql', led: true },
+    smon: { type: 'box', at: [16.8, -1.0], size: [1.4, 1.2, 0.8], label: 'SMON', tone: 'sql', led: true, labelPos: 'right' },
+    dbw:  { type: 'box', at: [14.4, 1.6], size: [1.4, 1.2, 0.8], label: 'DBW0', tone: 'data', led: true },
+    lgwr: { type: 'box', at: [16.8, 1.6], size: [1.4, 1.2, 0.8], label: 'LGWR', tone: 'redo', led: true, labelPos: 'right' },
+    ckpt: { type: 'box', at: [14.4, 4.2], size: [1.4, 1.2, 0.8], label: 'CKPT', tone: 'undo', led: true },
+    lreg: { type: 'box', at: [16.8, 4.2], size: [1.4, 1.2, 0.8], label: 'LREG', tone: 'sql', led: true, labelPos: 'right' },
+    mmon: { type: 'box', at: [14.4, 6.8], size: [1.4, 1.2, 0.8], label: 'MMON', tone: 'sql', led: true, tagDir: 'down' },
+  },
+  links: {
+    conn:  { from: 'app', to: 'proc' },
+    rd:    { from: 'proc', to: 'bc', onDemand: true },
+    parse: { from: 'proc', to: 'sp', via: [[4.8, -1.2], [11.2, -1.2]], onDemand: true },
+    work:  { from: 'proc', to: 'pga', onDemand: true },
+    redo:  { from: 'proc', to: 'lb', via: [[4.8, 0.2], [4.8, 4.1]], onDemand: true },
+    dbw:   { from: 'bc', to: 'dbw', via: [[7.5, 2.6], [13.4, 2.6], [13.4, 2.2]], onDemand: true },
+    lgw:   { from: 'lb', to: 'lgwr', via: [[7.3, 5.6], [13.6, 5.6], [13.6, 0.8], [17.5, 0.8]], onDemand: true },
+    back:  { from: 'hp', to: 'bc', via: [[9.1, 6.6], [5.4, 6.6], [5.4, 0.6]], onDemand: true },
+    back2: { from: 'hp', to: 'sp', via: [[12.8, 8.3], [12.8, 0.6]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'The SGA was raised to 12G, and after the restart the instance will not start',
+      body: [
+        'On maintenance day, following an analysis that the buffer cache was too small, <code>sga_target</code> on dbserver02 was raised from 8G to 12G and the database restarted. But <code>startup</code> ends in an error and the instance does not come up. The server has 32G of physical memory, which is plenty.',
+        'To answer "why, with so much memory?", you need to know what the instance\'s memory looks like and how Linux hands that memory out. This lesson opens up the memory and processes that make up an instance, one by one.',
+      ],
+      callout: { kind: 'insight', text: 'In scene 4 of "Instance and database", NOMOUNT was the step that allocates the SGA and starts the background processes. This failure is stuck at that very first step.' },
+      changes: ['~ sga_target 8G → 12G', '× startup fails'],
+      metrics: { sga: '12G ?', pga: '-', hp: '4096', proc: '0', inst: 'Down' },
+      show: ['app', 'proc', 'bc', 'sp', 'lb', 'lp', 'hp'],
+      focus: ['hp', 'bc'],
+      dim: ['app', 'proc', 'sp', 'lb', 'lp'],
+      cells: { hp: { 0: 'signal', 1: 'signal', 2: 'signal', 3: 'signal' } },
+      tags: { hp: [{ text: '4096 pages (8G worth)', tone: 'signal' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: ['SQL> alter system set sga_target = 12G scope = spfile;', 'System altered.|ok', 'SQL> shutdown immediate', 'SQL> startup', '… (instance fails to start)|warn'],
+      },
+    },
+    {
+      short: 'Two memories',
+      chapter: 'technique',
+      title: 'The SGA is shared by all; each process has its own PGA',
+      body: [
+        'According to Concepts, the <span class="term">SGA</span> (System Global Area) is memory shared by all server and background processes. Things many sessions must share, such as cached blocks, parsed SQL and the redo buffer, live here.',
+        'The <span class="term">PGA</span> (Program Global Area), in contrast, is memory used by a single process. As the documentation says, there is one PGA for each server process and background process. Session-only workspace, such as for sorting, is allocated here.',
+      ],
+      callout: { kind: 'tip', text: 'Seen from Linux, the SGA is shared memory and the PGA is each process\'s private memory. The shared memory in scene 7, "Memory", of the Linux anatomy is the SGA.' },
+      changes: ['~ SGA: shared by every process', '~ PGA: one per process'],
+      metrics: { sga: '8G', pga: 'Per process', hp: '4096', proc: '-', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      dim: ['app'],
+      tags: { pga: [{ text: 'This process only', tone: 'undo' }], sp: [{ text: 'Shared by all', tone: 'data' }] },
+      flows: [{ link: 'work', kind: 'undo', n: 1 }, { link: 'rd', kind: 'data', n: 1 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ipcs -m',
+          '------ Shared Memory Segments --------',
+          'key        shmid      owner      perms      bytes      nattch',
+          '0x00000000 2          oracle     600        8438939312 64',
+        ],
+      },
+    },
+    {
+      short: 'SGA',
+      chapter: 'technique',
+      title: 'Inside the SGA: buffer cache, shared pool, redo log buffer, and the other pools',
+      body: [
+        'The SGA components listed in Concepts are the <span class="term">buffer cache</span> (data blocks), the In-Memory area (optional), the <span class="term">redo log buffer</span>, the <span class="term">shared pool</span>, the large pool, the Java pool and the fixed SGA (internal housekeeping). The Administrator\'s Guide also names the Streams pool as an SGA component.',
+        'The shared pool holds the library cache with parsed SQL and PL/SQL, the data dictionary cache, and more. The lesson "Parsing and the shared pool" looks at it in detail. On the STARTUP screen, Database Buffers is the buffer cache size and Redo Buffers the redo log buffer size.',
+      ],
+      callout: { kind: 'tip', text: 'Sizes per component are in <code>V$SGAINFO</code>. The Administrator\'s Guide says to query V$SGAINFO and V$SGA_TARGET_ADVICE when sizing the SGA.' },
+      changes: ['+ buffer cache · shared pool · redo log buffer', '+ large pool · Java pool · Streams pool · fixed SGA'],
+      metrics: { sga: '8G', pga: '-', hp: '4096', proc: '-', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['bc', 'sp', 'lb', 'lp'],
+      dim: ['app', 'proc', 'pga'],
+      cells: { bc: { 0: 'data', 1: 'data', 4: 'data', 5: 'data', 6: 'data', 9: 'data' }, sp: { 0: 'data', 3: 'data' } },
+      tags: { bc: [{ text: 'Database Buffers 6.3G', tone: 'data' }], lb: [{ text: 'Redo Buffers 7.3M', tone: 'redo' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> startup',
+          'ORACLE instance started.',
+          'Total System Global Area 8438939312 bytes',
+          'Fixed Size                  9137840 bytes',
+          'Variable Size            1694498816 bytes',
+          'Database Buffers         6727663616 bytes',
+          'Redo Buffers                7639040 bytes',
+        ],
+      },
+    },
+    {
+      short: 'PGA',
+      chapter: 'technique',
+      title: 'Inside the PGA: cursor execution state and sort and hash work areas',
+      body: [
+        'Concepts divides the PGA into areas. The <span class="term">private SQL area</span> holds bind variable values and query execution state, and <span class="term">SQL work areas</span> are used for sorting (sort area), hash joins (hash area) and bitmap merges. With a dedicated server connection, session information (the UGA) is also in the PGA.',
+        'A large <code>ORDER BY</code> or hash join uses a big work area. If the work area is too small, the rest is processed by writing to the temporary tablespace, which is slower. That is why total PGA grows with the number of sessions times what they do.',
+      ],
+      callout: { kind: 'insight', text: 'The SGA is allocated at its set size at startup, but PGA grows and shrinks with the work sessions do. That is why the two are considered separately when planning memory.' },
+      changes: ['+ private SQL area (bind values, execution state)', '+ SQL work areas (sort, hash)'],
+      metrics: { sga: '8G', pga: 'Varies by session', hp: '4096', proc: '-', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['pga', 'proc'],
+      dim: ['bc', 'sp', 'lb', 'lp'],
+      cells: { pga: { 0: 'undoDirty', 1: 'undo', 2: 'undoDirty', 3: 'undoDirty', 4: 'undo' } },
+      tags: { pga: [{ text: 'Sorting', tone: 'undo' }] },
+      flows: [{ link: 'work', kind: 'undo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, round(value/1024/1024) mb from v$pgastat',
+          '  2  where name in (\'total PGA allocated\', \'maximum PGA allocated\');',
+          'NAME                             MB',
+          '------------------------- ----------',
+          'total PGA allocated              612',
+          'maximum PGA allocated           1480',
+        ],
+      },
+    },
+    {
+      short: 'Server process',
+      chapter: 'technique',
+      title: 'One connection, one server process',
+      body: [
+        'When an app connects through the listener, a <span class="term">server process</span> is created just for that connection. Concepts explains that with a dedicated server, each client connection is served by one and only one server process. Twenty clients means twenty server processes.',
+        'The server process parses and executes SQL, and reads the data blocks it needs from the data files into the buffer cache. The documentation says server processes read data blocks from data files into the database buffer cache. Results go back to the app through that process\'s PGA.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'In Linux <code>ps</code>, <code>oracleORCL (LOCAL=NO)</code> is a server process that came in through the listener. In DBA labs stage 3, lesson 27, you trace a session\'s SPID to this process.',
+      },
+      changes: ['+ app connects → dedicated server process', '~ block reads → buffer cache'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096', proc: '48 server', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['app', 'proc', 'bc', 'sp'],
+      dim: ['lb', 'lp'],
+      cells: { bc: { 5: 'dataDirty' }, sp: { 0: 'data' } },
+      tags: { proc: [{ text: 'oracleORCL (LOCAL=NO)', tone: 'sql' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 2 }, { link: 'parse', kind: 'sql', n: 1 }, { link: 'rd', kind: 'data', n: 2 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep "LOCAL=NO" | head -2',
+          'oracle   28877     1  0 09:12 ?        00:00:04 oracleORCL (LOCAL=NO)',
+          'oracle   28903     1  0 09:12 ?        00:00:01 oracleORCL (LOCAL=NO)',
+        ],
+      },
+    },
+    {
+      short: 'Background',
+      chapter: 'technique',
+      title: 'Mandatory background processes: each has its own job',
+      body: [
+        'The mandatory background processes listed in Concepts are: the <b>PMON</b> group (PMON and the cleanup processes CLMN and CLnn), <b>LREG</b> (registers the instance with the listener), <b>SMON</b> (system-level cleanup, instance recovery), <b>DBWn</b> (writes dirty buffers), <b>LGWR</b> (writes the redo log buffer to the online redo log), <b>CKPT</b> (records checkpoint information), <b>MMON and MMNL</b> (AWR-related work), <b>RECO</b> (resolves distributed transaction failures), and PMAN.',
+        'The documentation adds that other mandatory processes such as MMAN, DIAG, VKTM, DBRM and PSP0 are covered in the Database Reference. Since the instance cannot survive losing one of them, whether <code>ora_pmon_ORCL</code> is running is the first check of whether the database is alive.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'You do this check with <code>ps -ef | grep pmon</code> in Linux labs stage 1, lesson 6. Because LREG registers with the listener, a service showing up late in the listener status right after startup is also this process at work.',
+      },
+      changes: ['+ PMON · LREG · SMON · DBW0 · LGWR · CKPT · MMON …', '~ losing any one stops the instance'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096', proc: 'Dozens (background)', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      dim: ['app', 'proc', 'pga', 'sp', 'lp'],
+      cells: { bc: { 5: 'dataDirty' } },
+      tags: { lreg: [{ text: 'Registers with listener', tone: 'sql' }], mmon: [{ text: 'AWR snapshots', tone: 'sql' }] },
+      flows: [{ link: 'dbw', kind: 'data', n: 1 }, { link: 'lgw', kind: 'redo', n: 1 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep -E "ora_(pmon|smon|dbw0|lgwr|ckpt|lreg|mmon)_" | grep -v grep',
+          'oracle    2101     1  0 09:00 ?        00:00:00 ora_pmon_ORCL',
+          'oracle    2121     1  0 09:00 ?        00:00:03 ora_dbw0_ORCL',
+          'oracle    2123     1  0 09:00 ?        00:00:05 ora_lgwr_ORCL',
+          'oracle    2125     1  0 09:00 ?        00:00:01 ora_ckpt_ORCL',
+          'oracle    2127     1  0 09:00 ?        00:00:00 ora_smon_ORCL',
+          'oracle    2131     1  0 09:00 ?        00:00:00 ora_lreg_ORCL',
+          'oracle    2135     1  0 09:00 ?        00:00:02 ora_mmon_ORCL',
+        ],
+      },
+    },
+    {
+      short: 'Memory management',
+      chapter: 'technique',
+      title: 'Who sizes memory: AMM, ASMM, manual',
+      body: [
+        'Concepts and the Administrator\'s Guide describe three methods. <b>Automatic memory management</b> (AMM) sizes SGA and PGA together with a single <code>MEMORY_TARGET</code>; <b>automatic shared memory management</b> (ASMM) sets <code>SGA_TARGET</code> and a PGA target separately; manual sets each pool size directly. The documentation recommends AMM when SGA plus PGA is 4 GB or less.',
+        'The PGA has two settings. <code>PGA_AGGREGATE_TARGET</code> is only a target and can be exceeded; <code>PGA_AGGREGATE_LIMIT</code> is a hard limit. According to the documentation, when it is exceeded Oracle terminates calls from the sessions with the highest untunable PGA allocations.',
+      ],
+      callout: { kind: 'warn', text: 'A server like dbserver02 with an 8G SGA uses ASMM (SGA_TARGET), because the HugePages in the next scene cannot be used together with AMM.' },
+      changes: ['~ memory_target = 0 (no AMM)', '~ sga_target = 8G · pga_aggregate_target = 2G'],
+      metrics: { sga: '8G', pga: 'Target 2G', hp: '4096', proc: '-', inst: 'At 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['bc', 'sp', 'lb', 'lp', 'pga'],
+      dim: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon', 'app', 'proc'],
+      tags: { pga: [{ text: 'PGA_AGGREGATE_LIMIT', tone: 'undo' }], sp: [{ text: 'SGA_TARGET 8G', tone: 'data' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter target',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'memory_max_target                    big integer 0',
+          'memory_target                        big integer 0',
+          'pga_aggregate_target                 big integer 2G',
+          'sga_target                           big integer 8G',
+        ],
+      },
+    },
+    {
+      short: 'HugePages',
+      chapter: 'technique',
+      title: 'HugePages: the SGA in large pages, never swapped',
+      body: [
+        'Linux normally hands out memory in 4 KB pages. Splitting an 8G SGA into 4 KB pages makes a very large number of page table entries. According to the Linux Administrator\'s Reference, with HugePages the pages are locked in memory and never swapped out, TLB hits increase, and the kernel does less bookkeeping with fewer page table entries.',
+        'HugePages are reserved in advance as a fixed count. The number needed is the SGA size divided by the large page size (<code>grep Hugepagesize /proc/meminfo</code>, usually 2 MB), rounded up. dbserver02 reserved 8G ÷ 2 MB = 4096 pages with <code>vm.nr_hugepages</code>. The documentation says AMM and HugePages are not compatible, and recommends disabling Transparent HugePages.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'The Oracle MAA best practice is <code>USE_LARGE_PAGES=ONLY</code>. With it the whole SGA must come from HugePages, and if there are not enough the instance does not start at all. The point is to notice right away rather than come up half on normal pages.',
+      },
+      changes: ['~ SGA 8G ↔ HugePages 4096 × 2MB', '~ use_large_pages = ONLY'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096 (8G)', proc: '-', inst: 'Fine at 8G' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'hp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['hp', 'bc', 'sp'],
+      dim: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon', 'app', 'proc', 'pga'],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'data', 7: 'data' } },
+      tags: { hp: [{ text: '4096 × 2MB = 8G', tone: 'data' }] },
+      flows: [{ link: 'back', kind: 'data', n: 2 }, { link: 'back2', kind: 'data', n: 2 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ grep -i huge /proc/meminfo',
+          'HugePages_Total:    4096',
+          'HugePages_Free:       12',
+          'Hugepagesize:       2048 kB',
+          '$ cat /sys/kernel/mm/transparent_hugepage/enabled',
+          'always madvise [never]|ok',
+        ],
+      },
+    },
+    {
+      short: 'HugePages short',
+      chapter: 'case',
+      title: 'Case: the SGA is 12G, but HugePages cover only 8G',
+      body: [
+        'This is the cause from scene 1. The SGA was raised to 12G, but <code>vm.nr_hugepages</code> stayed at 4096, enough for 8G. With <code>USE_LARGE_PAGES=ONLY</code>, as the Linux Administrator\'s Reference says, the database fails to start when HugePages are insufficient. The documentation notes that an alert log message then provides the necessary information on HugePages.',
+        'The fix starts with arithmetic: 12G ÷ 2 MB = 12,288 MB ÷ 2 MB = <b>6144</b> pages. As root, change <code>vm.nr_hugepages</code> to 6144 in the sysctl configuration file and apply it, confirm HugePages_Total is 6144, then start the database. If memory is fragmented and not all pages can be reserved at once, a reboot may be needed.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'Any change request that resizes the SGA must also say "and HugePages". Linux labs stage 2, lesson 14 walks through computing and setting the 4096 pages. The documentation points to hugepages_settings.sh (MOS 401749.1) for the calculation.',
+      },
+      changes: ['× need 6144 > have 4096', '~ vm.nr_hugepages 4096 → 6144'],
+      metrics: { sga: '12G', pga: '-', hp: '4096 → 6144', proc: '0', inst: 'Down → up' },
+      show: ['app', 'proc', 'bc', 'sp', 'lb', 'lp', 'hp'],
+      focus: ['hp'],
+      dim: ['app', 'proc', 'lb', 'lp'],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'signal', 7: 'signal' } },
+      tags: { hp: [{ text: '12G ÷ 2 MB = 6144 needed', tone: 'signal' }] },
+      flows: [{ link: 'back', kind: 'signal', n: 1, bounce: true }],
+      console: {
+        title: 'bash (root)',
+        lines: [
+          '# cat /etc/sysctl.d/97-oracle-database-sysctl.conf',
+          'vm.nr_hugepages = 4096|warn',
+          '# sed -i \'s/^vm.nr_hugepages = 4096/vm.nr_hugepages = 6144/\' /etc/sysctl.d/97-oracle-database-sysctl.conf',
+          '# sysctl --system > /dev/null',
+          '# grep HugePages_Total /proc/meminfo',
+          'HugePages_Total:    6144|ok',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: instance = SGA + PGA + processes',
+      body: [
+        'The SGA is memory shared by all processes, holding the buffer cache, shared pool, redo log buffer and more; the PGA is private memory, one per process, holding execution state and sort and hash work areas. Each connection gets a server process, and the mandatory background processes split the writing, recovery, registration and statistics work.',
+        'On Linux, the SGA goes into HugePages. They cannot be combined with AMM, so ASMM is used, and whenever the SGA size changes the HugePages count is recalculated too.',
+      ],
+      callout: { kind: 'insight', text: 'Each box in this lesson stars in another lesson: the buffer cache and LGWR in "The journey of a COMMIT", DBWn and CKPT in "Checkpoints", and the shared pool in "Parsing and the shared pool".' },
+      changes: ['~ SGA 12G (HugePages 6144)', '+ instance starts normally'],
+      metrics: { sga: '12G', pga: '640M', hp: '6144', proc: '48 server + background', inst: 'Up' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'hp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: [],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'data', 7: 'data' }, bc: { 5: 'dataDirty' } },
+      tags: {
+        bc: [{ text: '① SGA', tone: 'data' }],
+        pga: [{ text: '② PGA', tone: 'undo' }],
+        lgwr: [{ text: '③ background', tone: 'redo' }],
+        hp: [{ text: '④ HugePages', tone: 'data' }],
+      },
+      flows: [
+        { link: 'conn', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'rd', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'work', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'lgw', kind: 'redo', n: 1, rate: 0.5 },
+        { link: 'back', kind: 'data', n: 1, rate: 0.4 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.|ok', '…', 'Database opened.|ok'] },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA, PGA and background processes'], current: 1 },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the Shared Pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>
