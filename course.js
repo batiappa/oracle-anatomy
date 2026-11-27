@@ -85,5 +85,74 @@
     return { stage: s.no, name: s.name, href: hrefFor(here, s, firstOpen(s, progOf(s.part))) };
   }
 
-  window.Course = { STAGES, render, nextElsewhere, stageOfId };
+
+  /* ---------- 해부도 ↔ 실습 연결표 ----------
+     해부도(원리)의 장면 하나와 그 내용을 직접 해 보는 실습 레슨을 잇는다. 한 곳에서만 관리하고,
+     해부도 쪽 "이 내용 실습하기"와 실습 쪽 "원리 먼저 보기"가 모두 이 표에서 만들어진다.
+     page: 'linux'(linux/ 리눅스 해부도) | 'oracle'(루트 Oracle 해부도), step: 장면 번호(#step-N), t: 장면 이름(그 페이지 steps[].short와 같아야 한다)
+     lessons: 실습 레슨 id. 제목은 아래 TITLES에서 가져온다(실습 페이지 LESSONS의 title과 같아야 한다. 자동 점검이 비교한다). */
+  const THEORY = [
+    { page: 'linux', step: 1, t: '문제', lessons: [1] },
+    { page: 'linux', step: 2, t: '디렉터리 트리', lessons: [2, 3, 17] },
+    { page: 'linux', step: 3, t: '계정', lessons: [5, 16] },
+    { page: 'linux', step: 4, t: '셸과 PATH', lessons: [8, 4] },
+    { page: 'linux', step: 5, t: '권한', lessons: [5, 17] },
+    { page: 'linux', step: 6, t: '프로세스', lessons: [6, 22] },
+    { page: 'linux', step: 7, t: '메모리', lessons: [7, 10] },
+    { page: 'linux', step: 8, t: '커널 한도', lessons: [11, 12, 13] },
+    { page: 'linux', step: 9, t: 'HugePages', lessons: [14] },
+    { page: 'linux', step: 10, t: '디스크', lessons: [7, 15] },
+    { page: 'linux', step: 11, t: '디스크 가득', lessons: [7, 34] },
+    { page: 'linux', step: 12, t: '정리', lessons: [9, 18] },
+    { page: 'oracle', step: 1, t: '문제', lessons: [95] },
+    { page: 'oracle', step: 2, t: '블록 읽기', lessons: [91] },
+    { page: 'oracle', step: 3, t: 'Undo', lessons: [95] },
+    { page: 'oracle', step: 4, t: 'Redo', lessons: [28] },
+    { page: 'oracle', step: 5, t: 'COMMIT;', lessons: [95] },
+    { page: 'oracle', step: 6, t: 'LGWR 쓰기', lessons: [51] },
+    { page: 'oracle', step: 7, t: 'DBWn', lessons: [22] },
+    { page: 'oracle', step: 8, t: '정전', lessons: [22] },
+    { page: 'oracle', step: 9, t: '잦은 커밋', lessons: [52] },
+    { page: 'oracle', step: 10, t: '정리', lessons: [21, 95] },
+  ];
+  const TITLES = {
+    1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기',
+    5: 'oracle 계정과 권한 이해하기', 6: 'DB가 살아 있는지 프로세스로 확인하기', 7: '디스크가 찼다는 연락 대응하기',
+    8: 'sqlplus를 찾을 수 없다고요?', 9: '졸업 미션: 아침 점검 혼자 해 보기', 10: '새 서버 받기: 설치 전 서버 점검',
+    11: 'preinstall RPM으로 설치 준비 한 번에 하기', 12: '커널 파라미터 확인하기', 13: '자원 제한(limits) 확인하기',
+    14: 'HugePages 설정하고 THP 확인하기', 15: '디스크 I/O 스케줄러와 시계 확인하기', 16: '직무 분리 그룹과 grid 사용자 만들기',
+    17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기',
+    21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기',
+    34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', 51: '지금 무엇을 기다리는지 보기 (대기 이벤트)',
+    52: 'AWR 보고서로 어젯밤 배치 들여다보기', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
+  };
+  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' } };
+  // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
+  const whereOf = (id) => { const s = stageOfId(id); return s ? `${s.no}단계 레슨 ${s.ids.indexOf(id) + 1}` : ''; };
+  /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */
+  function practiceFor(page, step, base) {
+    const seen = new Set(), out = [];
+    THEORY.filter(x => x.page === page && x.step === step).forEach(x => x.lessons.forEach(id => {
+      const s = stageOfId(id); if (!s || seen.has(id)) return; seen.add(id);
+      out.push({ id, href: `${base}${s.part}/#lesson-${id}`, where: whereOf(id), title: TITLES[id] || '' });
+    }));
+    return out;
+  }
+  /* 실습 레슨 → 원리 장면 목록. 실습 페이지(lab/, dba/)에서 부르므로 해부도는 ../ 아래에 있다. */
+  function theoryFor(id) {
+    return THEORY.filter(x => x.lessons.includes(id)).map(x => ({ page: x.page, step: x.step, href: `../${PAGES[x.page].dir}#step-${x.step}`, label: `${PAGES[x.page].name} ${x.step}장면 · ${x.t}` }));
+  }
+  /* 실습 레슨 카드에 넣을 "원리 먼저 보기" 줄(HTML). 연결된 장면이 없으면 빈 문자열. */
+  let tStyled = false;
+  function theoryHtml(id) {
+    const list = theoryFor(id); if (!list.length) return '';
+    if (!tStyled) { tStyled = true; const st = document.createElement('style'); st.textContent = `
+.theory { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; }
+.theory-k { font-size: 12px; font-weight: 600; color: var(--muted); }
+.theory a { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); color: var(--accent); text-decoration: none; font-weight: 600; }
+.theory a:hover { border-color: var(--accent); }`; document.head.appendChild(st); }
+    return `<div class="theory"><span class="theory-k">원리 먼저 보기</span>${list.map(t => `<a href="${t.href}">${t.label} →</a>`).join('')}</div>`;
+  }
+
+  window.Course = { STAGES, render, nextElsewhere, stageOfId, THEORY, TITLES, practiceFor, theoryFor, theoryHtml };
 })();
