@@ -149,18 +149,34 @@
     { page: 'checkpoint', step: 7, t: '확인', lessons: [51, 52] },
     { page: 'checkpoint', step: 9, t: 'MTTR', lessons: [22] },
     { page: 'checkpoint', step: 10, t: '정리', lessons: [52] },
+    { page: 'memory', step: 1, t: '문제', lessons: [14] },
+    { page: 'memory', step: 5, t: '서버 프로세스', lessons: [21] },
+    { page: 'memory', step: 6, t: '백그라운드', lessons: [6, 23] },
+    { page: 'memory', step: 8, t: 'HugePages', lessons: [14] },
+    { page: 'memory', step: 9, t: 'HugePages 부족', lessons: [14] },
+    { page: 'parse', step: 5, t: '하드 · 소프트', lessons: [51] },
+    { page: 'parse', step: 6, t: '커서', lessons: [71] },
+    { page: 'parse', step: 9, t: '리터럴 SQL', lessons: [52] },
+    { page: 'optimizer', step: 5, t: '접근 경로', lessons: [72] },
+    { page: 'optimizer', step: 7, t: '계획 읽기', lessons: [71] },
+    { page: 'optimizer', step: 9, t: '통계 다시 모으기', lessons: [73] },
+    { page: 'btree', step: 1, t: '문제', lessons: [72] },
+    { page: 'btree', step: 5, t: '고유 스캔', lessons: [71] },
+    { page: 'btree', step: 6, t: '범위 스캔', lessons: [72] },
+    { page: 'btree', step: 9, t: 'NULL', lessons: [73] },
+    { page: 'btree', step: 10, t: '정리', lessons: [72] },
   ];
   const TITLES = {
     1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기', 5: 'oracle 계정과 권한 이해하기', 6: 'DB가 살아 있는지 프로세스로 확인하기',
     7: '디스크가 찼다는 연락 대응하기', 8: 'sqlplus를 찾을 수 없다고요?', 9: '졸업 미션: 아침 점검 혼자 해 보기', 10: '새 서버 받기: 설치 전 서버 점검', 11: 'preinstall RPM으로 설치 준비 한 번에 하기',
     12: '커널 파라미터 확인하기', 13: '자원 제한(limits) 확인하기', 14: 'HugePages 설정하고 THP 확인하기', 15: '디스크 I/O 스케줄러와 시계 확인하기', 16: '직무 분리 그룹과 grid 사용자 만들기',
-    17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기', 21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 24: '꽉 찬 테이블스페이스에 공간 늘리기',
-    26: '지워진 암호 파일 다시 만들기', 27: '락을 잡고 있는 세션 정리하기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기', 29: '졸업 미션: 재부팅 뒤 아침 점검', 31: '지워진 데이터 파일 하나 되살리기',
-    32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', 41: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', 42: '컨트롤 파일을 모두 잃었을 때',
-    51: '지금 무엇을 기다리는지 보기 (대기 이벤트)', 52: 'AWR 보고서로 어젯밤 배치 들여다보기', 53: '졸업 미션: 주문 저장이 멈춘 아침', 91: 'SELECT로 테이블 읽기',
-    95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
+    17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기', 21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 23: '리스너 살리고 원격 접속 확인하기',
+    24: '꽉 찬 테이블스페이스에 공간 늘리기', 26: '지워진 암호 파일 다시 만들기', 27: '락을 잡고 있는 세션 정리하기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기', 29: '졸업 미션: 재부팅 뒤 아침 점검',
+    31: '지워진 데이터 파일 하나 되살리기', 32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때',
+    41: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', 42: '컨트롤 파일을 모두 잃었을 때', 51: '지금 무엇을 기다리는지 보기 (대기 이벤트)', 52: 'AWR 보고서로 어젯밤 배치 들여다보기', 53: '졸업 미션: 주문 저장이 멈춘 아침',
+    71: '느린 SQL의 실행 계획 읽기', 72: '조건을 고쳐 인덱스 타게 하기', 73: '졸업 미션: 고객별 주문 조회가 느린 아침', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
   };
-  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo와 읽기 일관성', dir: 'oracle/undo/' }, lock: { name: '잠금과 대기', dir: 'oracle/lock/' }, checkpoint: { name: '체크포인트', dir: 'oracle/checkpoint/' } };
+  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo와 읽기 일관성', dir: 'oracle/undo/' }, lock: { name: '잠금과 대기', dir: 'oracle/lock/' }, checkpoint: { name: '체크포인트', dir: 'oracle/checkpoint/' }, memory: { name: 'SGA·PGA와 백그라운드 프로세스', dir: 'oracle/memory/' }, parse: { name: '파싱과 Shared Pool', dir: 'oracle/parse/' }, optimizer: { name: '옵티마이저와 실행계획', dir: 'oracle/optimizer/' }, btree: { name: 'B-tree 인덱스', dir: 'oracle/btree/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `${s.no}단계 레슨 ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

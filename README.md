@@ -45,6 +45,22 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 야간 배치의 DML이 모두 `log file switch (checkpoint incomplete)`에서 멈춘 사례로 시작합니다. 커밋은 리두만 쓰고 데이터 블록은 더티 버퍼로 남는 것, 가장 오래된 더티 버퍼로 정해지는 체크포인트 위치, CKPT(기록)와 DBWn(쓰기)의 역할, 로그 스위치와 V$LOG의 ACTIVE·INACTIVE를 따라갑니다. 사례는 로그 전환 횟수 확인, 리두 로그 크기·개수 늘리기, `FAST_START_MTTR_TARGET`입니다.
 
+### Oracle 해부도 · SGA·PGA와 백그라운드 프로세스 (10장면, `oracle/memory/`)
+
+SGA를 8G에서 12G로 늘렸더니 인스턴스가 뜨지 않은 사례로 시작합니다. 모든 프로세스가 함께 쓰는 SGA(버퍼 캐시, 공유 풀, 리두 로그 버퍼 등)와 프로세스마다 하나인 PGA(개인 SQL 영역, 정렬·해시 작업 영역), 접속마다 생기는 서버 프로세스, 필수 백그라운드 프로세스(PMON, LREG, SMON, DBWn, LGWR, CKPT, MMON 등), 메모리 관리 방식(AMM, ASMM)과 `PGA_AGGREGATE_LIMIT`을 따라갑니다. 사례는 `USE_LARGE_PAGES=ONLY`에서 HugePages가 모자라 시작에 실패한 것을 `vm.nr_hugepages` 6144로 고치는 순서입니다.
+
+### Oracle 해부도 · 파싱과 Shared Pool (10장면, `oracle/parse/`)
+
+새 버전 배포 뒤 CPU가 90%가 되고 공유 풀에 숫자만 다른 SQL이 수천 개 쌓인 사례로 시작합니다. SQL 처리의 네 단계, 파싱의 세 가지 확인(문법, 의미, 공유 풀), 라이브러리 캐시와 데이터 사전 캐시, 하드 파스와 소프트 파스, 공유 SQL 영역과 개인 SQL 영역, 글자 하나까지 같아야 공유되는 규칙, 바인드 변수를 따라갑니다. 사례는 `parse count (hard)`로 확인하고 `CURSOR_SHARING=FORCE`를 임시로 쓰며 앱을 바인드 변수로 고치는 순서입니다.
+
+### Oracle 해부도 · 옵티마이저와 실행계획 (10장면, `oracle/optimizer/`)
+
+대량 이관 뒤 인덱스가 있는데도 `TABLE ACCESS FULL`을 고른 사례로 시작합니다. 옵티마이저의 변환기·추정기·계획 생성기, 선택도·카디널리티·비용, 데이터 사전의 옵티마이저 통계, 전체 스캔과 인덱스 접근을 고르는 기준, `DBMS_XPLAN.DISPLAY_CURSOR`로 실행 계획 읽는 법을 따라갑니다. 사례는 이관 전에 모은 통계(800행)를 `DBMS_STATS.GATHER_TABLE_STATS`로 다시 모아 `INDEX RANGE SCAN`으로 바뀌는 순서입니다.
+
+### Oracle 해부도 · B-tree 인덱스 (10장면, `oracle/btree/`)
+
+`ship_date`에 인덱스가 있는데 `ship_date IS NULL` 조회가 테이블 전체를 읽는 사례로 시작합니다. 루트·브랜치·리프 블록, 균형 트리와 높이(BLEVEL + 1), 리프의 키와 rowid, 인덱스 고유 스캔과 범위 스캔, 클러스터링 팩터, 인덱스가 DML에 주는 비용을 따라갑니다. 사례는 단일 열 B-tree 인덱스에 NULL이 저장되지 않는다는 문서 규칙에서 출발해 복합 인덱스로 해결하는 순서이며, 해결 방법은 그 규칙에서 이끌어 낸 것임을 화면에 밝혔습니다.
+
 ## 무엇을 보여 주나
 
 첫 레슨 **COMMIT의 여정**은 `UPDATE` 한 문장과 `COMMIT` 한 번을 10단계로 따라갑니다. 주요 내용은 다음과 같습니다.
@@ -260,7 +276,7 @@ python3 -m http.server 8000
 
 ## 로드맵
 
-- 해부도 다음 레슨: SQL 처리와 메모리 구조, Data Guard
+- 해부도 다음 레슨: Data Guard, RAC
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 

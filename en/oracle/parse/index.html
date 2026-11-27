@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parsing and the shared pool · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects how Oracle Database 19c takes a SQL statement to execution (parsing, optimization, row source generation, execution) and the library cache in the shared pool. It also covers hard and soft parses, parent and child cursors, bind variables, and a case where literal SQL drives CPU through the roof.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Parsing and the shared pool · Oracle Anatomy">
+<meta property="og:description" content="After a new release, DB server CPU is at 90%, and the shared pool is full of thousands of nearly identical SQL statements. Dissect how SQL is parsed in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 3 · SQL execution</b> / lesson 1 of 3</div>
+      <div class="head-row">
+        <h1>Parsing and the shared pool</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13 min</span><span class="badge">Beginner</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Why is a SQL statement that does the same job parsed anew every time? Follow the conditions for reusing SQL in the shared pool, and what happens when it cannot be reused.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of how a SQL statement is parsed between the app, the server process and the private SQL area in its PGA, the optimizer, and the library cache and data dictionary cache in the shared pool"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>SQL · processes</li>
+            <li><i style="background:var(--c-data)"></i>Shared SQL area (shared pool)</li>
+            <li><i style="background:var(--c-undo)"></i>Private SQL area (PGA)</li>
+            <li><i style="background:var(--c-redo)"></i>Optimization (hard parse)</li>
+            <li><i style="background:var(--c-signal)"></i>Problems</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02) and the ORDER_HIST table match the DBA labs; the release scenario, CPU usage, SQL_IDs, execution counts, parse counts and other numbers are example values. The V$SQL and V$SYSSTAT screens use the column and statistic names in the documentation, but their layout may differ from the real output. The system bind name (SYS_B_0) in SQL rewritten by CURSOR_SHARING=FORCE follows the documentation example, and the statement that this setting does not reduce the parse count was confirmed from a summary of the later part of the page. The FORCE_MATCHING_SIGNATURE column for grouping statements of the same shape, ORA-04031 and SESSION_CACHED_CURSORS were not confirmed in the pages read, so they are not covered.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/sql-processing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · SQL Processing (parse stages, hard and soft parses, SQL ID)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/improving-rwp-cursor-sharing.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Improving Real-World Performance Through Cursor Sharing (identical SQL, parent and child cursors, bind variables, CURSOR_SHARING, bind peeking)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/tuning-shared-pool-and-large-pool.html" target="_blank" rel="noopener">Database Performance Tuning Guide 19c · Tuning the Shared Pool and the Large Pool (library cache, data dictionary cache, literal SQL)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Concepts 19c · Memory Architecture (private SQL area, cursors)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (library cache: mutex X)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 3 "파싱과 Shared Pool". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=SQL·프로세스, data=공유 SQL 영역, undo=개인 SQL 영역, redo=최적화(하드 파스), signal=문제
+   ORDER_HIST는 DBA 실습 9단계(레슨 71~73)와 같은 테이블이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'parse',
+  base: '../../',
+  storeKey: 'parse:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'sql', label: 'SQL sent' },
+    { key: 'parse', label: 'Parse type' },
+    { key: 'cur', label: 'Cursors in shared pool' },
+    { key: 'hard', label: 'Hard parses/s' },
+    { key: 'cpu', label: 'CPU' },
+  ],
+  goals: [
+    { text: 'The four stages of SQL processing', step: 2 },
+    { text: 'The three checks done during parsing', step: 3 },
+    { text: 'The library cache and data dictionary cache in the shared pool', step: 4 },
+    { text: 'Hard parses and soft parses', step: 5 },
+    { text: 'Shared and private SQL areas, parent and child cursors', step: 6 },
+    { text: 'What counts as the same SQL', step: 7 },
+    { text: 'Bind variables', step: 8 },
+  ],
+  zones: [
+    { id: 'srv', from: [0.6, -1.6], to: [4.4, 7.0], label: 'Server process', members: ['proc', 'pga', 'opt'] },
+    { id: 'sp', from: [5.6, -1.6], to: [12.4, 7.0], label: 'Shared pool (SGA)', members: ['lc', 'dc'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-2.8, -0.2], size: [2, 2, 0.5], label: 'Order app', tone: 'sql' },
+    proc: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'Server process', tone: 'sql', led: true },
+    opt:  { type: 'box', at: [1.8, 2.2], size: [1.7, 1.6, 0.8], label: 'Optimizer', tone: 'redo', led: true, labelPos: 'left' },
+    pga:  { type: 'box', at: [1.6, 4.8], size: [2.0, 1.6, 0.4], label: 'PGA · private SQL area', tone: 'undo', cells: [2, 1], labelPos: 'left', tagDir: 'down' },
+    lc:   { type: 'box', at: [6.2, -0.8], size: [5.4, 3.6, 0.6], label: 'Library cache', tone: 'data', cells: [6, 4] },
+    dc:   { type: 'box', at: [6.2, 4.2], size: [3.2, 2.0, 0.5], label: 'Data dictionary cache', tone: 'data', cells: [3, 2], tagDir: 'down' },
+  },
+  links: {
+    conn:  { from: 'app', to: 'proc' },
+    chk:   { from: 'proc', to: 'lc', onDemand: true },
+    dict:  { from: 'proc', to: 'dc', via: [[5.0, 0.2], [5.0, 5.2]], onDemand: true },
+    opt:   { from: 'proc', to: 'opt', onDemand: true },
+    store: { from: 'opt', to: 'lc', via: [[4.7, 3.0], [4.7, 1.8]], onDemand: true },
+    priv:  { from: 'proc', to: 'pga', via: [[0.9, 0.2], [0.9, 5.6]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'CPU at 90% after a release, and thousands of nearly identical SQL statements in the shared pool',
+      body: [
+        'On the afternoon a new version of the order app was released, CPU on dbserver02 went over 90%. The number of orders being processed is about the same as yesterday. <code>V$SQL</code> shows thousands of statements that differ only in a number, such as <code>order_id = 5100231</code> and <code>= 5100232</code>, each executed just once.',
+        'The workload is the same, but CPU went up. That can mean the CPU is being spent not on executing SQL but on preparing to execute it. That preparation is parsing.',
+      ],
+      callout: {
+        kind: 'insight',
+        text: 'The Database Performance Tuning Guide explains that SQL statements differing only in literal values cannot use the same shared SQL area, and that a hard parse needs additional CPU. This lesson turns those sentences into pictures.',
+      },
+      changes: ['+ thousands of SQL differing only in literals', '× CPU 90%'],
+      metrics: { sql: 'Thousands', parse: '?', cur: '4,812', hard: '310', cpu: '92%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'app'],
+      dim: ['opt', 'pga', 'dc'],
+      cells: {
+        lc: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+          12: 'signal',
+          13: 'signal',
+          14: 'signal',
+          15: 'signal',
+          16: 'signal',
+          17: 'signal',
+          18: 'signal',
+          19: 'signal',
+          20: 'signal',
+          21: 'signal',
+          22: 'signal',
+          23: 'signal',
+        },
+      },
+      tags: { lc: [{ text: 'Thousands of near-identical SQL', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 4, rate: 1.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sql_id, executions, sql_text from v$sql',
+          '  2  where sql_text like \'select status from order_hist%\' and rownum <= 3;',
+          'SQL_ID        EXECUTIONS SQL_TEXT',
+          '------------- ---------- ------------------------------------------------------',
+          '4h1m8x0c2qz7v          1 select status from order_hist where order_id = 5100231|warn',
+          'bq0t5w9n3k2rd          1 select status from order_hist where order_id = 5100232|warn',
+          '7gq3d1v8m6xya          1 select status from order_hist where order_id = 5100233|warn',
+        ],
+      },
+    },
+    {
+      short: 'Four stages',
+      chapter: 'technique',
+      title: 'From SQL to result: parsing, optimization, row source generation, execution',
+      body: [
+        'The SQL Tuning Guide divides SQL processing into four stages: <b>parsing</b> (checking the statement and looking for it in the shared pool), <b>optimization</b> (the optimizer chooses an execution plan), <b>row source generation</b> (turning the plan into an executable form), and <b>execution</b>.',
+        'The server process connected to the app does this work. The key points are that the second and third stages are expensive, and that they can be skipped if the result of doing them once is already in the shared pool.',
+      ],
+      callout: { kind: 'tip', text: 'The server process from scene 5 of "SGA, PGA and background processes" does this work. Both parsing and execution use the DB server\'s CPU, not the app\'s.' },
+      changes: ['① parse → ② optimize → ③ row source generation → ④ execute'],
+      metrics: { sql: '1', parse: '-', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['app', 'proc', 'opt', 'lc'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'data' } },
+      tags: { proc: [{ text: '① parse', tone: 'sql' }], opt: [{ text: '② optimize ③ generate', tone: 'redo' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 1 }, { link: 'opt', kind: 'redo', n: 1 }, { link: 'store', kind: 'data', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> select status from order_hist where order_id = 5100231;', 'STATUS', '----------', 'SHIPPED|ok'] },
+    },
+    {
+      short: 'Three checks',
+      chapter: 'technique',
+      title: 'Parsing: syntax check, semantic check, shared pool check',
+      body: [
+        'Parsing, as the documentation describes it, is three checks. The <b>syntax check</b> confirms the SQL is grammatical (for example, FROM spelled correctly); the <b>semantic check</b> confirms the tables and columns exist and the user has privileges. The table and column information for the semantic check comes from the <span class="term">data dictionary cache</span> in the shared pool.',
+        'The last is the <b>shared pool check</b>. A hash value is computed from the statement text to look for the same SQL already in the library cache. According to the documentation, this hash value is the SQL ID shown in <code>V$SQL.SQL_ID</code>.',
+      ],
+      callout: { kind: 'tip', text: 'A syntax error fails the first check; a missing table fails the second. A statement with an error never reaches execution.' },
+      changes: ['~ syntax → semantic → shared pool check', '~ text hash = SQL_ID'],
+      metrics: { sql: '1', parse: 'Checking', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['proc', 'dc', 'lc'],
+      dim: ['opt', 'pga', 'app'],
+      cells: { dc: { 0: 'data', 1: 'data' } },
+      tags: { dc: [{ text: 'ORDER_HIST columns · privileges', tone: 'data' }], lc: [{ text: 'Look up by hash', tone: 'sql' }] },
+      flows: [{ link: 'dict', kind: 'data', n: 2, bounce: true }, { link: 'chk', kind: 'sql', n: 1, bounce: true }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> selct status from order_hist where order_id = 5100231;',
+          'ORA-00900: invalid SQL statement|warn',
+          'SQL> select stat from order_hist where order_id = 5100231;',
+          'ORA-00904: "STAT": invalid identifier|warn',
+        ],
+      },
+    },
+    {
+      short: 'Shared pool',
+      chapter: 'technique',
+      title: 'The shared pool: library cache and data dictionary cache',
+      body: [
+        'According to the Database Performance Tuning Guide, the <span class="term">library cache</span> stores the executable form of recently referenced SQL and PL/SQL, and the <span class="term">data dictionary cache</span> stores data dictionary information (tables, columns, users). Both are in the shared pool in the SGA.',
+        'Space is limited, so entries not used for a while are aged out. If thousands of one-time statements come in, even frequently used SQL can be pushed out and need to be parsed again.',
+      ],
+      callout: { kind: 'insight', text: 'If the buffer cache exists to avoid rereading data blocks, the library cache exists to avoid reparsing SQL.' },
+      changes: ['+ library cache: executable SQL and PL/SQL', '+ data dictionary cache: dictionary information'],
+      metrics: { sql: '-', parse: '-', cur: 'Frequent SQL', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'dc'],
+      dim: ['app', 'proc', 'opt', 'pga'],
+      cells: {
+        lc: { 0: 'data', 1: 'data', 2: 'data', 6: 'data', 7: 'data', 12: 'data', 13: 'data', 18: 'data' },
+        dc: { 0: 'data', 1: 'data', 3: 'data', 4: 'data' },
+      },
+      tags: { lc: [{ text: 'Executable SQL · PL/SQL', tone: 'data' }], dc: [{ text: 'Tables · columns · users', tone: 'data' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, round(bytes/1024/1024) mb from v$sgainfo where name = \'Shared Pool Size\';',
+          'NAME                                     MB',
+          '-------------------------------- ----------',
+          'Shared Pool Size                       1024',
+        ],
+      },
+    },
+    {
+      short: 'Hard · soft',
+      chapter: 'technique',
+      title: 'Found: soft parse. Not found: hard parse',
+      body: [
+        'If the shared pool check finds the same SQL, it is a <span class="term">soft parse</span> (a library cache hit). As the documentation says, a soft parse skips optimization and row source generation and goes straight to execution. If not, it is a <span class="term">hard parse</span> (a cache miss): the optimizer builds a new plan and it is placed in the library cache.',
+        'A hard parse not only uses more CPU, it must also hold serialization devices (latches and mutexes) so that changes to shared pool structures do not collide with other sessions. When hard parses pile up, time spent waiting for these devices grows too. <code>library cache: mutex X</code> in the Database Reference wait event list is a wait for such a mutex.',
+      ],
+      callout: { kind: 'warn', text: 'A soft parse is not free either, but it skips optimization and is far cheaper than a hard parse. The goal is: SQL doing the same job is hard parsed only once.' },
+      changes: ['~ hit → soft parse (optimization skipped)', '~ miss → hard parse (optimizer)'],
+      metrics: { sql: '2', parse: 'Soft · hard', cur: '-', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['proc', 'opt', 'lc'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'data', 1: 'redo' } },
+      tags: { lc: [{ text: 'Hit: execute now', tone: 'data' }], opt: [{ text: 'Miss: new plan', tone: 'redo' }] },
+      flows: [{ link: 'chk', kind: 'data', n: 1, bounce: true }, { link: 'opt', kind: 'redo', n: 2 }, { link: 'store', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, value from v$sysstat where name like \'parse count%\';',
+          'NAME                               VALUE',
+          '------------------------------ ----------',
+          'parse count (total)              8417220',
+          'parse count (hard)               1203381|warn',
+        ],
+      },
+    },
+    {
+      short: 'Cursors',
+      chapter: 'technique',
+      title: 'The shared SQL area is shared; each session has its own private SQL area',
+      body: [
+        'The result of a hard parse (the parse tree and execution plan) goes into a <span class="term">shared SQL area</span> in the library cache and is used by many sessions. Bind values and execution state, on the other hand, differ per session, so they are kept in the <span class="term">private SQL area</span> in each server process\'s PGA. Concepts describes a <span class="term">cursor</span> as a handle to this private SQL area.',
+        'One SQL text (the parent cursor) can have several plans beneath it (child cursors). For example, the same text referring to a same-named table owned by a different user gets its own child cursor. <code>CHILD_NUMBER</code> in <code>V$SQL</code> is that number.',
+      ],
+      callout: { kind: 'tip', text: 'In DBA labs stage 9, lesson 71, <code>dbms_xplan.display_cursor(\'8wzq2k1ptm6c4\')</code> reads the plan of exactly this shared SQL area in the library cache.' },
+      changes: ['+ shared SQL area (plan) → library cache', '+ private SQL area (bind values, state) → PGA'],
+      metrics: { sql: '1', parse: 'Soft', cur: '1 parent · 1 child', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'pga', 'proc'],
+      dim: ['opt', 'dc', 'app'],
+      cells: { lc: { 0: 'data' }, pga: { 0: 'undoDirty', 1: 'undo' } },
+      tags: { lc: [{ text: 'Shared SQL area', tone: 'data' }], pga: [{ text: 'Bind values · state', tone: 'undo' }] },
+      flows: [{ link: 'chk', kind: 'data', n: 1, bounce: true }, { link: 'priv', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sql_id, child_number, executions, parse_calls from v$sql',
+          '  2  where sql_id = \'8wzq2k1ptm6c4\';',
+          'SQL_ID        CHILD_NUMBER EXECUTIONS PARSE_CALLS',
+          '------------- ------------ ---------- -----------',
+          '8wzq2k1ptm6c4            0      12408       12408',
+        ],
+      },
+    },
+    {
+      short: 'Same SQL',
+      chapter: 'technique',
+      title: '"The same SQL" must match to the last character',
+      body: [
+        'According to the SQL Tuning Guide, to be shared the SQL text must be <b>identical character for character</b>, including spaces, case and comments. <code>SELECT</code> versus <code>select</code>, or one extra space, makes a different statement. The documentation explains that a hard parse effectively recompiles the statement.',
+        'So <code>order_id = 5100231</code> and <code>order_id = 5100232</code> are different SQL. As in the documentation example, three statements differing only in literals become three different parent cursors. The thousands of statements in scene 1 each went through a hard parse and each created its own cursor.',
+      ],
+      callout: { kind: 'warn', text: 'The documentation also says identical syntax alone is not sufficient: even with the same text, different objects or environments cannot use the same plan (the child cursors of the previous scene).' },
+      changes: ['× 5100231 ≠ 5100232 → different parent cursors', '× SELECT ≠ select'],
+      metrics: { sql: '3', parse: 'Hard × 3', cur: '3 parents', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'opt'],
+      dim: ['pga', 'dc'],
+      cells: { lc: { 0: 'redo', 1: 'redo', 2: 'redo' } },
+      tags: { lc: [{ text: '3 parent cursors', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 3 }, { link: 'opt', kind: 'redo', n: 3 }, { link: 'store', kind: 'redo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select status from order_hist where order_id = 5100231;',
+          'SQL> select status from order_hist where order_id = 5100232;',
+          'SQL> SELECT status FROM order_hist WHERE order_id = 5100231;',
+          'SQL> select count(*) from v$sql where lower(sql_text) like \'select status from order_hist%\';',
+          '  COUNT(*)',
+          '----------',
+          '         3|warn',
+        ],
+      },
+    },
+    {
+      short: 'Bind variables',
+      chapter: 'technique',
+      title: 'Bind variables: change the value, keep the text',
+      body: [
+        'Put a <span class="term">bind variable</span> such as <code>:b1</code> where the value goes, and the SQL text is always the same; only the value changes. It is hard parsed once on the first execution, then soft parsed to use the same shared SQL area. In the documentation example, the SQL with binds has a <code>VERSION_COUNT</code> of 1. The value lives in each session\'s private SQL area.',
+        'During the hard parse, the optimizer peeks at the first value supplied for the bind (bind peeking) to choose a plan. The documentation also describes adaptive cursor sharing for cases where the best plan depends on the value.',
+      ],
+      callout: { kind: 'tip', text: 'Recall that in DBA lab 71 the app\'s SQL was <code>TO_CHAR(O.ORDER_DATE,\'YYYYMM\')=:B1</code>. That means the app was using bind variables properly.' },
+      changes: ['~ order_id = :b1', '+ one hard parse, then soft parses'],
+      metrics: { sql: '1 kind', parse: 'Soft', cur: '1 parent', hard: '-', cpu: '-' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'pga', 'proc'],
+      dim: ['opt', 'dc'],
+      cells: { lc: { 0: 'data' }, pga: { 0: 'undoDirty', 1: 'undoDirty' } },
+      tags: { lc: [{ text: 'VERSION_COUNT 1', tone: 'data' }], pga: [{ text: ':b1 = 5100231, 5100232 …', tone: 'undo' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 3 }, { link: 'chk', kind: 'data', n: 3, bounce: true }, { link: 'priv', kind: 'undo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> variable b1 number',
+          'SQL> exec :b1 := 5100231',
+          'SQL> select status from order_hist where order_id = :b1;',
+          'SQL> exec :b1 := 5100232',
+          'SQL> select status from order_hist where order_id = :b1;',
+          'SQL> select executions, version_count from v$sqlarea where sql_text like \'%order_id = :b1\';',
+          'EXECUTIONS VERSION_COUNT',
+          '---------- -------------',
+          '         2             1|ok',
+        ],
+      },
+    },
+    {
+      short: 'Literal SQL',
+      chapter: 'case',
+      title: 'Case: the new version glued values into the SQL text',
+      body: [
+        'This is the cause from scene 1. The new app version did not pass the order number as a bind variable; it concatenated it into the SQL string. The SQL text differed for every order, so every execution was a hard parse, and that CPU and shared pool contention became the 90% CPU. You confirm it by a sharp rise in <code>parse count (hard)</code> and thousands of statements sharing the same beginning.',
+        'The real fix is for the development team to switch to bind variables. Until then, the stopgap in the documentation is <code>CURSOR_SHARING=FORCE</code>, which replaces literals with system binds (<code>:"SYS_B_0"</code>) so that similar statements share a cursor. The documentation notes that this setting does not reduce the parse count itself, so it does not replace fixing the app.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'CURSOR_SHARING affects all SQL in the instance. Changing it in production needs change approval, along with a plan to return to the original value (EXACT) once the app is fixed. Comparing parse statistics before and after the release in AWR reports makes it easier to explain to the development team.',
+      },
+      changes: ['× different SQL text per order', '~ cursor_sharing = FORCE (stopgap)', '~ app: switch to bind variables'],
+      metrics: { sql: 'Thousands → 1 kind', parse: 'Hard → soft', cur: '4,812 → 1', hard: '310 → 2', cpu: '92% → 35%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: ['lc', 'opt', 'app'],
+      dim: ['dc'],
+      cells: { lc: { 0: 'data', 1: 'signal', 2: 'signal', 3: 'signal', 4: 'signal', 5: 'signal', 6: 'signal', 7: 'signal', 8: 'signal' } },
+      tags: { app: [{ text: 'Values concatenated', tone: 'signal' }], lc: [{ text: ':"SYS_B_0"', tone: 'data' }] },
+      flows: [{ link: 'conn', kind: 'signal', n: 4, rate: 1.6 }, { link: 'opt', kind: 'redo', n: 3, rate: 1.6 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select substr(sql_text, 1, 46) head, count(*) cnt from v$sql',
+          '  2  group by substr(sql_text, 1, 46) having count(*) > 100;',
+          'HEAD                                                  CNT',
+          '---------------------------------------------- ----------',
+          'select status from order_hist where order_id =       4796|warn',
+          'SQL> alter system set cursor_sharing = force;',
+          'System altered.|ok',
+          'SQL> select sql_text from v$sql where sql_text like \'select status from order_hist%SYS_B%\';',
+          'select status from order_hist where order_id = :"SYS_B_0"|ok',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: parse once, execute many times',
+      body: [
+        'SQL goes through parsing (syntax, semantic and shared pool checks), optimization, row source generation and execution. If the same SQL is in the library cache of the shared pool, a soft parse skips optimization; if not, a hard parse has the optimizer build a new plan.',
+        '"The same SQL" must match to the character, so values are passed as bind variables to keep the text fixed. The plan is shared in the shared SQL area; bind values and execution state stay in each session\'s PGA.',
+      ],
+      callout: { kind: 'insight', text: 'How the optimizer chooses a plan during a hard parse is the subject of the next lesson, "The optimizer and execution plans".' },
+      changes: ['~ parse → optimize → generate → execute', '+ share cursors with bind variables'],
+      metrics: { sql: '1 kind', parse: 'Soft', cur: '1 parent', hard: '2', cpu: '35%' },
+      show: ['app', 'proc', 'pga', 'opt', 'lc', 'dc'],
+      focus: [],
+      cells: { lc: { 0: 'data', 6: 'data', 12: 'data' }, dc: { 0: 'data', 1: 'data' }, pga: { 0: 'undoDirty' } },
+      tags: {
+        proc: [{ text: '① parse', tone: 'sql' }],
+        opt: [{ text: '② hard parse only', tone: 'redo' }],
+        lc: [{ text: '③ shared SQL area', tone: 'data' }],
+        pga: [{ text: '④ private SQL area', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'conn', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'chk', kind: 'data', n: 1, rate: 0.6, bounce: true },
+        { link: 'priv', kind: 'undo', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, value from v$sysstat where name = \'parse count (hard)\';',
+          'NAME                               VALUE',
+          '------------------------------ ----------',
+          'parse count (hard)               1205710|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the shared pool', { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }], current: 0 },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SGA·PGA와 백그라운드 프로세스 · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c 인스턴스의 메모리(SGA와 PGA)와 프로세스(서버 프로세스와 필수 백그라운드 프로세스)를 10단계 애니메이션으로 해부하는 레슨. 메모리 관리 방식(AMM·ASMM), PGA_AGGREGATE_LIMIT, 리눅스 HugePages와 SGA를 늘린 뒤 인스턴스가 뜨지 않는 사례를 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/memory/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="SGA·PGA와 백그라운드 프로세스 · Oracle 해부도">
+<meta property="og:description" content="SGA를 8G에서 12G로 늘리고 재시작했더니 인스턴스가 뜨지 않습니다. 인스턴스의 메모리와 프로세스를 10단계로 해부합니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 1 · 아키텍처</b> / 2개 중 2번째 레슨</div>
+      <div class="head-row">
+        <h1>SGA·PGA와 백그라운드 프로세스</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13분</span><span class="badge">입문</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">"인스턴스 = 메모리 + 프로세스"에서 그 메모리와 프로세스를 하나씩 열어 보고, 리눅스의 HugePages와 어떻게 맞물리는지 알아봅니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="앱 접속, 서버 프로세스와 PGA, SGA의 버퍼 캐시·공유 풀·리두 로그 버퍼·라지 풀, 필수 백그라운드 프로세스, 리눅스 HugePages 사이의 관계를 보여 주는 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>프로세스 · 명령</li>
+            <li><i style="background:var(--c-data)"></i>SGA (공유 메모리)</li>
+            <li><i style="background:var(--c-undo)"></i>PGA (전용 메모리)</li>
+            <li><i style="background:var(--c-redo)"></i>리두 로그 버퍼 · LGWR</li>
+            <li><i style="background:var(--c-signal)"></i>오류</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02), SGA_TARGET 8G, HugePages 4096개와 sysctl 파일 이름, STARTUP 화면의 크기 값은 리눅스 실습·DBA 실습의 가상 서버와 같은 값이고, 12G로 늘리는 작업과 PID·시각은 설명을 위한 예시 값입니다. 리눅스에서 백그라운드 프로세스 이름이 ora_이름_SID 형식이라는 것은 이번에 읽은 문서에서 직접 확인하지 못했고 실습 화면과 같게 두었습니다. HugePages가 모자랄 때 alert log에 나오는 문구와 오류 번호는 문서에 적혀 있지 않아 줄임표(…)로 줄였습니다. 공유 풀의 하위 구성 요소와 PGA_AGGREGATE_LIMIT 설명 일부는 문서의 뒷부분을 요약본으로 읽었고, PGA_AGGREGATE_LIMIT의 기본값 계산식은 확인하지 못해 적지 않았습니다. USE_LARGE_PAGES의 값 가운데 ONLY와 AUTO_ONLY만 이번에 읽은 문서로 확인했습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Memory Architecture (SGA·PGA 구성, 메모리 관리 방식, STARTUP 화면)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (서버 프로세스, 필수 백그라운드 프로세스)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-memory.html" target="_blank" rel="noopener">Administrator's Guide 19c · Managing Memory (AMM·ASMM, PGA_AGGREGATE_TARGET·LIMIT, V$SGAINFO)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html" target="_blank" rel="noopener">Administrator's Reference 19c · Administering Oracle Database on Linux (HugePages, AMM과의 관계, Transparent HugePages, 필요한 페이지 수 계산)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/haovw/oracle-ai-database-configuration-best-practices.html" target="_blank" rel="noopener">High Availability Overview and Best Practices · Database Configuration Best Practices (USE_LARGE_PAGES=ONLY)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 1 "SGA·PGA와 백그라운드 프로세스". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=프로세스·명령, data=SGA, undo=PGA, redo=리두 로그 버퍼·LGWR, signal=오류
+   SGA_TARGET 8G, vm.nr_hugepages 4096, STARTUP 크기 값은 리눅스 실습(lab/) 14번과 DBA 실습 22번과 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'memory',
+  base: '../../',
+  storeKey: 'memory:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'sga', label: 'SGA' },
+    { key: 'pga', label: 'PGA' },
+    { key: 'hp', label: 'HugePages' },
+    { key: 'proc', label: '프로세스' },
+    { key: 'inst', label: '인스턴스' },
+  ],
+  goals: [
+    { text: 'SGA와 PGA의 차이', step: 2 },
+    { text: 'SGA를 이루는 영역', step: 3 },
+    { text: 'PGA에 들어 있는 것', step: 4 },
+    { text: '서버 프로세스가 하는 일', step: 5 },
+    { text: '필수 백그라운드 프로세스와 역할', step: 6 },
+    { text: '메모리 관리 방식과 PGA 한도', step: 7 },
+    { text: 'HugePages와 SGA', step: 8 },
+  ],
+  zones: [
+    { id: 'srv', from: [0.6, -1.6], to: [4.4, 5.8], label: '서버 프로세스', members: ['proc', 'pga'] },
+    { id: 'sga', from: [5.2, -1.6], to: [13.0, 6.2], label: 'SGA (공유 메모리)', members: ['bc', 'sp', 'lb', 'lp'] },
+    { id: 'bg', from: [13.8, -1.6], to: [19.4, 9.0], label: '백그라운드 프로세스', members: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'] },
+    { id: 'os', from: [5.2, 7.0], to: [13.0, 9.6], label: '리눅스 메모리', members: ['hp'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-2.8, -0.2], size: [2, 2, 0.5], label: '앱 (클라이언트)', tone: 'sql' },
+    proc: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: '서버 프로세스', tone: 'sql', led: true },
+    pga:  { type: 'box', at: [1.6, 2.4], size: [2.0, 2.4, 0.5], label: 'PGA', tone: 'undo', cells: [2, 3], labelPos: 'left' },
+    bc:   { type: 'box', at: [5.8, -0.8], size: [3.4, 2.8, 0.6], label: '버퍼 캐시', tone: 'data', cells: [4, 3] },
+    sp:   { type: 'box', at: [10.0, -0.8], size: [2.4, 2.8, 0.6], label: '공유 풀', tone: 'data', cells: [2, 2] },
+    lb:   { type: 'box', at: [6.0, 3.4], size: [2.6, 1.4, 0.5], label: '리두 로그 버퍼', tone: 'redo', tagDir: 'down' },
+    lp:   { type: 'box', at: [9.8, 3.4], size: [2.0, 1.6, 0.5], label: '라지 풀 · 기타', tone: 'data', tagDir: 'down' },
+    hp:   { type: 'box', at: [5.8, 7.6], size: [6.6, 1.4, 0.3], label: 'HugePages (2MB 페이지)', tone: 'muted', cells: [8, 1], tagDir: 'down' },
+    pmon: { type: 'box', at: [14.4, -1.0], size: [1.4, 1.2, 0.8], label: 'PMON', tone: 'sql', led: true },
+    smon: { type: 'box', at: [16.8, -1.0], size: [1.4, 1.2, 0.8], label: 'SMON', tone: 'sql', led: true, labelPos: 'right' },
+    dbw:  { type: 'box', at: [14.4, 1.6], size: [1.4, 1.2, 0.8], label: 'DBW0', tone: 'data', led: true },
+    lgwr: { type: 'box', at: [16.8, 1.6], size: [1.4, 1.2, 0.8], label: 'LGWR', tone: 'redo', led: true, labelPos: 'right' },
+    ckpt: { type: 'box', at: [14.4, 4.2], size: [1.4, 1.2, 0.8], label: 'CKPT', tone: 'undo', led: true },
+    lreg: { type: 'box', at: [16.8, 4.2], size: [1.4, 1.2, 0.8], label: 'LREG', tone: 'sql', led: true, labelPos: 'right' },
+    mmon: { type: 'box', at: [14.4, 6.8], size: [1.4, 1.2, 0.8], label: 'MMON', tone: 'sql', led: true, tagDir: 'down' },
+  },
+  links: {
+    conn:  { from: 'app', to: 'proc' },
+    rd:    { from: 'proc', to: 'bc', onDemand: true },
+    parse: { from: 'proc', to: 'sp', via: [[4.8, -1.2], [11.2, -1.2]], onDemand: true },
+    work:  { from: 'proc', to: 'pga', onDemand: true },
+    redo:  { from: 'proc', to: 'lb', via: [[4.8, 0.2], [4.8, 4.1]], onDemand: true },
+    dbw:   { from: 'bc', to: 'dbw', via: [[7.5, 2.6], [13.4, 2.6], [13.4, 2.2]], onDemand: true },
+    lgw:   { from: 'lb', to: 'lgwr', via: [[7.3, 5.6], [13.6, 5.6], [13.6, 0.8], [17.5, 0.8]], onDemand: true },
+    back:  { from: 'hp', to: 'bc', via: [[9.1, 6.6], [5.4, 6.6], [5.4, 0.6]], onDemand: true },
+    back2: { from: 'hp', to: 'sp', via: [[12.8, 8.3], [12.8, 0.6]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: '문제',
+      chapter: 'problem',
+      title: 'SGA를 12G로 늘리고 재시작했더니 인스턴스가 뜨지 않는다',
+      body: [
+        '정기점검 날, 버퍼 캐시가 모자란다는 분석에 따라 dbserver02의 <code>sga_target</code>을 8G에서 12G로 늘리고 DB를 다시 올렸습니다. 그런데 <code>startup</code>이 오류로 끝나고 인스턴스가 뜨지 않습니다. 서버의 물리 메모리는 32G라 넉넉합니다.',
+        '"메모리가 넉넉한데 왜?"에 답하려면 인스턴스의 메모리가 어떻게 생겼고, 리눅스가 그 메모리를 어떤 방식으로 내주는지 알아야 합니다. 이 레슨은 인스턴스를 이루는 메모리와 프로세스를 하나씩 엽니다.',
+      ],
+      callout: { kind: 'insight', text: '"인스턴스와 데이터베이스" 4장면에서 NOMOUNT는 SGA를 잡고 백그라운드 프로세스를 띄우는 단계였습니다. 이 장애는 그 첫 단계에서 막힌 것입니다.' },
+      changes: ['~ sga_target 8G → 12G', '× startup 실패'],
+      metrics: { sga: '12G ?', pga: '-', hp: '4096', proc: '0', inst: '안 뜸' },
+      show: ['app', 'proc', 'bc', 'sp', 'lb', 'lp', 'hp'],
+      focus: ['hp', 'bc'],
+      dim: ['app', 'proc', 'sp', 'lb', 'lp'],
+      cells: { hp: { 0: 'signal', 1: 'signal', 2: 'signal', 3: 'signal' } },
+      tags: { hp: [{ text: '4096개 (8G 분량)', tone: 'signal' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: ['SQL> alter system set sga_target = 12G scope = spfile;', 'System altered.|ok', 'SQL> shutdown immediate', 'SQL> startup', '… (인스턴스 시작 실패)|warn'],
+      },
+    },
+    {
+      short: '두 메모리',
+      chapter: 'technique',
+      title: 'SGA는 모두가 함께, PGA는 프로세스마다 따로',
+      body: [
+        'Concepts에 따르면 <span class="term">SGA</span>(System Global Area)는 모든 서버 프로세스와 백그라운드 프로세스가 함께 쓰는 메모리입니다. 블록 캐시, 파싱된 SQL, 리두 버퍼처럼 여러 세션이 나눠 써야 하는 것이 여기에 있습니다.',
+        '<span class="term">PGA</span>(Program Global Area)는 반대로 프로세스 하나만 쓰는 메모리입니다. 문서대로 서버 프로세스와 백그라운드 프로세스마다 PGA가 하나씩 있습니다. 정렬처럼 그 세션만의 작업 공간이 여기에 잡힙니다.',
+      ],
+      callout: { kind: 'tip', text: '리눅스로 보면 SGA는 공유 메모리, PGA는 각 프로세스의 개인 메모리입니다. 리눅스 해부도 7장면 "메모리"에서 본 공유 메모리가 바로 SGA입니다.' },
+      changes: ['~ SGA: 모든 프로세스가 공유', '~ PGA: 프로세스마다 하나'],
+      metrics: { sga: '8G', pga: '프로세스마다', hp: '4096', proc: '-', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      dim: ['app'],
+      tags: { pga: [{ text: '이 프로세스 전용', tone: 'undo' }], sp: [{ text: '모두가 공유', tone: 'data' }] },
+      flows: [{ link: 'work', kind: 'undo', n: 1 }, { link: 'rd', kind: 'data', n: 1 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ipcs -m',
+          '------ Shared Memory Segments --------',
+          'key        shmid      owner      perms      bytes      nattch',
+          '0x00000000 2          oracle     600        8438939312 64',
+        ],
+      },
+    },
+    {
+      short: 'SGA',
+      chapter: 'technique',
+      title: 'SGA 안: 버퍼 캐시, 공유 풀, 리두 로그 버퍼, 그리고 나머지 풀',
+      body: [
+        'Concepts가 꼽는 SGA 구성 요소는 <span class="term">버퍼 캐시</span>(데이터 블록), In-Memory 영역(선택), <span class="term">리두 로그 버퍼</span>, <span class="term">공유 풀</span>, 라지 풀, Java 풀, 고정 SGA(내부 관리용)입니다. Administrator\'s Guide에는 Streams 풀도 SGA 구성 요소로 나옵니다.',
+        '공유 풀에는 파싱된 SQL과 PL/SQL이 있는 라이브러리 캐시, 데이터 사전 정보를 담는 데이터 사전 캐시 등이 있습니다. "파싱과 Shared Pool" 레슨에서 자세히 봅니다. STARTUP 화면의 Database Buffers가 버퍼 캐시, Redo Buffers가 리두 로그 버퍼 크기입니다.',
+      ],
+      callout: { kind: 'tip', text: '구성 요소별 크기는 <code>V$SGAINFO</code>로 볼 수 있습니다. Administrator\'s Guide는 SGA 크기를 정할 때 V$SGAINFO와 V$SGA_TARGET_ADVICE를 보라고 합니다.' },
+      changes: ['+ 버퍼 캐시 · 공유 풀 · 리두 로그 버퍼', '+ 라지 풀 · Java 풀 · Streams 풀 · 고정 SGA'],
+      metrics: { sga: '8G', pga: '-', hp: '4096', proc: '-', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['bc', 'sp', 'lb', 'lp'],
+      dim: ['app', 'proc', 'pga'],
+      cells: { bc: { 0: 'data', 1: 'data', 4: 'data', 5: 'data', 6: 'data', 9: 'data' }, sp: { 0: 'data', 3: 'data' } },
+      tags: { bc: [{ text: 'Database Buffers 6.3G', tone: 'data' }], lb: [{ text: 'Redo Buffers 7.3M', tone: 'redo' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> startup',
+          'ORACLE instance started.',
+          'Total System Global Area 8438939312 bytes',
+          'Fixed Size                  9137840 bytes',
+          'Variable Size            1694498816 bytes',
+          'Database Buffers         6727663616 bytes',
+          'Redo Buffers                7639040 bytes',
+        ],
+      },
+    },
+    {
+      short: 'PGA',
+      chapter: 'technique',
+      title: 'PGA 안: 커서의 실행 상태와 정렬·해시 작업 공간',
+      body: [
+        'Concepts는 PGA를 몇 영역으로 나눕니다. <span class="term">개인 SQL 영역</span>에는 바인드 변수 값과 쿼리 실행 상태가 있고, <span class="term">SQL 작업 영역</span>은 정렬(sort area), 해시 조인(hash area), 비트맵 병합에 쓰입니다. 전용 서버 접속에서는 세션 정보(UGA)도 PGA에 있습니다.',
+        '큰 <code>ORDER BY</code>나 해시 조인은 작업 영역을 크게 씁니다. 작업 영역이 모자라면 남는 부분을 임시 테이블스페이스에 쓰면서 처리하므로 느려집니다. 그래서 PGA는 "세션 수 × 세션이 하는 일"만큼 커집니다.',
+      ],
+      callout: { kind: 'insight', text: 'SGA는 정해 둔 크기로 시작할 때 잡히지만, PGA는 세션이 일하는 만큼 늘었다 줄었다 합니다. 메모리 계산을 할 때 둘을 따로 생각하는 이유입니다.' },
+      changes: ['+ 개인 SQL 영역 (바인드 값, 실행 상태)', '+ SQL 작업 영역 (정렬, 해시)'],
+      metrics: { sga: '8G', pga: '세션마다 다름', hp: '4096', proc: '-', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['pga', 'proc'],
+      dim: ['bc', 'sp', 'lb', 'lp'],
+      cells: { pga: { 0: 'undoDirty', 1: 'undo', 2: 'undoDirty', 3: 'undoDirty', 4: 'undo' } },
+      tags: { pga: [{ text: '정렬 중', tone: 'undo' }] },
+      flows: [{ link: 'work', kind: 'undo', n: 3 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select name, round(value/1024/1024) mb from v$pgastat',
+          '  2  where name in (\'total PGA allocated\', \'maximum PGA allocated\');',
+          'NAME                             MB',
+          '------------------------- ----------',
+          'total PGA allocated              612',
+          'maximum PGA allocated           1480',
+        ],
+      },
+    },
+    {
+      short: '서버 프로세스',
+      chapter: 'technique',
+      title: '접속 하나에 서버 프로세스 하나',
+      body: [
+        '앱이 리스너를 거쳐 접속하면 그 접속만을 위한 <span class="term">서버 프로세스</span>가 생깁니다. Concepts는 전용 서버 구성에서 클라이언트 접속 하나를 오직 하나의 서버 프로세스가 맡는다고 설명합니다. 클라이언트 20개면 서버 프로세스도 20개입니다.',
+        '서버 프로세스는 SQL을 파싱하고 실행하며, 필요한 데이터 블록을 데이터 파일에서 읽어 버퍼 캐시에 올립니다. 문서는 서버 프로세스가 데이터 파일의 블록을 데이터베이스 버퍼 캐시로 읽는다고 적고 있습니다. 결과는 그 프로세스의 PGA를 거쳐 앱으로 돌아갑니다.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: '리눅스 <code>ps</code>에서 <code>oracleORCL (LOCAL=NO)</code>로 보이는 것이 리스너를 거쳐 들어온 서버 프로세스입니다. DBA 실습 3단계 레슨 27에서 세션의 SPID로 이 프로세스를 찾아갑니다.',
+      },
+      changes: ['+ 앱 접속 → 전용 서버 프로세스', '~ 블록 읽기 → 버퍼 캐시'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096', proc: '서버 48', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp'],
+      focus: ['app', 'proc', 'bc', 'sp'],
+      dim: ['lb', 'lp'],
+      cells: { bc: { 5: 'dataDirty' }, sp: { 0: 'data' } },
+      tags: { proc: [{ text: 'oracleORCL (LOCAL=NO)', tone: 'sql' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 2 }, { link: 'parse', kind: 'sql', n: 1 }, { link: 'rd', kind: 'data', n: 2 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep "LOCAL=NO" | head -2',
+          'oracle   28877     1  0 09:12 ?        00:00:04 oracleORCL (LOCAL=NO)',
+          'oracle   28903     1  0 09:12 ?        00:00:01 oracleORCL (LOCAL=NO)',
+        ],
+      },
+    },
+    {
+      short: '백그라운드',
+      chapter: 'technique',
+      title: '필수 백그라운드 프로세스: 각자 맡은 일이 하나씩',
+      body: [
+        'Concepts가 꼽는 필수 백그라운드 프로세스는 다음과 같습니다. <b>PMON</b> 그룹(PMON과 정리 프로세스 CLMN·CLnn), <b>LREG</b>(인스턴스 정보를 리스너에 등록), <b>SMON</b>(시스템 수준 정리, 인스턴스 복구), <b>DBWn</b>(더티 버퍼 쓰기), <b>LGWR</b>(리두 로그 버퍼를 온라인 리두 로그에 쓰기), <b>CKPT</b>(체크포인트 정보 기록), <b>MMON·MMNL</b>(AWR 관련 작업), <b>RECO</b>(분산 트랜잭션 실패 처리), 그리고 PMAN입니다.',
+        '문서는 이 밖에 MMAN, DIAG, VKTM, DBRM, PSP0 같은 필수 프로세스를 Database Reference에서 다룬다고 안내합니다. 이 중 하나라도 죽으면 인스턴스가 유지되지 않으므로, <code>ora_pmon_ORCL</code>이 떠 있는지가 "DB가 살아 있나"의 첫 확인이 됩니다.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: '리눅스 실습 1단계 레슨 6에서 <code>ps -ef | grep pmon</code>으로 이 확인을 해 봅니다. LREG가 리스너에 등록하므로, DB를 올린 직후 리스너 상태에 서비스가 늦게 보이는 것도 이 프로세스 때문입니다.',
+      },
+      changes: ['+ PMON · LREG · SMON · DBW0 · LGWR · CKPT · MMON …', '~ 하나라도 죽으면 인스턴스 중단'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096', proc: '백그라운드 수십 개', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      dim: ['app', 'proc', 'pga', 'sp', 'lp'],
+      cells: { bc: { 5: 'dataDirty' } },
+      tags: { lreg: [{ text: '리스너 등록', tone: 'sql' }], mmon: [{ text: 'AWR 스냅숏', tone: 'sql' }] },
+      flows: [{ link: 'dbw', kind: 'data', n: 1 }, { link: 'lgw', kind: 'redo', n: 1 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ ps -ef | grep -E "ora_(pmon|smon|dbw0|lgwr|ckpt|lreg|mmon)_" | grep -v grep',
+          'oracle    2101     1  0 09:00 ?        00:00:00 ora_pmon_ORCL',
+          'oracle    2121     1  0 09:00 ?        00:00:03 ora_dbw0_ORCL',
+          'oracle    2123     1  0 09:00 ?        00:00:05 ora_lgwr_ORCL',
+          'oracle    2125     1  0 09:00 ?        00:00:01 ora_ckpt_ORCL',
+          'oracle    2127     1  0 09:00 ?        00:00:00 ora_smon_ORCL',
+          'oracle    2131     1  0 09:00 ?        00:00:00 ora_lreg_ORCL',
+          'oracle    2135     1  0 09:00 ?        00:00:02 ora_mmon_ORCL',
+        ],
+      },
+    },
+    {
+      short: '메모리 관리',
+      chapter: 'technique',
+      title: '메모리 크기를 누가 정하나: AMM, ASMM, 수동',
+      body: [
+        'Concepts와 Administrator\'s Guide는 세 방식을 설명합니다. <b>자동 메모리 관리</b>(AMM)는 <code>MEMORY_TARGET</code> 하나로 SGA와 PGA를 함께 맞추고, <b>자동 공유 메모리 관리</b>(ASMM)는 <code>SGA_TARGET</code>과 PGA 목표를 따로 정하며, 수동은 각 풀 크기를 직접 정합니다. 문서는 SGA와 PGA를 합쳐 4GB 이하일 때 AMM을 권합니다.',
+        'PGA에는 두 값이 있습니다. <code>PGA_AGGREGATE_TARGET</code>은 목표일 뿐 넘을 수 있고, <code>PGA_AGGREGATE_LIMIT</code>은 넘을 수 없는 한도입니다. 문서에 따르면 한도를 넘으면 오라클은 조정할 수 없는 PGA를 가장 많이 쓰는 세션들의 호출을 끝냅니다.',
+      ],
+      callout: { kind: 'warn', text: 'dbserver02처럼 SGA가 8G인 서버는 ASMM(SGA_TARGET)을 씁니다. 다음 장면의 HugePages는 AMM과 함께 쓸 수 없기 때문입니다.' },
+      changes: ['~ memory_target = 0 (AMM 안 씀)', '~ sga_target = 8G · pga_aggregate_target = 2G'],
+      metrics: { sga: '8G', pga: '목표 2G', hp: '4096', proc: '-', inst: '8G일 때' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['bc', 'sp', 'lb', 'lp', 'pga'],
+      dim: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon', 'app', 'proc'],
+      tags: { pga: [{ text: 'PGA_AGGREGATE_LIMIT', tone: 'undo' }], sp: [{ text: 'SGA_TARGET 8G', tone: 'data' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter target',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'memory_max_target                    big integer 0',
+          'memory_target                        big integer 0',
+          'pga_aggregate_target                 big integer 2G',
+          'sga_target                           big integer 8G',
+        ],
+      },
+    },
+    {
+      short: 'HugePages',
+      chapter: 'technique',
+      title: 'HugePages: SGA를 큰 페이지에, 스왑 없이',
+      body: [
+        '리눅스는 메모리를 보통 4KB 페이지로 나눠 줍니다. 8G SGA를 4KB로 나누면 페이지 테이블 항목이 아주 많아집니다. Linux Administrator\'s Reference에 따르면 HugePages를 쓰면 페이지가 메모리에 고정되어 스왑되지 않고, TLB 적중이 늘고, 커널의 관리 작업과 페이지 테이블 항목이 줄어듭니다.',
+        'HugePages는 미리 개수를 정해 잡아 둡니다. 필요한 수는 SGA 크기를 큰 페이지 크기(<code>grep Hugepagesize /proc/meminfo</code>, 보통 2MB)로 나누어 올림한 값입니다. dbserver02는 8G ÷ 2MB = 4096개를 <code>vm.nr_hugepages</code>로 잡아 두었습니다. 문서는 AMM과 HugePages가 호환되지 않고, Transparent HugePages는 끄라고 권합니다.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'Oracle MAA 모범 사례는 <code>USE_LARGE_PAGES=ONLY</code>입니다. 이 값이면 SGA 전체를 HugePages로만 잡고, 모자라면 인스턴스가 아예 시작되지 않습니다. 반쯤 일반 페이지로 뜨는 것보다 빨리 알아채게 하려는 설정입니다.',
+      },
+      changes: ['~ SGA 8G ↔ HugePages 4096 × 2MB', '~ use_large_pages = ONLY'],
+      metrics: { sga: '8G', pga: '612M', hp: '4096 (8G)', proc: '-', inst: '8G일 때 정상' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'hp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: ['hp', 'bc', 'sp'],
+      dim: ['pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon', 'app', 'proc', 'pga'],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'data', 7: 'data' } },
+      tags: { hp: [{ text: '4096 × 2MB = 8G', tone: 'data' }] },
+      flows: [{ link: 'back', kind: 'data', n: 2 }, { link: 'back2', kind: 'data', n: 2 }],
+      console: {
+        title: 'bash',
+        lines: [
+          '$ grep -i huge /proc/meminfo',
+          'HugePages_Total:    4096',
+          'HugePages_Free:       12',
+          'Hugepagesize:       2048 kB',
+          '$ cat /sys/kernel/mm/transparent_hugepage/enabled',
+          'always madvise [never]|ok',
+        ],
+      },
+    },
+    {
+      short: 'HugePages 부족',
+      chapter: 'case',
+      title: '사례: SGA는 12G인데 HugePages는 8G 분량',
+      body: [
+        '1장면의 원인입니다. SGA를 12G로 늘렸지만 <code>vm.nr_hugepages</code>는 8G 분량인 4096개 그대로였습니다. <code>USE_LARGE_PAGES=ONLY</code>이므로, Linux Administrator\'s Reference대로 HugePages가 모자라면 DB가 시작되지 않습니다. 문서는 이때 alert log에 HugePages에 관한 필요한 정보가 남는다고 안내합니다.',
+        '해결은 계산부터입니다. 12G ÷ 2MB = 12,288MB ÷ 2MB = <b>6144</b>개가 필요합니다. root로 sysctl 설정 파일의 <code>vm.nr_hugepages</code>를 6144로 바꾸고 적용한 뒤, HugePages_Total이 6144가 되었는지 확인하고 DB를 올립니다. 메모리가 조각나 한 번에 다 잡히지 않으면 재부팅이 필요할 수 있습니다.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'SGA 크기를 바꾸는 변경 요청에는 "HugePages도 같이"를 꼭 넣으세요. 리눅스 실습 2단계 레슨 14에서 4096개를 계산해 넣는 과정을 그대로 해 봅니다. 문서는 계산용 스크립트로 hugepages_settings.sh(MOS 401749.1)를 안내합니다.',
+      },
+      changes: ['× 필요 6144 > 있음 4096', '~ vm.nr_hugepages 4096 → 6144'],
+      metrics: { sga: '12G', pga: '-', hp: '4096 → 6144', proc: '0', inst: '안 뜸 → 정상' },
+      show: ['app', 'proc', 'bc', 'sp', 'lb', 'lp', 'hp'],
+      focus: ['hp'],
+      dim: ['app', 'proc', 'lb', 'lp'],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'signal', 7: 'signal' } },
+      tags: { hp: [{ text: '12G ÷ 2MB = 6144개 필요', tone: 'signal' }] },
+      flows: [{ link: 'back', kind: 'signal', n: 1, bounce: true }],
+      console: {
+        title: 'bash (root)',
+        lines: [
+          '# cat /etc/sysctl.d/97-oracle-database-sysctl.conf',
+          'vm.nr_hugepages = 4096|warn',
+          '# sed -i \'s/^vm.nr_hugepages = 4096/vm.nr_hugepages = 6144/\' /etc/sysctl.d/97-oracle-database-sysctl.conf',
+          '# sysctl --system > /dev/null',
+          '# grep HugePages_Total /proc/meminfo',
+          'HugePages_Total:    6144|ok',
+        ],
+      },
+    },
+    {
+      short: '정리',
+      chapter: 'recap',
+      title: '정리: 인스턴스 = SGA + PGA + 프로세스',
+      body: [
+        'SGA는 모든 프로세스가 공유하는 메모리로 버퍼 캐시, 공유 풀, 리두 로그 버퍼 등이 있고, PGA는 프로세스마다 하나씩 있는 전용 메모리로 실행 상태와 정렬·해시 작업 공간이 있습니다. 접속마다 서버 프로세스가 생기고, 필수 백그라운드 프로세스가 쓰기·복구·등록·통계 일을 나눠 맡습니다.',
+        '리눅스에서 SGA는 HugePages에 올립니다. AMM과는 함께 쓸 수 없으므로 ASMM을 쓰고, SGA 크기를 바꿀 때는 HugePages 개수도 함께 다시 계산합니다.',
+      ],
+      callout: { kind: 'insight', text: '이 레슨의 상자 하나하나가 다른 레슨의 주인공입니다. 버퍼 캐시와 LGWR는 "COMMIT의 여정", DBWn과 CKPT는 "체크포인트", 공유 풀은 "파싱과 Shared Pool"에서 자세히 봅니다.' },
+      changes: ['~ SGA 12G (HugePages 6144)', '+ 인스턴스 정상 시작'],
+      metrics: { sga: '12G', pga: '640M', hp: '6144', proc: '서버 48 + 백그라운드', inst: '정상' },
+      show: ['app', 'proc', 'pga', 'bc', 'sp', 'lb', 'lp', 'hp', 'pmon', 'smon', 'dbw', 'lgwr', 'ckpt', 'lreg', 'mmon'],
+      focus: [],
+      cells: { hp: { 0: 'data', 1: 'data', 2: 'data', 3: 'data', 4: 'data', 5: 'data', 6: 'data', 7: 'data' }, bc: { 5: 'dataDirty' } },
+      tags: {
+        bc: [{ text: '① SGA', tone: 'data' }],
+        pga: [{ text: '② PGA', tone: 'undo' }],
+        lgwr: [{ text: '③ 백그라운드', tone: 'redo' }],
+        hp: [{ text: '④ HugePages', tone: 'data' }],
+      },
+      flows: [
+        { link: 'conn', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'rd', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'work', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'lgw', kind: 'redo', n: 1, rate: 0.5 },
+        { link: 'back', kind: 'data', n: 1, rate: 0.4 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.|ok', '…', 'Database opened.|ok'] },
+    },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, 'SGA·PGA와 백그라운드 프로세스'], current: 1 },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, { text: '체크포인트', href: '../checkpoint/', note: '완성' }] },
+    { part: '파트 3 · SQL 실행', items: [{ text: '파싱과 Shared Pool', href: '../parse/', note: '완성' }, { text: '옵티마이저와 실행계획', href: '../optimizer/', note: '완성' }, { text: 'B-tree 인덱스', href: '../btree/', note: '완성' }] },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

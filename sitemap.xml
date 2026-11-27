@@ -126,4 +126,60 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/checkpoint/"/>
     <lastmod>2026-11-27</lastmod>
   </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/memory/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/memory/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/memory/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/memory/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/parse/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/parse/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/parse/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/parse/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/optimizer/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/optimizer/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/optimizer/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/btree/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/btree/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/btree/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/btree/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
 </urlset>
