@@ -18,6 +18,7 @@
     { st: 8, part: 'dba', group: 'DBA', name: 'Intro to SQL tuning', ids: range(71, 73) },
     { st: 9, part: 'dba', group: 'DBA', name: 'Data Guard basics', ids: range(81, 83) },
     { st: 11, part: 'dba', group: 'DBA', name: 'RAC basics', ids: [101, 102, 104, 105, 106, 107, 108, 103] },
+    { st: 12, part: 'dba', group: 'DBA', name: 'OS-caused failures', ids: range(111, 113) },
   ];
   STAGES.forEach((s, i) => { s.no = i + 1; });
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };
