@@ -161,7 +161,7 @@ const LESSON = {
     { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
     { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
     { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the Shared Pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }] },
-    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'], current: 0 },
+    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', { text: 'Data Guard', href: '../dataguard/', note: 'Ready' }, { text: 'RAC and Cache Fusion', href: '../rac/', note: 'Ready' }], current: 0 },
   ],
   zones: [
     { id: 'proc', from: [0.8, -1.4], to: [4.4, 7.6], label: 'Background processes', members: ['lgwr', 'arcn'] },

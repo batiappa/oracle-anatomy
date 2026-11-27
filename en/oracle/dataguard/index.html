@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Guard · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects how an Oracle Data Guard 19c physical standby follows the primary (redo transport, RFS and standby redo logs, Redo Apply by MRP), protection modes, transport and apply lag, the broker (DGMGRL), and switchover and failover. It also covers a case where the primary server fails before dawn and the standby takes over by failover.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Data Guard · Oracle Anatomy">
+<meta property="og:description" content="At 3 a.m., the storage on the primary server dbserver02 failed. If you fail over to the standby, how much data is lost? Dissect Data Guard in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 4 · Availability</b> / lesson 2 of 3</div>
+      <div class="head-row">
+        <h1>Data Guard</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Follow how the primary's redo crosses to the standby and is applied, and see failover, promoting the standby when the primary is lost, as a case.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of redo flowing from the primary on dbserver02 (LGWR, online redo log, data files) to the standby on dbserver03 (RFS, standby redo log, MRP0, data files) where it is applied, with the broker managing both"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Processes · commands</li>
+            <li><i style="background:var(--c-redo)"></i>Redo (transport · apply)</li>
+            <li><i style="background:var(--c-data)"></i>Data files</li>
+            <li><i style="background:var(--c-undo)"></i>Broker · role transitions</li>
+            <li><i style="background:var(--c-signal)"></i>Failures · lag</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server names (dbserver02, dbserver03), database names (orcl, orclstby), configuration name (orcl_dg) and maximum performance mode match DBA labs stage 10; the failure scenario, times, lag values and log numbers are example values. The message printed when a DGMGRL FAILOVER succeeds was not found in the pages read, so it is shortened with an ellipsis (…). The SHOW CONFIGURATION, VALIDATE DATABASE and V$DATAGUARD_PROCESS screens are trimmed, and the V$STANDBY_LOG status values may differ from real output. The detailed apply processes on the standby (such as PRnn) and the names of ASYNC transport processes are not covered.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/introduction-to-oracle-data-guard-concepts.html" target="_blank" rel="noopener">Data Guard Concepts and Administration 19c · Introduction (physical standby, protection modes, switchover and failover)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html" target="_blank" rel="noopener">Redo Transport Services (SYNC, ASYNC, standby redo logs, RFS)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html" target="_blank" rel="noopener">Redo Apply Services (MRP, real-time apply)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-protection-modes.html" target="_blank" rel="noopener">Data Guard Protection Modes</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-role-transitions.html" target="_blank" rel="noopener">Role Transitions (data loss in failover, reinstating the old primary)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html" target="_blank" rel="noopener">Data Guard Broker 19c · Switchover and Failover Operations (FAILOVER, IMMEDIATE, REINSTATE DATABASE, ORA-16661, fast-start failover)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/managing-oracle-data-guard-broker-configuration-members.html" target="_blank" rel="noopener">Data Guard Broker 19c · Managing Configuration Members (APPLY-ON/OFF, TRANSPORT-ON/OFF)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 4 "Data Guard". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=프로세스·명령, redo=redo 전송·적용, data=데이터 파일, undo=브로커·역할 전환, signal=장애·지연
+   주 DB orcl@dbserver02, 대기 DB orclstby@dbserver03, 구성 orcl_dg, MaxPerformance는 DBA 실습 10단계(레슨 81~83)와 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'dataguard',
+  base: '../../',
+  storeKey: 'dataguard:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'prim', label: 'Primary (dbserver02)' },
+    { key: 'stby', label: 'Standby (dbserver03)' },
+    { key: 'tlag', label: 'Transport Lag' },
+    { key: 'alag', label: 'Apply Lag' },
+    { key: 'mode', label: 'Protection' },
+  ],
+  goals: [
+    { text: 'Primary and physical standby databases', step: 2 },
+    { text: 'Redo transport and standby redo logs', step: 3 },
+    { text: 'Redo Apply and MRP', step: 4 },
+    { text: 'SYNC, ASYNC and protection modes', step: 5 },
+    { text: 'Transport lag and apply lag', step: 6 },
+    { text: 'The broker and DGMGRL', step: 7 },
+    { text: 'Switchover and failover', step: 8 },
+  ],
+  zones: [
+    { id: 'p', from: [0.2, -1.6], to: [4.6, 7.8], label: 'dbserver02 · orcl (primary)', members: ['lgwr', 'orl', 'pdb'] },
+    { id: 's', from: [8.4, -1.6], to: [16.6, 5.0], label: 'dbserver03 · orclstby (standby)', members: ['rfs', 'srl', 'mrp', 'sdb'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-3.4, -0.4], size: [2.2, 1.8, 0.5], label: 'Order app', tone: 'sql' },
+    lgwr: { type: 'box', at: [1.2, -0.8], size: [2.2, 1.8, 1.0], label: 'LGWR', tone: 'redo', led: true },
+    orl:  { type: 'box', at: [1.2, 2.4], size: [2.4, 1.6, 0.5], label: 'Online redo log', tone: 'redo', cells: [4, 1] },
+    pdb:  { type: 'cyl', at: [2.6, 6.2], r: 1.0, h: 1.2, label: 'Data files', tone: 'data', tagDir: 'down' },
+    rfs:  { type: 'box', at: [9.0, -0.8], size: [2.0, 1.8, 1.0], label: 'RFS', tone: 'sql', led: true },
+    srl:  { type: 'box', at: [9.0, 2.4], size: [2.6, 1.6, 0.5], label: 'Standby redo log', tone: 'redo', cells: [4, 1], tagDir: 'down' },
+    mrp:  { type: 'box', at: [12.8, -0.8], size: [2.0, 1.8, 1.0], label: 'MRP0', tone: 'sql', led: true, labelPos: 'right' },
+    sdb:  { type: 'cyl', at: [14.4, 3.0], r: 1.0, h: 1.2, label: 'Data files', tone: 'data', tagDir: 'down' },
+    dg:   { type: 'box', at: [7.6, 7.4], size: [2.6, 1.6, 0.5], label: 'Broker (DGMGRL)', tone: 'undo', tagDir: 'down' },
+  },
+  links: {
+    commit: { from: 'app', to: 'lgwr' },
+    w:      { from: 'lgwr', to: 'orl' },
+    ship:   { from: 'lgwr', to: 'rfs', onDemand: true },
+    rs:     { from: 'rfs', to: 'srl' },
+    ap:     { from: 'srl', to: 'mrp', via: [[12.2, 3.2], [12.2, 0.1]], onDemand: true },
+    wr:     { from: 'mrp', to: 'sdb', onDemand: true },
+    bp:     { from: 'dg', to: 'orl', via: [[6.8, 8.2], [6.8, 3.2]], onDemand: true },
+    bs:     { from: 'dg', to: 'srl', via: [[8.9, 6.6], [10.3, 6.6]], onDemand: true },
+    reco:   { from: 'app', to: 'rfs', via: [[-2.3, -2.4], [10.0, -2.4]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: '3 a.m.: the primary server\'s storage has failed',
+      body: [
+        'At 03:05 the storage controller on dbserver02 failed and the primary database (orcl) stopped. The infrastructure team says getting a part and repairing it will take a day. To keep the order service running, the standby database (orclstby) on dbserver03 must become the primary.',
+        'The switchover in the DBA labs was a planned transition with both databases alive. This time the primary is gone. Before deciding, the question to ask is how far the standby had received, and therefore what might be lost.',
+      ],
+      callout: { kind: 'insight', text: 'This lesson answers that question by following the path redo takes from the primary to the standby. It continues the redo of "The journey of a COMMIT" and "Archivelog and RMAN" onto another server.' },
+      changes: ['× 03:05 dbserver02 storage failure', '? fail over to the standby?'],
+      metrics: { prim: 'Down', stby: 'MOUNTED', tlag: '?', alag: '?', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['lgwr', 'orl', 'pdb', 'sdb'],
+      dim: ['dg', 'rfs', 'mrp'],
+      cells: { orl: { 0: 'signal', 1: 'signal', 2: 'signal', 3: 'signal' } },
+      tags: { pdb: [{ text: 'Storage failed', tone: 'signal' }], sdb: [{ text: 'Received up to where?', tone: 'signal' }] },
+      flows: [{ link: 'commit', kind: 'signal', n: 2, bounce: true }],
+      console: { title: 'bash (app)', lines: ['$ sqlplus app/App#2026@ORCL', 'ORA-12541: TNS:no listener|warn'] },
+    },
+    {
+      short: 'Two databases',
+      chapter: 'technique',
+      title: 'Primary and physical standby: a copy identical block for block',
+      body: [
+        'A Data Guard configuration consists of one primary and one or more standbys (up to thirty, per the documentation). A <span class="term">physical standby</span> is a block-for-block identical copy of the primary and keeps up by applying the primary\'s redo as is (Redo Apply).',
+        'As in the DBA labs, both databases have the same NAME, ORCL, and are told apart by <code>DB_UNIQUE_NAME</code> (orcl, orclstby) and role (<code>DATABASE_ROLE</code>). The standby is usually mounted and only applies redo. Opening it read-only while applying requires an Active Data Guard license.',
+      ],
+      callout: { kind: 'tip', text: 'It does not copy data files; it sends redo so the same changes are made again. So how much of the primary\'s redo has reached the standby is how current the standby is.' },
+      changes: ['~ orcl: PRIMARY, READ WRITE', '~ orclstby: PHYSICAL STANDBY, MOUNTED'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['pdb', 'sdb', 'lgwr', 'mrp'],
+      dim: ['dg', 'app'],
+      tags: { pdb: [{ text: 'orcl', tone: 'data' }], sdb: [{ text: 'orclstby (same blocks)', tone: 'data' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, db_unique_name, database_role, open_mode from v$database;',
+          'NAME      DB_UNIQUE_NAME DATABASE_ROLE    OPEN_MODE',
+          '--------- -------------- ---------------- --------------------',
+          'ORCL      orclstby       PHYSICAL STANDBY MOUNTED',
+        ],
+      },
+    },
+    {
+      short: 'Transport',
+      chapter: 'technique',
+      title: 'Redo transport: the primary\'s redo into the standby redo log',
+      body: [
+        'When a transaction commits on the primary, LGWR writes redo to the online redo log. Data Guard <span class="term">redo transport</span> sends this redo to the standby, where <span class="term">RFS</span> (remote file server) receives it and writes it to the <span class="term">standby redo log</span>.',
+        'According to the documentation, both SYNC and ASYNC transport require standby redo logs at the destination. When a standby redo log group fills and the next one is used, ARCn on the standby archives that group.',
+      ],
+      callout: { kind: 'tip', text: 'If a network interruption leaves missing redo (a gap), Data Guard automatically retrieves the missing archived logs (automatic gap resolution).' },
+      changes: ['+ LGWR → online redo log', '+ redo transport → RFS → standby redo log'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['lgwr', 'orl', 'rfs', 'srl'],
+      dim: ['mrp', 'sdb', 'dg', 'pdb'],
+      cells: { orl: { 0: 'redoDirty', 1: 'redo' }, srl: { 0: 'redoDirty', 1: 'redo' } },
+      tags: { rfs: [{ text: 'Receive', tone: 'sql' }] },
+      flows: [{ link: 'commit', kind: 'sql', n: 1 }, { link: 'w', kind: 'redo', n: 2 }, { link: 'ship', kind: 'redo', n: 3 }, { link: 'rs', kind: 'redo', n: 2 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select group#, thread#, sequence#, status from v$standby_log;',
+          '    GROUP#    THREAD#  SEQUENCE# STATUS',
+          '---------- ---------- ---------- ----------',
+          '         4          1       1842 ACTIVE',
+          '         5          1          0 UNASSIGNED',
+        ],
+      },
+    },
+    {
+      short: 'Apply',
+      chapter: 'technique',
+      title: 'Redo Apply: MRP0 replays received redo into the data files',
+      body: [
+        'On the standby, <span class="term">MRP</span> (managed recovery process, MRP0) applies received redo to the data files. The documented command is <code>ALTER DATABASE RECOVER</code> <code>MANAGED STANDBY DATABASE</code> <code>DISCONNECT</code>, and if standby redo logs exist, starting Redo Apply automatically enables real-time apply, which applies redo as it arrives in the standby redo log instead of waiting for a log switch.',
+        'If apply stops (broker state APPLY-OFF), redo keeps arriving but the data files fall behind. The 2-hour Apply Lag in DBA lab 82 was exactly this state.',
+      ],
+      callout: { kind: 'warn', text: 'If apply is behind, all that redo must be applied before the database can open as primary at failover. Apply lag is the time a role transition will take.' },
+      changes: ['+ MRP0: standby redo log → data files', '~ real-time apply'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['srl', 'mrp', 'sdb'],
+      dim: ['dg', 'app', 'pdb', 'orl'],
+      cells: { srl: { 0: 'redoDirty', 1: 'redo' } },
+      tags: { mrp: [{ text: 'APPLYING_LOG', tone: 'sql' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 1 }, { link: 'rs', kind: 'redo', n: 1 }, { link: 'ap', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, role, action, sequence# from v$dataguard_process where name like \'MRP%\' or name like \'rfs%\';',
+          'NAME  ROLE                     ACTION       SEQUENCE#',
+          '----- ------------------------ ------------ ----------',
+          'rfs   RFS async                IDLE               1842',
+          'MRP0  managed recovery         IDLE                  0',
+        ],
+      },
+    },
+    {
+      short: 'Protection',
+      chapter: 'technique',
+      title: 'SYNC or ASYNC: protection modes decide how much may be lost',
+      body: [
+        'According to the documentation, with <b>SYNC</b> transport a transaction cannot finish committing until its redo has been sent to the standby, while <b>ASYNC</b> commits without waiting. ASYNC keeps the primary fast, but some redo may not have crossed yet.',
+        'There are three protection modes: <b>maximum performance</b> (the default, ASYNC), <b>maximum availability</b> (SYNC, behaving like maximum performance if the standby is unavailable), and <b>maximum protection</b> (the primary shuts down rather than continue if it cannot write to a standby). orcl_dg uses maximum performance.',
+      ],
+      callout: { kind: 'insight', text: 'This is half the answer to the question in scene 1. In maximum performance mode, when the primary dies suddenly, redo not yet sent, and with it that many committed transactions, can be lost.' },
+      changes: ['~ SYNC: commit waits for transport', '~ ASYNC: no wait (maximum performance)'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: 'A few s', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['app', 'lgwr', 'rfs'],
+      dim: ['mrp', 'sdb', 'dg', 'pdb'],
+      cells: { orl: { 0: 'redo', 1: 'redo', 2: 'redoDirty' }, srl: { 0: 'redo', 1: 'redo' } },
+      tags: { lgwr: [{ text: 'ASYNC: commit now', tone: 'redo' }], srl: [{ text: 'Arrives a step later', tone: 'signal' }] },
+      flows: [{ link: 'commit', kind: 'sql', n: 2 }, { link: 'ship', kind: 'redo', n: 2, rate: 0.7 }],
+      console: {
+        title: 'SQL*Plus (orcl)',
+        lines: [
+          'SQL> select protection_mode, protection_level from v$database;',
+          'PROTECTION_MODE      PROTECTION_LEVEL',
+          '-------------------- --------------------',
+          'MAXIMUM PERFORMANCE  MAXIMUM PERFORMANCE',
+        ],
+      },
+    },
+    {
+      short: 'Lag',
+      chapter: 'technique',
+      title: 'Two lags: redo not yet arrived, and redo arrived but not yet applied',
+      body: [
+        'In the standby\'s <code>V$DATAGUARD_STATS</code>, <b>transport lag</b> shows, as time, the redo generated on the primary that has not reached the standby, and <b>apply lag</b> the redo that has arrived but is not yet applied. The documentation explains these are computed from data received from the primary.',
+        'What failover can lose is the transport lag; how long the transition takes is the apply lag (and apply finish time). That is why these two values are part of the daily morning check.',
+      ],
+      callout: { kind: 'tip', text: 'Query this view on the standby. As in DBA lab 81, it returns no rows on the primary.' },
+      changes: ['~ transport lag = redo not yet arrived', '~ apply lag = redo not yet applied'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '2s', alag: '3s', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['orl', 'srl', 'sdb'],
+      dim: ['dg', 'app', 'pdb'],
+      cells: { orl: { 0: 'redo', 1: 'redo', 2: 'redoDirty' }, srl: { 0: 'redo', 1: 'redoDirty' } },
+      tags: { orl: [{ text: 'transport lag', tone: 'signal' }], srl: [{ text: 'apply lag', tone: 'signal' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 2 }, { link: 'ap', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, value from v$dataguard_stats;',
+          'NAME                     VALUE',
+          '------------------------ ------------------',
+          'transport lag            +00 00:00:02',
+          'apply lag                +00 00:00:03',
+          'apply finish time        +00 00:00:00.004',
+          'estimated startup time   9',
+        ],
+      },
+    },
+    {
+      short: 'Broker',
+      chapter: 'technique',
+      title: 'The broker: DGMGRL manages both databases as one configuration',
+      body: [
+        'The Data Guard broker manages the primary and standby together as one configuration (orcl_dg). DGMGRL\'s <code>show configuration</code> gives the overall status, and <code>show database</code> each member\'s state (APPLY-ON, APPLY-OFF, TRANSPORT-ON, TRANSPORT-OFF).',
+        'The broker also performs role transitions with a single command. The documentation recommends checking readiness before a role change with <code>VALIDATE DATABASE</code>. In a broker configuration, change state with DGMGRL, not SQL*Plus.',
+      ],
+      callout: { kind: 'tip', text: 'In DBA labs stage 10 you used show configuration, show database, validate database and switchover.' },
+      changes: ['~ configuration orcl_dg: SUCCESS', '~ orclstby: APPLY-ON'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'orl', 'srl'],
+      dim: ['app'],
+      tags: { dg: [{ text: 'orcl_dg · SUCCESS', tone: 'undo' }] },
+      flows: [{ link: 'bp', kind: 'undo', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }, { link: 'ship', kind: 'redo', n: 1 }],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> show configuration',
+          'Configuration - orcl_dg',
+          '  Protection Mode: MaxPerformance',
+          '  Members:',
+          '  orcl     - Primary database',
+          '    orclstby - Physical standby database',
+          'Configuration Status:',
+          'SUCCESS|ok',
+        ],
+      },
+    },
+    {
+      short: 'Two transitions',
+      chapter: 'technique',
+      title: 'Switchover and failover',
+      body: [
+        '<span class="term">Switchover</span> is a planned transition that swaps roles while both databases are alive. As the documentation says, there is no data loss, and it can be reversed later. It is used for patching or hardware replacement.',
+        '<span class="term">Failover</span> promotes the standby to primary when the primary is lost. According to the documentation, some data may be lost unless the configuration is in maximum protection or maximum availability mode. If Flashback Database was enabled on the old primary, it can be reinstated as the new standby after repair.',
+      ],
+      callout: { kind: 'warn', text: 'Failover is a hard-to-reverse decision. Confirm the primary truly cannot be recovered and how much could be lost, and proceed on the business owner\'s decision.' },
+      changes: ['~ switchover: both alive, no loss', '~ failover: primary lost, loss possible'],
+      metrics: { prim: '-', stby: '-', tlag: '-', alag: '-', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'lgwr', 'mrp'],
+      dim: ['app', 'orl', 'srl'],
+      tags: { lgwr: [{ text: 'Switchover: both alive', tone: 'undo' }], mrp: [{ text: 'Failover: only this side', tone: 'signal' }] },
+      flows: [{ link: 'bp', kind: 'undo', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> validate database orclstby',
+          '  Database Role:     Physical standby database',
+          '  Primary Database:  orcl',
+          '  Ready for Switchover:  Yes|ok',
+        ],
+      },
+    },
+    {
+      short: 'Failover',
+      chapter: 'case',
+      title: 'Case: check the lag, FAILOVER, then REINSTATE after repair',
+      body: [
+        'Start with the lag on the standby. With transport lag 2 s and apply lag 3 s, what maximum performance mode can lose is the last few seconds of commits. After the business owner decides, run <code>FAILOVER TO orclstby;</code> in DGMGRL connected to the standby. According to the Broker documentation, the default <b>complete failover</b> applies all received redo before changing the role to primary and opening the database. <code>IMMEDIATE</code> skips applying and usually loses data, so use it only when a complete failover is not possible.',
+        'A day later, when dbserver02 is repaired, the old primary (orcl) shows <code>ORA-16661</code> (the standby database needs to be reinstated). If Flashback Database was enabled before the failover and there are enough flashback logs, start orcl to mount, connect to the new primary, and bring it back as the new standby with <code>REINSTATE DATABASE orcl;</code>. Otherwise the standby must be re-created (ORA-16795).',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'After failover, make sure the app connects to the new primary (dbserver03). With the broker\'s fast-start failover, the broker can also fail over automatically to a preselected standby when the primary is lost.',
+      },
+      changes: ['~ FAILOVER TO orclstby (complete)', '~ orclstby → PRIMARY', '~ after repair REINSTATE DATABASE orcl'],
+      metrics: { prim: 'ORA-16661 → standby', stby: 'PRIMARY (new)', tlag: '2s', alag: '3s → 0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'mrp', 'sdb', 'app'],
+      dim: ['lgwr', 'orl', 'pdb'],
+      cells: { srl: { 0: 'redo', 1: 'redo' } },
+      tags: { sdb: [{ text: 'New primary · READ WRITE', tone: 'undo' }], pdb: [{ text: 'ORA-16661', tone: 'signal' }] },
+      flows: [{ link: 'ap', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }, { link: 'reco', kind: 'sql', n: 2 }],
+      console: {
+        title: 'DGMGRL (orclstby)',
+        lines: [
+          'DGMGRL> failover to orclstby;',
+          '… (applies received redo, then changes role)',
+          '',
+          '-- a day later, orcl started to mount after dbserver02 repair',
+          'DGMGRL> show database orcl',
+          '  ORA-16661: the standby database needs to be reinstated|warn',
+          'DGMGRL> reinstate database orcl;',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: you keep what redo has crossed',
+      body: [
+        'The primary\'s redo is transported, written by the standby\'s RFS into the standby redo log, and applied to the data files by MRP0. The protection mode decides SYNC or ASYNC, and therefore what can be lost if the primary is lost.',
+        'Transport lag is what you could lose; apply lag is how long a transition takes. Use switchover for planned work, failover when the primary is lost, and reinstate the repaired old primary with Flashback Database.',
+      ],
+      callout: { kind: 'insight', text: 'The next lesson, "RAC", is about several servers opening one database together. If Data Guard is a copy elsewhere, RAC is several instances of the same database.' },
+      changes: ['~ transport → standby redo log → apply', '+ switchover · failover · reinstate'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: [],
+      cells: { orl: { 0: 'redo', 1: 'redo' }, srl: { 0: 'redo', 1: 'redo' } },
+      tags: {
+        lgwr: [{ text: '① generate', tone: 'redo' }],
+        rfs: [{ text: '② receive', tone: 'sql' }],
+        mrp: [{ text: '③ apply', tone: 'sql' }],
+        dg: [{ text: '④ transition', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'commit', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'ship', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'rs', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'ap', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'wr', kind: 'data', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> show configuration',
+          'Configuration - orcl_dg',
+          '  Protection Mode: MaxPerformance',
+          '  Members:',
+          '  orcl     - Primary database',
+          '    orclstby - Physical standby database',
+          'Configuration Status:',
+          'SUCCESS|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the shared pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', { text: 'RAC and Cache Fusion', href: '../rac/', note: 'Ready' }], current: 1 },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

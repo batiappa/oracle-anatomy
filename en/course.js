@@ -165,6 +165,17 @@
     { page: 'btree', step: 6, t: 'Range scan', lessons: [72] },
     { page: 'btree', step: 9, t: 'NULL', lessons: [73] },
     { page: 'btree', step: 10, t: 'Summary', lessons: [72] },
+    { page: 'dataguard', step: 1, t: 'Problem', lessons: [83] },
+    { page: 'dataguard', step: 4, t: 'Apply', lessons: [82] },
+    { page: 'dataguard', step: 7, t: 'Broker', lessons: [81] },
+    { page: 'dataguard', step: 9, t: 'Failover', lessons: [83] },
+    { page: 'rac', step: 1, t: 'Problem', lessons: [103] },
+    { page: 'rac', step: 2, t: 'Structure', lessons: [101] },
+    { page: 'rac', step: 3, t: 'Connecting', lessons: [102] },
+    { page: 'rac', step: 6, t: 'gc waits', lessons: [103] },
+    { page: 'rac', step: 7, t: 'Node failure', lessons: [106] },
+    { page: 'rac', step: 8, t: 'Service move', lessons: [102] },
+    { page: 'rac', step: 9, t: 'Relocate back', lessons: [103] },
   ];
   const TITLES = {
     1: 'Connecting to the DB server for the first time', 2: 'Exploring the directories where Oracle lives', 3: 'Finding errors in the alert log', 4: 'Writing a work log with vi', 5: 'Understanding the oracle account and permissions', 6: 'Checking that the DB is alive through its processes',
@@ -174,9 +185,11 @@
     24: 'Add space to a full tablespace', 26: 'Re-create a deleted password file', 27: 'Clean up a session holding a lock', 28: 'Switching to archivelog mode and taking the first RMAN backup', 29: 'Graduation mission: morning check after a reboot',
     31: 'Bring back one deleted data file', 32: 'Save a DB that lost its SYSTEM data file', 33: 'When one control file copy is lost', 34: 'When the DB stops because the fast recovery area is full',
     41: 'Roll the DB back to just before the mistake (point-in-time recovery)', 42: 'When all control files are lost', 51: 'Seeing what the DB is waiting on right now (wait events)', 52: 'Looking into last night\'s batch with an AWR report', 53: 'Graduation mission: the morning order saving stopped',
-    71: 'Read the execution plan of a slow SQL', 72: 'Fix the condition so the index is used', 73: 'Graduation mission: a morning of slow per-customer order lookups', 91: 'Reading tables with SELECT', 95: 'INSERT, UPDATE, DELETE and COMMIT, ROLLBACK',
+    71: 'Read the execution plan of a slow SQL', 72: 'Fix the condition so the index is used', 73: 'Graduation mission: a morning of slow per-customer order lookups', 81: 'Check the status of the primary and standby DBs', 82: 'A standby DB whose apply stopped',
+    83: 'Graduation mission: planned switchover', 91: 'Reading tables with SELECT', 95: 'INSERT, UPDATE, DELETE and COMMIT, ROLLBACK', 101: 'RAC cluster status check', 102: 'Move services and shut down one instance',
+    103: 'Graduation mission: restore services after a node failure', 106: 'Node maintenance: empty the instance, then stop and restart Clusterware',
   };
-  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' }, archive: { name: 'Archivelog and RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo and read consistency', dir: 'oracle/undo/' }, lock: { name: 'Locks and waits', dir: 'oracle/lock/' }, checkpoint: { name: 'Checkpoints', dir: 'oracle/checkpoint/' }, memory: { name: 'SGA, PGA and background processes', dir: 'oracle/memory/' }, parse: { name: 'Parsing and the shared pool', dir: 'oracle/parse/' }, optimizer: { name: 'The optimizer and execution plans', dir: 'oracle/optimizer/' }, btree: { name: 'B-tree indexes', dir: 'oracle/btree/' } };
+  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' }, archive: { name: 'Archivelog and RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo and read consistency', dir: 'oracle/undo/' }, lock: { name: 'Locks and waits', dir: 'oracle/lock/' }, checkpoint: { name: 'Checkpoints', dir: 'oracle/checkpoint/' }, memory: { name: 'SGA, PGA and background processes', dir: 'oracle/memory/' }, parse: { name: 'Parsing and the shared pool', dir: 'oracle/parse/' }, optimizer: { name: 'The optimizer and execution plans', dir: 'oracle/optimizer/' }, btree: { name: 'B-tree indexes', dir: 'oracle/btree/' }, dataguard: { name: 'Data Guard', dir: 'oracle/dataguard/' }, rac: { name: 'RAC', dir: 'oracle/rac/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `Stage ${s.no}, lesson ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

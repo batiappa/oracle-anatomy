@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Guard · Oracle 해부도</title>
+<meta name="description" content="Oracle Data Guard 19c의 물리 대기 DB가 주 DB를 따라가는 과정(redo 전송, RFS와 대기 리두 로그, MRP의 Redo Apply)과 보호 모드, 전송·적용 지연, 브로커(DGMGRL), 스위치오버와 페일오버를 10단계 애니메이션으로 해부하는 레슨. 새벽에 주 DB 서버가 망가져 대기 DB로 페일오버하는 사례를 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="Data Guard · Oracle 해부도">
+<meta property="og:description" content="새벽 3시, 주 DB 서버 dbserver02의 저장 장치가 망가졌습니다. 대기 DB로 넘기면 데이터는 얼마나 잃을까요? Data Guard를 10단계로 해부합니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 4 · 가용성</b> / 3개 중 2번째 레슨</div>
+      <div class="head-row">
+        <h1>Data Guard</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14분</span><span class="badge">중급</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary">주 DB의 redo가 어떻게 대기 DB로 건너가 적용되는지 따라가고, 주 DB를 잃었을 때 대기 DB를 주 DB로 올리는 페일오버를 사례로 봅니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="dbserver02의 주 DB(LGWR, 온라인 리두 로그, 데이터 파일)에서 redo가 dbserver03의 대기 DB(RFS, 대기 리두 로그, MRP0, 데이터 파일)로 전송·적용되고, 브로커가 두 DB를 관리하는 흐름을 보여 주는 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>프로세스 · 명령</li>
+            <li><i style="background:var(--c-redo)"></i>redo (전송·적용)</li>
+            <li><i style="background:var(--c-data)"></i>데이터 파일</li>
+            <li><i style="background:var(--c-undo)"></i>브로커 · 역할 전환</li>
+            <li><i style="background:var(--c-signal)"></i>장애 · 지연</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02, dbserver03), DB 이름(orcl, orclstby), 구성 이름(orcl_dg), 최대 성능 모드는 DBA 실습 10단계와 같은 값이고, 장애 상황, 시각, 지연 값, 로그 번호는 설명을 위한 예시 값입니다. DGMGRL의 FAILOVER가 성공했을 때 나오는 메시지는 이번에 읽은 문서에서 찾지 못해 줄임표(…)로 줄였습니다. SHOW CONFIGURATION·VALIDATE DATABASE·V$DATAGUARD_PROCESS 화면은 줄을 줄였고, V$STANDBY_LOG의 상태 값은 실제와 다를 수 있습니다. 대기 DB에서 redo를 받아 쓰고 적용하는 세부 프로세스(PRnn 등)와 ASYNC 전송 프로세스 이름은 다루지 않았습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/introduction-to-oracle-data-guard-concepts.html" target="_blank" rel="noopener">Data Guard Concepts and Administration 19c · Introduction (물리 대기 DB, 보호 모드, 스위치오버·페일오버)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html" target="_blank" rel="noopener">Redo Transport Services (SYNC·ASYNC, 대기 리두 로그, RFS)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html" target="_blank" rel="noopener">Redo Apply Services (MRP, 실시간 적용)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-protection-modes.html" target="_blank" rel="noopener">Data Guard Protection Modes</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-role-transitions.html" target="_blank" rel="noopener">Role Transitions (페일오버의 데이터 손실, 옛 주 DB 되살리기)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html" target="_blank" rel="noopener">Data Guard Broker 19c · Switchover and Failover Operations (FAILOVER, IMMEDIATE, REINSTATE DATABASE, ORA-16661, fast-start failover)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/managing-oracle-data-guard-broker-configuration-members.html" target="_blank" rel="noopener">Data Guard Broker 19c · Managing Configuration Members (APPLY-ON·OFF, TRANSPORT-ON·OFF)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 4 "Data Guard". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=프로세스·명령, redo=redo 전송·적용, data=데이터 파일, undo=브로커·역할 전환, signal=장애·지연
+   주 DB orcl@dbserver02, 대기 DB orclstby@dbserver03, 구성 orcl_dg, MaxPerformance는 DBA 실습 10단계(레슨 81~83)와 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'dataguard',
+  base: '../../',
+  storeKey: 'dataguard:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'prim', label: '주 DB (dbserver02)' },
+    { key: 'stby', label: '대기 DB (dbserver03)' },
+    { key: 'tlag', label: 'Transport Lag' },
+    { key: 'alag', label: 'Apply Lag' },
+    { key: 'mode', label: '보호 모드' },
+  ],
+  goals: [
+    { text: '주 DB와 물리 대기 DB', step: 2 },
+    { text: 'redo 전송과 대기 리두 로그', step: 3 },
+    { text: 'Redo Apply와 MRP', step: 4 },
+    { text: 'SYNC·ASYNC와 보호 모드', step: 5 },
+    { text: '전송 지연과 적용 지연', step: 6 },
+    { text: '브로커와 DGMGRL', step: 7 },
+    { text: '스위치오버와 페일오버', step: 8 },
+  ],
+  zones: [
+    { id: 'p', from: [0.2, -1.6], to: [4.6, 7.8], label: 'dbserver02 · orcl (주 DB)', members: ['lgwr', 'orl', 'pdb'] },
+    { id: 's', from: [8.4, -1.6], to: [16.6, 5.0], label: 'dbserver03 · orclstby (대기 DB)', members: ['rfs', 'srl', 'mrp', 'sdb'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-3.4, -0.4], size: [2.2, 1.8, 0.5], label: '주문 앱', tone: 'sql' },
+    lgwr: { type: 'box', at: [1.2, -0.8], size: [2.2, 1.8, 1.0], label: 'LGWR', tone: 'redo', led: true },
+    orl:  { type: 'box', at: [1.2, 2.4], size: [2.4, 1.6, 0.5], label: '온라인 리두 로그', tone: 'redo', cells: [4, 1] },
+    pdb:  { type: 'cyl', at: [2.6, 6.2], r: 1.0, h: 1.2, label: '데이터 파일', tone: 'data', tagDir: 'down' },
+    rfs:  { type: 'box', at: [9.0, -0.8], size: [2.0, 1.8, 1.0], label: 'RFS', tone: 'sql', led: true },
+    srl:  { type: 'box', at: [9.0, 2.4], size: [2.6, 1.6, 0.5], label: '대기 리두 로그', tone: 'redo', cells: [4, 1], tagDir: 'down' },
+    mrp:  { type: 'box', at: [12.8, -0.8], size: [2.0, 1.8, 1.0], label: 'MRP0', tone: 'sql', led: true, labelPos: 'right' },
+    sdb:  { type: 'cyl', at: [14.4, 3.0], r: 1.0, h: 1.2, label: '데이터 파일', tone: 'data', tagDir: 'down' },
+    dg:   { type: 'box', at: [7.6, 7.4], size: [2.6, 1.6, 0.5], label: '브로커 (DGMGRL)', tone: 'undo', tagDir: 'down' },
+  },
+  links: {
+    commit: { from: 'app', to: 'lgwr' },
+    w:      { from: 'lgwr', to: 'orl' },
+    ship:   { from: 'lgwr', to: 'rfs', onDemand: true },
+    rs:     { from: 'rfs', to: 'srl' },
+    ap:     { from: 'srl', to: 'mrp', via: [[12.2, 3.2], [12.2, 0.1]], onDemand: true },
+    wr:     { from: 'mrp', to: 'sdb', onDemand: true },
+    bp:     { from: 'dg', to: 'orl', via: [[6.8, 8.2], [6.8, 3.2]], onDemand: true },
+    bs:     { from: 'dg', to: 'srl', via: [[8.9, 6.6], [10.3, 6.6]], onDemand: true },
+    reco:   { from: 'app', to: 'rfs', via: [[-2.3, -2.4], [10.0, -2.4]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: '문제',
+      chapter: 'problem',
+      title: '새벽 3시, 주 DB 서버의 저장 장치가 망가졌다',
+      body: [
+        '03:05, dbserver02의 저장 장치 컨트롤러가 고장 나 주 DB(orcl)가 멈췄습니다. 인프라팀은 부품을 받아 고치는 데 하루가 걸린다고 합니다. 주문 서비스를 계속하려면 dbserver03의 대기 DB(orclstby)를 주 DB로 올려야 합니다.',
+        'DBA 실습의 스위치오버는 두 DB가 다 살아 있을 때의 계획된 전환이었습니다. 이번에는 주 DB가 없습니다. 결정하기 전에 물어야 할 것은 "대기 DB가 어디까지 받아 두었나, 그래서 무엇을 잃을 수 있나"입니다.',
+      ],
+      callout: { kind: 'insight', text: '이 레슨은 redo가 주 DB에서 대기 DB로 건너가는 길을 따라가며 그 질문에 답합니다. "COMMIT의 여정"과 "Archivelog와 RMAN"에서 본 redo가 다른 서버까지 가는 이야기입니다.' },
+      changes: ['× 03:05 dbserver02 저장 장치 고장', '? 대기 DB로 넘길까'],
+      metrics: { prim: '멈춤', stby: 'MOUNTED', tlag: '?', alag: '?', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['lgwr', 'orl', 'pdb', 'sdb'],
+      dim: ['dg', 'rfs', 'mrp'],
+      cells: { orl: { 0: 'signal', 1: 'signal', 2: 'signal', 3: 'signal' } },
+      tags: { pdb: [{ text: '저장 장치 고장', tone: 'signal' }], sdb: [{ text: '어디까지 받았나?', tone: 'signal' }] },
+      flows: [{ link: 'commit', kind: 'signal', n: 2, bounce: true }],
+      console: { title: 'bash (app)', lines: ['$ sqlplus app/App#2026@ORCL', 'ORA-12541: TNS:no listener|warn'] },
+    },
+    {
+      short: '두 DB',
+      chapter: 'technique',
+      title: '주 DB와 물리 대기 DB: 블록 하나까지 같은 복제본',
+      body: [
+        'Data Guard 구성은 주 DB 하나와 대기 DB 여럿(문서 기준 최대 30개)으로 이루어집니다. <span class="term">물리 대기 DB</span>는 주 DB와 블록 하나하나가 같은 복제본이고, 주 DB의 redo를 그대로 적용(Redo Apply)해서 따라갑니다.',
+        'DBA 실습처럼 두 DB의 이름(NAME)은 ORCL로 같고, <code>DB_UNIQUE_NAME</code>(orcl, orclstby)과 역할(<code>DATABASE_ROLE</code>)로 구분합니다. 대기 DB는 보통 마운트 상태로 redo만 적용합니다. 적용하면서 읽기용으로 열려면 Active Data Guard 라이선스가 필요합니다.',
+      ],
+      callout: { kind: 'tip', text: '데이터 파일을 복사하는 것이 아니라 redo를 보내 같은 변경을 다시 하게 하는 방식입니다. 그래서 주 DB의 redo가 대기 DB에 얼마나 도착했는지가 곧 대기 DB가 얼마나 최신인지입니다.' },
+      changes: ['~ orcl: PRIMARY, READ WRITE', '~ orclstby: PHYSICAL STANDBY, MOUNTED'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['pdb', 'sdb', 'lgwr', 'mrp'],
+      dim: ['dg', 'app'],
+      tags: { pdb: [{ text: 'orcl', tone: 'data' }], sdb: [{ text: 'orclstby (같은 블록)', tone: 'data' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 1 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, db_unique_name, database_role, open_mode from v$database;',
+          'NAME      DB_UNIQUE_NAME DATABASE_ROLE    OPEN_MODE',
+          '--------- -------------- ---------------- --------------------',
+          'ORCL      orclstby       PHYSICAL STANDBY MOUNTED',
+        ],
+      },
+    },
+    {
+      short: '전송',
+      chapter: 'technique',
+      title: 'redo 전송: 주 DB의 redo가 대기 DB의 대기 리두 로그로',
+      body: [
+        '주 DB에서 커밋하면 LGWR가 온라인 리두 로그에 redo를 씁니다. Data Guard의 <span class="term">redo 전송</span>은 이 redo를 대기 DB로 보내고, 대기 DB의 <span class="term">RFS</span>(remote file server)가 받아서 <span class="term">대기 리두 로그</span>(standby redo log)에 씁니다.',
+        '문서에 따르면 SYNC든 ASYNC든 전송하려면 받는 쪽에 대기 리두 로그가 있어야 합니다. 대기 리두 로그가 가득 차 다음 그룹으로 넘어가면 대기 DB의 ARCn이 그 그룹을 아카이브합니다.',
+      ],
+      callout: { kind: 'tip', text: '네트워크가 잠시 끊겨 빠진 redo가 생기면(gap), Data Guard는 빠진 아카이브 로그를 자동으로 다시 가져옵니다(automatic gap resolution).' },
+      changes: ['+ LGWR → 온라인 리두 로그', '+ redo 전송 → RFS → 대기 리두 로그'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['lgwr', 'orl', 'rfs', 'srl'],
+      dim: ['mrp', 'sdb', 'dg', 'pdb'],
+      cells: { orl: { 0: 'redoDirty', 1: 'redo' }, srl: { 0: 'redoDirty', 1: 'redo' } },
+      tags: { rfs: [{ text: '받기', tone: 'sql' }] },
+      flows: [{ link: 'commit', kind: 'sql', n: 1 }, { link: 'w', kind: 'redo', n: 2 }, { link: 'ship', kind: 'redo', n: 3 }, { link: 'rs', kind: 'redo', n: 2 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select group#, thread#, sequence#, status from v$standby_log;',
+          '    GROUP#    THREAD#  SEQUENCE# STATUS',
+          '---------- ---------- ---------- ----------',
+          '         4          1       1842 ACTIVE',
+          '         5          1          0 UNASSIGNED',
+        ],
+      },
+    },
+    {
+      short: '적용',
+      chapter: 'technique',
+      title: 'Redo Apply: MRP0가 받은 redo를 데이터 파일에 다시 한다',
+      body: [
+        '대기 DB에서는 <span class="term">MRP</span>(managed recovery process, MRP0)가 받은 redo를 데이터 파일에 적용합니다. 문서의 명령은 <code>ALTER DATABASE RECOVER</code> <code>MANAGED STANDBY DATABASE</code> <code>DISCONNECT</code>이고, 대기 리두 로그가 있으면 Redo Apply를 시작할 때 실시간 적용(real-time apply)이 자동으로 켜집니다. 실시간 적용은 로그 전환을 기다리지 않고 대기 리두 로그에 들어오는 대로 적용합니다.',
+        '적용이 멈추면(브로커 상태 APPLY-OFF) redo는 계속 도착하지만 데이터 파일은 뒤처집니다. DBA 실습 레슨 82의 Apply Lag 2시간이 바로 이 상태였습니다.',
+      ],
+      callout: { kind: 'warn', text: '적용이 밀려 있으면 페일오버 때 그 redo를 모두 적용해야 주 DB로 열 수 있습니다. 적용 지연은 곧 "전환에 걸릴 시간"입니다.' },
+      changes: ['+ MRP0: 대기 리두 로그 → 데이터 파일', '~ 실시간 적용'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['srl', 'mrp', 'sdb'],
+      dim: ['dg', 'app', 'pdb', 'orl'],
+      cells: { srl: { 0: 'redoDirty', 1: 'redo' } },
+      tags: { mrp: [{ text: 'APPLYING_LOG', tone: 'sql' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 1 }, { link: 'rs', kind: 'redo', n: 1 }, { link: 'ap', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, role, action, sequence# from v$dataguard_process where name like \'MRP%\' or name like \'rfs%\';',
+          'NAME  ROLE                     ACTION       SEQUENCE#',
+          '----- ------------------------ ------------ ----------',
+          'rfs   RFS async                IDLE               1842',
+          'MRP0  managed recovery         IDLE                  0',
+        ],
+      },
+    },
+    {
+      short: '보호 모드',
+      chapter: 'technique',
+      title: 'SYNC냐 ASYNC냐: 보호 모드가 정하는 "잃어도 되는 양"',
+      body: [
+        '문서에 따르면 <b>SYNC</b> 전송에서는 redo가 대기 DB로 전송되기 전까지 트랜잭션이 커밋을 마치지 못하고, <b>ASYNC</b>는 기다리지 않고 커밋합니다. 그래서 ASYNC는 주 DB가 빠르지만, 아직 건너가지 못한 redo가 있을 수 있습니다.',
+        '보호 모드는 셋입니다. <b>최대 성능</b>(기본, ASYNC), <b>최대 가용성</b>(SYNC, 대기 DB를 쓸 수 없으면 최대 성능처럼 동작), <b>최대 보호</b>(대기 DB에 쓸 수 없으면 주 DB가 계속하는 대신 멈춤)입니다. orcl_dg는 최대 성능입니다.',
+      ],
+      callout: { kind: 'insight', text: '1장면의 질문에 대한 답의 절반입니다. 최대 성능 모드에서는 주 DB가 갑자기 죽는 순간 아직 전송되지 않은 redo, 즉 그만큼의 커밋된 트랜잭션을 잃을 수 있습니다.' },
+      changes: ['~ SYNC: 전송까지 커밋 대기', '~ ASYNC: 기다리지 않음 (최대 성능)'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '수 초', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['app', 'lgwr', 'rfs'],
+      dim: ['mrp', 'sdb', 'dg', 'pdb'],
+      cells: { orl: { 0: 'redo', 1: 'redo', 2: 'redoDirty' }, srl: { 0: 'redo', 1: 'redo' } },
+      tags: { lgwr: [{ text: 'ASYNC: 바로 커밋', tone: 'redo' }], srl: [{ text: '한 발 늦게 도착', tone: 'signal' }] },
+      flows: [{ link: 'commit', kind: 'sql', n: 2 }, { link: 'ship', kind: 'redo', n: 2, rate: 0.7 }],
+      console: {
+        title: 'SQL*Plus (orcl)',
+        lines: [
+          'SQL> select protection_mode, protection_level from v$database;',
+          'PROTECTION_MODE      PROTECTION_LEVEL',
+          '-------------------- --------------------',
+          'MAXIMUM PERFORMANCE  MAXIMUM PERFORMANCE',
+        ],
+      },
+    },
+    {
+      short: '지연',
+      chapter: 'technique',
+      title: '두 가지 지연: 아직 안 온 redo, 와 있지만 아직 안 적용된 redo',
+      body: [
+        '대기 DB의 <code>V$DATAGUARD_STATS</code>에서 <b>transport lag</b>는 주 DB에서 만든 redo 가운데 아직 대기 DB에 오지 않은 양을, <b>apply lag</b>는 와 있지만 아직 적용하지 못한 양을 시간으로 보여 줍니다. 문서는 이 값이 주 DB에서 받은 데이터로 계산된다고 설명합니다.',
+        '페일오버에서 잃을 수 있는 것은 transport lag만큼이고, 전환에 걸리는 시간은 apply lag(과 apply finish time)만큼입니다. 그래서 매일 아침 점검에서 이 두 값을 봅니다.',
+      ],
+      callout: { kind: 'tip', text: '이 뷰는 대기 DB에서 봅니다. DBA 실습 레슨 81에서 확인했듯 주 DB에서 조회하면 행이 나오지 않습니다.' },
+      changes: ['~ transport lag = 아직 안 온 redo', '~ apply lag = 아직 적용 안 된 redo'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '2s', alag: '3s', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['orl', 'srl', 'sdb'],
+      dim: ['dg', 'app', 'pdb'],
+      cells: { orl: { 0: 'redo', 1: 'redo', 2: 'redoDirty' }, srl: { 0: 'redo', 1: 'redoDirty' } },
+      tags: { orl: [{ text: 'transport lag', tone: 'signal' }], srl: [{ text: 'apply lag', tone: 'signal' }] },
+      flows: [{ link: 'ship', kind: 'redo', n: 2 }, { link: 'ap', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus (orclstby)',
+        lines: [
+          'SQL> select name, value from v$dataguard_stats;',
+          'NAME                     VALUE',
+          '------------------------ ------------------',
+          'transport lag            +00 00:00:02',
+          'apply lag                +00 00:00:03',
+          'apply finish time        +00 00:00:00.004',
+          'estimated startup time   9',
+        ],
+      },
+    },
+    {
+      short: '브로커',
+      chapter: 'technique',
+      title: '브로커: 두 DB를 하나의 구성으로 관리하는 DGMGRL',
+      body: [
+        'Data Guard 브로커는 주 DB와 대기 DB를 하나의 구성(orcl_dg)으로 묶어 관리합니다. DGMGRL의 <code>show configuration</code>으로 전체 상태를, <code>show database</code>로 구성원별 상태(APPLY-ON, APPLY-OFF, TRANSPORT-ON, TRANSPORT-OFF)를 봅니다.',
+        '역할 전환도 브로커가 명령 하나로 합니다. 문서는 <code>VALIDATE DATABASE</code>로 역할 전환 전에 준비 상태를 점검하라고 안내합니다. 브로커를 쓰는 구성에서는 SQL*Plus로 상태를 바꾸지 않고 DGMGRL로 바꿉니다.',
+      ],
+      callout: { kind: 'tip', text: 'DBA 실습 10단계에서 show configuration, show database, validate database, switchover를 모두 해 보았습니다.' },
+      changes: ['~ 구성 orcl_dg: SUCCESS', '~ orclstby: APPLY-ON'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'orl', 'srl'],
+      dim: ['app'],
+      tags: { dg: [{ text: 'orcl_dg · SUCCESS', tone: 'undo' }] },
+      flows: [{ link: 'bp', kind: 'undo', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }, { link: 'ship', kind: 'redo', n: 1 }],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> show configuration',
+          'Configuration - orcl_dg',
+          '  Protection Mode: MaxPerformance',
+          '  Members:',
+          '  orcl     - Primary database',
+          '    orclstby - Physical standby database',
+          'Configuration Status:',
+          'SUCCESS|ok',
+        ],
+      },
+    },
+    {
+      short: '두 가지 전환',
+      chapter: 'technique',
+      title: '스위치오버와 페일오버',
+      body: [
+        '<span class="term">스위치오버</span>는 두 DB가 모두 살아 있을 때 역할을 맞바꾸는 계획된 전환입니다. 문서대로 데이터 손실이 없고 나중에 되돌릴 수 있습니다. 패치나 장비 교체에 씁니다.',
+        '<span class="term">페일오버</span>는 주 DB를 잃었을 때 대기 DB를 주 DB로 올리는 것입니다. 문서에 따르면 최대 보호나 최대 가용성 모드가 아니면 데이터를 일부 잃을 수 있습니다. 옛 주 DB에 Flashback Database가 켜져 있었다면, 고친 뒤 새 대기 DB로 되살릴(reinstate) 수 있습니다.',
+      ],
+      callout: { kind: 'warn', text: '페일오버는 되돌리기 어려운 결정입니다. 주 DB를 정말 살릴 수 없는지, 잃을 수 있는 양이 얼마인지 확인하고, 업무 책임자의 결정을 받아 진행합니다.' },
+      changes: ['~ 스위치오버: 둘 다 살아 있음, 손실 없음', '~ 페일오버: 주 DB 잃음, 손실 가능'],
+      metrics: { prim: '-', stby: '-', tlag: '-', alag: '-', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'lgwr', 'mrp'],
+      dim: ['app', 'orl', 'srl'],
+      tags: { lgwr: [{ text: '스위치오버: 둘 다 살아 있음', tone: 'undo' }], mrp: [{ text: '페일오버: 이쪽만 남음', tone: 'signal' }] },
+      flows: [{ link: 'bp', kind: 'undo', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> validate database orclstby',
+          '  Database Role:     Physical standby database',
+          '  Primary Database:  orcl',
+          '  Ready for Switchover:  Yes|ok',
+        ],
+      },
+    },
+    {
+      short: '페일오버',
+      chapter: 'case',
+      title: '사례: 지연을 확인하고 FAILOVER, 고친 뒤 REINSTATE',
+      body: [
+        '대기 DB에서 지연부터 봅니다. transport lag 2초, apply lag 3초라면 최대 성능 모드에서 잃을 수 있는 것은 마지막 몇 초의 커밋입니다. 업무 책임자의 결정을 받은 뒤 대기 DB에 접속한 DGMGRL에서 <code>FAILOVER TO orclstby;</code>를 실행합니다. Broker 문서에 따르면 기본인 <b>완전(complete) 페일오버</b>는 받아 둔 redo를 모두 적용한 다음 역할을 주 DB로 바꾸고 엽니다. <code>IMMEDIATE</code>는 적용을 건너뛰어 보통 데이터를 잃으므로, 완전 페일오버가 불가능할 때만 씁니다.',
+        '하루 뒤 dbserver02를 고치면 옛 주 DB(orcl)는 <code>ORA-16661</code>(the standby database needs to be reinstated) 상태로 보입니다. 페일오버 전에 Flashback Database가 켜져 있었고 플래시백 로그가 충분하면, orcl을 마운트까지 올리고 새 주 DB에 접속해 <code>REINSTATE DATABASE orcl;</code>로 새 대기 DB로 되살립니다. 그렇지 않으면 대기 DB를 다시 만들어야 합니다(ORA-16795).',
+      ],
+      callout: {
+        kind: 'warn',
+        text: '페일오버 뒤에 앱이 새 주 DB(dbserver03)로 접속하는지 꼭 확인하세요. Broker의 fast-start failover를 쓰면 주 DB를 잃었을 때 미리 정한 대기 DB로 브로커가 자동 페일오버하게 할 수도 있습니다.',
+      },
+      changes: ['~ FAILOVER TO orclstby (완전)', '~ orclstby → PRIMARY', '~ 수리 후 REINSTATE DATABASE orcl'],
+      metrics: { prim: 'ORA-16661 → 대기', stby: 'PRIMARY (새 주 DB)', tlag: '2s', alag: '3s → 0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: ['dg', 'mrp', 'sdb', 'app'],
+      dim: ['lgwr', 'orl', 'pdb'],
+      cells: { srl: { 0: 'redo', 1: 'redo' } },
+      tags: { sdb: [{ text: '새 주 DB · READ WRITE', tone: 'undo' }], pdb: [{ text: 'ORA-16661', tone: 'signal' }] },
+      flows: [{ link: 'ap', kind: 'redo', n: 2 }, { link: 'wr', kind: 'data', n: 1 }, { link: 'bs', kind: 'undo', n: 1 }, { link: 'reco', kind: 'sql', n: 2 }],
+      console: {
+        title: 'DGMGRL (orclstby)',
+        lines: [
+          'DGMGRL> failover to orclstby;',
+          '… (받아 둔 redo 적용 후 역할 전환)',
+          '',
+          '-- 하루 뒤, dbserver02 수리 후 orcl을 마운트까지 올리고',
+          'DGMGRL> show database orcl',
+          '  ORA-16661: the standby database needs to be reinstated|warn',
+          'DGMGRL> reinstate database orcl;',
+        ],
+      },
+    },
+    {
+      short: '정리',
+      chapter: 'recap',
+      title: '정리: redo가 건너간 만큼 지킨다',
+      body: [
+        '주 DB의 redo는 전송되어 대기 DB의 RFS가 대기 리두 로그에 쓰고, MRP0가 데이터 파일에 적용합니다. 보호 모드가 SYNC와 ASYNC 중 무엇을 쓸지, 그래서 주 DB를 잃을 때 무엇을 잃을 수 있는지를 정합니다.',
+        'transport lag는 잃을 수 있는 양, apply lag는 전환에 걸릴 시간입니다. 계획된 작업은 스위치오버, 주 DB를 잃으면 페일오버, 고친 옛 주 DB는 Flashback Database로 되살립니다.',
+      ],
+      callout: { kind: 'insight', text: '다음 레슨 "RAC"는 한 DB를 여러 서버가 함께 여는 구조입니다. Data Guard가 "다른 곳의 복제본"이라면 RAC는 "같은 DB의 여러 인스턴스"입니다.' },
+      changes: ['~ 전송 → 대기 리두 로그 → 적용', '+ 스위치오버 · 페일오버 · REINSTATE'],
+      metrics: { prim: 'PRIMARY', stby: 'PHYSICAL STANDBY', tlag: '0', alag: '0', mode: 'MaxPerformance' },
+      show: ['app', 'lgwr', 'orl', 'pdb', 'rfs', 'srl', 'mrp', 'sdb', 'dg'],
+      focus: [],
+      cells: { orl: { 0: 'redo', 1: 'redo' }, srl: { 0: 'redo', 1: 'redo' } },
+      tags: {
+        lgwr: [{ text: '① 만들기', tone: 'redo' }],
+        rfs: [{ text: '② 받기', tone: 'sql' }],
+        mrp: [{ text: '③ 적용', tone: 'sql' }],
+        dg: [{ text: '④ 전환', tone: 'undo' }],
+      },
+      flows: [
+        { link: 'commit', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'ship', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'rs', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'ap', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'wr', kind: 'data', n: 1, rate: 0.6 },
+      ],
+      console: {
+        title: 'DGMGRL',
+        lines: [
+          'DGMGRL> show configuration',
+          'Configuration - orcl_dg',
+          '  Protection Mode: MaxPerformance',
+          '  Members:',
+          '  orcl     - Primary database',
+          '    orclstby - Physical standby database',
+          'Configuration Status:',
+          'SUCCESS|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: '../instance/', note: '완성' }, { text: 'SGA·PGA와 백그라운드 프로세스', href: '../memory/', note: '완성' }] },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, { text: 'Undo와 읽기 일관성', href: '../undo/', note: '완성' }, { text: '잠금과 대기', href: '../lock/', note: '완성' }, { text: '체크포인트', href: '../checkpoint/', note: '완성' }] },
+    { part: '파트 3 · SQL 실행', items: [{ text: '파싱과 Shared Pool', href: '../parse/', note: '완성' }, { text: '옵티마이저와 실행계획', href: '../optimizer/', note: '완성' }, { text: 'B-tree 인덱스', href: '../btree/', note: '완성' }] },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: '../archive/', note: '완성' }, 'Data Guard', { text: 'RAC와 Cache Fusion', href: '../rac/', note: '완성' }], current: 1 },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

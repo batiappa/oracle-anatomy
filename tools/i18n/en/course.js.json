@@ -111,5 +111,21 @@
 "옵티마이저와 실행계획": "The optimizer and execution plans",
 "고유 스캔": "Unique scan",
 "범위 스캔": "Range scan",
-"B-tree 인덱스": "B-tree indexes"
+"B-tree 인덱스": "B-tree indexes",
+"적용": "Apply",
+"브로커": "Broker",
+"페일오버": "Failover",
+"주 DB와 대기 DB 상태 점검": "Check the status of the primary and standby DBs",
+"적용이 멈춘 대기 DB": "A standby DB whose apply stopped",
+"졸업 미션: 계획된 전환(스위치오버)": "Graduation mission: planned switchover",
+"구조": "Structure",
+"접속": "Connecting",
+"gc 대기": "gc waits",
+"노드 장애": "Node failure",
+"서비스 이동": "Service move",
+"되돌리기": "Relocate back",
+"RAC 클러스터 상태 점검": "RAC cluster status check",
+"서비스를 옮기고 인스턴스 하나 내리기": "Move services and shut down one instance",
+"졸업 미션: 노드 장애 뒤 서비스 되돌리기": "Graduation mission: restore services after a node failure",
+"노드 정비: 인스턴스 비우고 Clusterware 내렸다 올리기": "Node maintenance: empty the instance, then stop and restart Clusterware"
 }
