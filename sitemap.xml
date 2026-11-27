@@ -70,4 +70,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/"/>
     <lastmod>2026-11-27</lastmod>
   </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/archive/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/archive/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/archive/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/archive/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/archive/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/archive/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/archive/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/archive/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
 </urlset>

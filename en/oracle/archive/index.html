@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Archivelog and RMAN · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that follows how, in Oracle Database 19c, online redo logs become archived logs through ARCn, collect in the fast recovery area (FRA), and are protected by RMAN backup sets and control file autobackups. It also covers the difference between RESTORE and RECOVER, and why the database stops when the FRA is full (ORA-19809, ORA-00257).">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/archive/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/archive/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/archive/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/archive/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Archivelog and RMAN · Oracle Anatomy">
+<meta property="og:description" content="Follow in 10 steps how redo moves from online redo logs → archived logs → RMAN backups, and see how changes made after a backup can be recovered too.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 4 · Availability</b> / lesson 1 of 3</div>
+      <div class="head-row">
+        <h1>Archivelog and RMAN</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Follow the path redo takes and learn what must be kept to recover even the data that arrived after the last backup.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of redo and backups moving between LGWR and ARCn, three online redo log groups, the data files and control file, and the archived logs, backup sets and autobackups in the fast recovery area"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Commands · processes</li>
+            <li><i style="background:var(--c-redo)"></i>Redo · archived logs</li>
+            <li><i style="background:var(--c-undo)"></i>Control file · autobackup</li>
+            <li><i style="background:var(--c-data)"></i>Data files · backup sets</li>
+            <li><i style="background:var(--c-signal)"></i>Errors</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02), paths and FRA limit (100G) match the virtual server in the DBA labs; log sequence numbers, times and tags are example values. Among the console output, ARCHIVE LOG LIST in NOARCHIVELOG mode, the shape of the V$LOG query result, and the RMAN BACKUP progress lines could not be confirmed against documentation examples, so the progress lines are shortened with an ellipsis (…). The way online redo logs are reused is explained from the reuse rules in the archiving chapter of the Administrator's Guide; the redo log chapter itself was not read. Two places in the 19c documentation disagree about the default for control file autobackup.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-archived-redo-log-files.html" target="_blank" rel="noopener">Oracle Database 19c Administrator's Guide · 12 Managing Archived Redo Log Files (archived log definition, NOARCHIVELOG and ARCHIVELOG, switching modes, destinations, full disk)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/configuring-rman-client-basic.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · Configuring the RMAN Environment (fast recovery area, autobackup default, retention policy)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-backup-concepts.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · RMAN Backup Concepts (backup sets, backup pieces)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/backing-up-database.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · Backing Up the Database (PLUS ARCHIVELOG, control file autobackup)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/rman-complete-database-recovery.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · Performing Complete Database Recovery (RESTORE·RECOVER)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/bradv/maintaining-rman-backups.html" target="_blank" rel="noopener">Backup and Recovery User's Guide 19c · Maintaining RMAN Backups (RMAN repository, OBSOLETE, full FRA)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-manage-back/index.html" target="_blank" rel="noopener">Oracle tutorial · Manage Backups (LIST BACKUP SUMMARY)</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-19809/" target="_blank" rel="noopener">Oracle Error Help · ORA-19809</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-00257/" target="_blank" rel="noopener">Oracle Error Help · ORA-00257</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 4 레슨 1 "Archivelog와 RMAN". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=명령·프로세스, redo=온라인 리두·아카이브 로그, undo=컨트롤 파일·RMAN 기록, data=데이터 파일·백업, signal=오류
+   서버 이름, 경로, 파일 번호, FRA 크기(100G)는 DBA 실습(dba/) 3·5단계의 가상 서버 dbserver02와 같은 값이다.
+   ===================================================================== */
+const FRA = '/u01/app/oracle/fast_recovery_area/ORCL';
+const LESSON = {
+  page: 'archive', base: '../../', storeKey: 'archive:maxSeen', consoleTitle: 'SQL*Plus', multiHost: true,
+  metrics: [
+    { key: 'mode', label: 'Log mode' },
+    { key: 'cur', label: 'Writing' },
+    { key: 'arch', label: 'Archived' },
+    { key: 'bk', label: 'Backup' },
+    { key: 'rp', label: 'Recoverable to' },
+  ],
+  goals: [
+    { text: 'How online redo logs are reused, and the limits of NOARCHIVELOG', step: 2 },
+    { text: 'The steps to switch to ARCHIVELOG', step: 3 },
+    { text: 'When ARCn writes an archived log', step: 4 },
+    { text: 'Files kept in the fast recovery area (FRA)', step: 5 },
+    { text: 'RMAN backup sets and control file autobackup', step: 6 },
+    { text: 'The difference between RESTORE and RECOVER', step: 8 },
+    { text: 'Why the database stops when the FRA is full', step: 9 },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA and PGA', 'Background processes'] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, 'Undo and read consistency', 'Locks and waits', 'Checkpoints'] },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'], current: 0 },
+  ],
+  zones: [
+    { id: 'proc', from: [0.8, -1.4], to: [4.4, 7.6], label: 'Background processes', members: ['lgwr', 'arcn'] },
+    { id: 'db', from: [5.2, -1.6], to: [13.0, 7.8], label: 'Database (/u02)', members: ['r1', 'r2', 'r3', 'dbf', 'ctl'] },
+    { id: 'fra', from: [13.8, -1.6], to: [20.6, 7.8], label: 'Fast recovery area (/u01, 100G)', members: ['arch', 'bset', 'auto'] },
+  ],
+  entities: {
+    term: { type: 'box', at: [-1.6, 3], size: [2, 2, 0.5], label: 'sqlplus · rman', tone: 'sql' },
+    lgwr: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'LGWR', tone: 'redo', led: true },
+    arcn: { type: 'box', at: [1.8, 4.4], size: [1.7, 1.6, 1.1], label: 'ARCn', tone: 'sql', led: true, labelPos: 'left' },
+    r1:   { type: 'cyl', at: [6.6, -0.6], r: 0.7, h: 0.9, label: 'Group 1 · redo01', tone: 'redo' },
+    r2:   { type: 'cyl', at: [6.6, 2.4], r: 0.7, h: 0.9, label: 'Group 2 · redo02', tone: 'redo' },
+    r3:   { type: 'cyl', at: [6.6, 5.4], r: 0.7, h: 0.9, label: 'Group 3 · redo03', tone: 'redo', tagDir: 'down' },
+    dbf:  { type: 'cyl', at: [10.8, 0.2], r: 1.1, h: 1.8, label: 'Data files', tone: 'data' },
+    ctl:  { type: 'cyl', at: [10.8, 5.0], r: 0.9, h: 1.2, label: 'Control file', tone: 'undo', tagDir: 'down' },
+    arch: { type: 'cyl', at: [15.6, -0.2], r: 1.0, h: 1.6, label: 'Archived logs', tone: 'redo' },
+    bset: { type: 'box', at: [15.0, 3.6], size: [2.2, 1.8, 0.9], label: 'Backup sets', tone: 'data' },
+    auto: { type: 'box', at: [18.4, 4.6], size: [1.6, 1.5, 0.7], label: 'Autobackup', tone: 'undo', labelPos: 'right', tagDir: 'down' },
+  },
+  // onDemand 링크는 그 링크를 쓰는 흐름이 있을 때만 보인다.
+  links: {
+    w1:    { from: 'lgwr', to: 'r1' },
+    w2:    { from: 'lgwr', to: 'r2', onDemand: true },
+    w3:    { from: 'lgwr', to: 'r3', onDemand: true },
+    read1: { from: 'r1', to: 'arcn', via: [[5.0, 0.2], [5.0, 4.0]], onDemand: true },
+    read2: { from: 'r2', to: 'arcn', via: [[5.4, 3.2], [5.4, 4.8]], onDemand: true },
+    copy:  { from: 'arcn', to: 'arch', via: [[4.8, 7.4], [13.4, 7.4], [13.4, -0.2]], onDemand: true },
+    sql:   { from: 'term', to: 'ctl', via: [[-0.6, 8.2], [10.8, 8.2]], onDemand: true },
+    bk1:   { from: 'dbf', to: 'bset', via: [[13.4, 1.0], [13.4, 4.4]], onDemand: true },
+    bk2:   { from: 'arch', to: 'bset', onDemand: true },
+    meta:  { from: 'bset', to: 'ctl', onDemand: true },
+    ab:    { from: 'ctl', to: 'auto', via: [[12.6, 6.4], [18.4, 6.4]], onDemand: true },
+    rest:  { from: 'bset', to: 'dbf', via: [[13.0, 4.6], [13.0, 1.2]], onDemand: true },
+    apply: { from: 'arch', to: 'dbf', onDemand: true },
+  },
+  baseCells: {},
+  steps: [
+    {
+      short: 'Problem', chapter: 'problem',
+      title: 'Backup at 1 a.m., disk failure at 3 p.m. What about the data in between?',
+      body: [
+        'Backups run every day at 1 a.m. At 3 p.m. the disk holding the data files fails. Restoring the files from backup brings them back as they were at 1 a.m. Where do the thousands of orders that came in during the morning come from?',
+        'The answer is in the redo log. If every change since the backup is still kept as redo, those changes can be reapplied on top of the backup. The catch is that the online redo log reuses just a few files over and over. This lesson follows how that redo is collected so it is never lost.',
+      ],
+      callout: { kind: 'insight', text: 'How far you can recover is decided by "the backup + how much redo after it still exists". With only a backup, you get back to the backup time; with all the redo, to just before the failure.' },
+      changes: ['+ full backup at 1 a.m.', '× data file disk fails at 3 p.m.'],
+      metrics: { mode: 'NOARCHIVELOG', cur: 'Group 1', arch: 'Nobody', bk: '01:00', rp: 'To 01:00' },
+      show: ['term', 'lgwr', 'r1', 'r2', 'r3', 'dbf', 'ctl'], focus: ['dbf'], dim: ['r1', 'r2', 'r3'],
+      tags: { dbf: [{ text: 'Disk failed', tone: 'signal' }] },
+      flows: [],
+      console: { title: 'SQL*Plus', lines: ['SQL> archive log list', 'Database log mode              No Archive Mode', 'Automatic archival             Disabled|warn', 'Archive destination            USE_DB_RECOVERY_FILE_DEST'] },
+    },
+    {
+      short: 'Reuse', chapter: 'technique',
+      title: 'The online redo log reuses three groups in turn',
+      body: [
+        'ORCL on dbserver02 has three <span class="term">online redo log</span> groups. LGWR writes redo to the current group (CURRENT) and, when it fills, moves on to the next group. This is a <span class="term">log switch</span>. After the third group comes the first again.',
+        'According to the Administrator\'s Guide, in <code>NOARCHIVELOG</code> mode a group that became inactive after a log switch is available for reuse by LGWR right away. Overwritten redo is gone, so, as the guide puts it, this mode protects against instance failure but not against media (disk) failure.',
+      ],
+      callout: { kind: 'warn', text: 'A NOARCHIVELOG database cannot recover transactions made after the backup. According to the guide, it can only be restored from whole backups taken while the database was closed.' },
+      changes: ['~ overwrite in order: group 1 → 2 → 3 → 1', '× overwritten redo is gone'],
+      metrics: { mode: 'NOARCHIVELOG', cur: 'Group 2', arch: 'Nobody', bk: '01:00', rp: 'To 01:00' },
+      show: ['term', 'lgwr', 'r1', 'r2', 'r3', 'dbf', 'ctl'], focus: ['lgwr', 'r1', 'r2', 'r3'],
+      tags: { r1: [{ text: 'INACTIVE · may be overwritten', tone: 'muted' }], r2: [{ text: 'CURRENT', tone: 'redo' }] },
+      flows: [{ link: 'w1', kind: 'redo', n: 1, rate: 0.6 }, { link: 'w2', kind: 'redo', n: 3 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> select group#, sequence#, archived, status from v$log;', '    GROUP#  SEQUENCE# ARC STATUS', '---------- ---------- --- ----------------', '         1         41 NO  INACTIVE', '         2         42 NO  CURRENT', '         3         40 NO  INACTIVE'] },
+    },
+    {
+      short: 'Switch mode', chapter: 'technique',
+      title: 'Switching to ARCHIVELOG: one statement at MOUNT',
+      body: [
+        'The log mode can only be changed while the database is mounted. The guide\'s order is <code>SHUTDOWN IMMEDIATE</code> → back up → <code>STARTUP MOUNT</code> → <code>ALTER DATABASE ARCHIVELOG</code> → <code>ALTER DATABASE OPEN</code>. This is where the MOUNT stage from ‘Instance and Database’ is used.',
+        'Afterwards, <code>archive log list</code> shows <code>Archive Mode</code> and <code>Automatic archival Enabled</code>. If a fast recovery area is configured and no other local archive destination is set, the guide says Oracle picks the FRA as the destination and shows it as <code>USE_DB_RECOVERY_FILE_DEST</code>.',
+      ],
+      callout: { kind: 'warn', text: 'The guide says to back up all data files and the control file again after changing the log mode, because backups taken in NOARCHIVELOG mode are no longer usable.' },
+      changes: ['~ ALTER DATABASE ARCHIVELOG at MOUNT', '+ automatic archiving on'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 2', arch: 'None yet', bk: 'Needed again', rp: 'Backup needed' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl'], focus: ['ctl', 'arcn'], dim: ['dbf'],
+      tags: { ctl: [{ text: 'Log mode recorded', tone: 'undo' }], arcn: [{ text: 'Started', tone: 'sql' }] },
+      flows: [{ link: 'sql', kind: 'sql', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> shutdown immediate', 'SQL> startup mount', 'SQL> alter database archivelog;', 'Database altered.|ok', 'SQL> alter database open;', 'SQL> archive log list', 'Database log mode              Archive Mode', 'Automatic archival             Enabled|ok', 'Archive destination            USE_DB_RECOVERY_FILE_DEST'] },
+    },
+    {
+      short: 'ARCn', chapter: 'technique',
+      title: 'After a log switch, ARCn keeps a copy',
+      body: [
+        'According to the guide, a filled group becomes available for archiving right after a log switch, and with automatic archiving enabled the <span class="term">ARCn</span> background process does the work. An <span class="term">archived redo log</span> is a copy of one of the filled members of a redo log group.',
+        'Now the control file marks that "this group must not be reused until it is archived". So only groups whose ARCHIVED column in <code>v$log</code> is YES get overwritten. The redo is no longer lost; it piles up in the FRA.',
+      ],
+      callout: { kind: 'tip', text: 'So that archiving does not fall behind, Oracle starts several archiver processes when needed. The n in ARCn is their number (ARC0, ARC1 …).' },
+      changes: ['~ log switch: group 2 → 3', '+ group 2 copied to an archived log'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 3', arch: '1', bk: 'Needed again', rp: 'Backup needed' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch'], focus: ['arcn', 'arch', 'r2'],
+      tags: { r2: [{ text: 'Archiving', tone: 'redo' }], r3: [{ text: 'CURRENT', tone: 'redo' }], arch: [{ text: 'o1_mf_1_42_….arc', tone: 'redo' }] },
+      flows: [{ link: 'w3', kind: 'redo', n: 2 }, { link: 'read2', kind: 'redo', n: 2 }, { link: 'copy', kind: 'redo', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> alter system switch logfile;', 'System altered.|ok', 'SQL> select group#, sequence#, archived, status from v$log;', '    GROUP#  SEQUENCE# ARC STATUS', '---------- ---------- --- ----------------', '         1         41 NO  INACTIVE', '         2         42 YES ACTIVE', '         3         43 NO  CURRENT'] },
+    },
+    {
+      short: 'FRA', chapter: 'technique',
+      title: 'Fast recovery area: recovery files in one place',
+      body: [
+        'The <span class="term">fast recovery area</span> (FRA) is disk space managed by Oracle. According to the Backup and Recovery User\'s Guide it can hold RMAN disk backups, control file autobackups and archived logs, as well as flashback logs and copies of control files and online redo logs.',
+        'The location is set by <code>DB_RECOVERY_FILE_DEST</code> and the limit by <code>DB_RECOVERY_FILE_DEST_SIZE</code>; the guide says to set the limit before the location. On dbserver02 it is on the /u01 disk with a 100G limit, and archivelog, backupset and autobackup directories are created inside it per date.',
+      ],
+      callout: { kind: 'insight', text: 'The limit is a quota the database sets for itself, not the disk size. Even if /u01 has free space, the FRA counts as full once this limit is used up. The failure in scene 9 comes from this.' },
+      changes: ['+ archived logs go to FRA/archivelog/date/', '~ limit 100G (db_recovery_file_dest_size)'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 3', arch: '1', bk: 'Needed again', rp: 'Backup needed' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: ['arch', 'bset', 'auto'], dim: ['bset', 'auto'],
+      tags: { arch: [{ text: 'archivelog/2026_11_27/', tone: 'redo' }] },
+      flows: [],
+      console: { title: 'SQL*Plus', lines: ['SQL> show parameter db_recovery_file_dest', 'NAME                        TYPE        VALUE', '--------------------------- ----------- ----------------------------------', 'db_recovery_file_dest       string      /u01/app/oracle/fast_recovery_area', 'db_recovery_file_dest_size  big integer 100G'] },
+    },
+    {
+      short: 'RMAN backup', chapter: 'technique',
+      title: 'RMAN backup: data files and archived logs together',
+      body: [
+        '<code>BACKUP DATABASE PLUS ARCHIVELOG</code> backs up the data files and the archived logs together. The guide explains that archiving the logs right after the backup gives you a full set of archived logs through the time of the backup.',
+        'RMAN writes its output as logical units called <span class="term">backup sets</span>, and each actual file inside one is a <span class="term">backup piece</span>. Which backups exist and where is always recorded in the target database\'s control file. Without a separate recovery catalog database, the control file is the only place these records live.',
+      ],
+      callout: { kind: 'tip', text: 'The first RMAN command shows <code>using target database control file instead of recovery catalog</code>: backup records are kept in the control file, not in a catalog. So losing the control file also loses the backup records.' },
+      changes: ['+ backup set (data files)', '+ backup set (archived logs)', '+ backup records in the control file'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 1', arch: '3', bk: '15:00', rp: 'Up to now' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: ['bset', 'ctl'], dim: ['auto'],
+      tags: { bset: [{ text: 'backupset/2026_11_27/', tone: 'data' }], ctl: [{ text: 'RMAN records', tone: 'undo' }] },
+      flows: [{ link: 'bk1', kind: 'data', n: 3 }, { link: 'bk2', kind: 'redo', n: 2 }, { link: 'meta', kind: 'undo', n: 1 }],
+      console: { title: 'RMAN', lines: ['$ rman target /', 'connected to target database: ORCL (DBID=…)', 'RMAN> backup database plus archivelog;', '…', 'RMAN> list backup summary;', 'List of Backups', '===============', 'Key     TY LV S Device Type Completion Time #Pieces #Copies Compressed Tag', '------- -- -- - ----------- --------------- ------- ------- ---------- ---', '1       B  A  A DISK        27-NOV-26       1       1       NO         TAG20261127T150002', '2       B  F  A DISK        27-NOV-26       1       1       NO         TAG20261127T150005', '3       B  A  A DISK        27-NOV-26       1       1       NO         TAG20261127T150114|ok'] },
+    },
+    {
+      short: 'Autobackup', chapter: 'technique',
+      title: 'Control file autobackup: a backup of the backup records',
+      body: [
+        'With <code>CONFIGURE CONTROLFILE AUTOBACKUP ON</code>, RMAN automatically backs up the control file and the server parameter file (SPFILE) after every backup and after structural changes to the database. According to the guide, in ARCHIVELOG mode an autobackup is also taken whenever the structure metadata in the control file changes.',
+        'Even if every control file is lost, this autobackup lets you bring one back with <code>RESTORE CONTROLFILE FROM AUTOBACKUP</code>. It contains the backup records from scene 6, so data file recovery can follow.',
+      ],
+      callout: { kind: 'warn', text: 'Even the 19c documentation disagrees about the default. The RMAN configuration chapter says "ON by default when COMPATIBLE is 12.2 or higher", while the backup chapter says "OFF by default". So don\'t rely on memory; check with <code>show all;</code>.' },
+      changes: ['+ control file + SPFILE autobackup', '~ after each backup · after each structural change'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 1', arch: '3', bk: '15:00', rp: 'Up to now' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: ['ctl', 'auto'],
+      tags: { auto: [{ text: 'autobackup/2026_11_27/', tone: 'undo' }] },
+      flows: [{ link: 'ab', kind: 'undo', n: 2 }],
+      console: { title: 'RMAN', lines: ['RMAN> show all;', 'using target database control file instead of recovery catalog', 'RMAN configuration parameters for database with db_unique_name ORCL are:', 'CONFIGURE RETENTION POLICY TO REDUNDANCY 1; # default', 'CONFIGURE CONTROLFILE AUTOBACKUP ON; # default|ok', '…'] },
+    },
+    {
+      short: 'Restore & recover', chapter: 'case',
+      title: 'Case: a data file is gone. RESTORE, then RECOVER',
+      body: [
+        'The 3 p.m. disk failure took the data file of the USERS tablespace. First, <span class="term">RESTORE</span> takes that file out of the backup set and puts it back in place. The file is as it was at backup time, so it cannot be used yet.',
+        'Next, <span class="term">RECOVER</span> applies the redo generated since. According to the guide, complete recovery restores the data files and then applies all redo generated after that backup, and RMAN automatically restores any needed archived logs from backup. Applying the online redo last brings the file to just before the failure.',
+      ],
+      callout: { kind: 'insight', text: 'This answers the question from scene 1. With ARCHIVELOG + a backup + all archived logs, even the morning\'s orders come back. In stage 5 of the DBA labs you delete a file and bring it back yourself.' },
+      changes: ['~ RESTORE: backup set → USERS data file', '~ RECOVER: apply archived → online redo'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 2', arch: '6', bk: '15:00', rp: 'Just before failure' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: ['dbf', 'bset', 'arch'], dim: ['auto'],
+      tags: { dbf: [{ text: 'USERS file missing → restore', tone: 'signal' }], arch: [{ text: 'Changes since backup', tone: 'redo' }] },
+      flows: [{ link: 'rest', kind: 'data', n: 2 }, { link: 'apply', kind: 'redo', n: 3 }],
+      console: { title: 'RMAN', lines: ['RMAN> restore tablespace users;', 'Starting restore at 27-NOV-26', '…', 'channel ORA_DISK_1: restore complete, elapsed time: 00:00:07', 'Finished restore at 27-NOV-26', 'RMAN> recover tablespace users;', 'Starting recover at 27-NOV-26', 'starting media recovery', 'media recovery complete, elapsed time: 00:00:01|ok', 'Finished recover at 27-NOV-26'] },
+    },
+    {
+      short: 'FRA full', chapter: 'case',
+      title: 'Case: when the FRA is full, the database stops',
+      body: [
+        'In a week of heavy batch jobs, far more archived logs piled up than usual. Once the FRA limit is used up, ARCn can no longer make copies. A group that is not archived cannot be overwritten, so LGWR soon has nowhere to write.',
+        'The Administrator\'s Guide warns that if the disk fills while archiving, a fatal error occurs and the database stops responding. The alert log shows <code>ORA-19809</code> (limit exceeded for recovery files), and new connections get <code>ORA-00257</code>.',
+      ],
+      callout: { kind: 'warn', text: 'In a hurry, raise <code>db_recovery_file_dest_size</code>, then use RMAN <code>DELETE OBSOLETE</code> to remove files the retention policy no longer needs. Deleting with Linux <code>rm</code> leaves the RMAN records out of step. The DBA labs stage 5 lesson "FRA full" is this scene.' },
+      changes: ['× FRA 100% used', '× ARCn copy fails → group cannot be overwritten'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 3 (stuck)', arch: 'Over limit', bk: '15:00', rp: 'At risk' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: ['arch', 'arcn', 'lgwr'], dim: ['bset', 'auto'],
+      tags: { arch: [{ text: '100% · ORA-19809', tone: 'signal' }], r1: [{ text: 'Not archived', tone: 'signal' }], lgwr: [{ text: 'No group to write', tone: 'signal' }] },
+      flows: [{ link: 'read1', kind: 'redo', n: 1 }, { link: 'copy', kind: 'signal', n: 2, bounce: true }],
+      console: { title: 'alert.log', lines: ['ORA-19809: limit exceeded for recovery files|warn', 'ORA-00257: Archiver error. Connect AS SYSDBA only until resolved.|warn'] },
+    },
+    {
+      short: 'Summary', chapter: 'recap',
+      title: 'Recap: collect the redo, back it up, keep only what the policy says',
+      body: [
+        'In ARCHIVELOG mode, redo moves from the online redo log (LGWR) → archived logs (ARCn) → backup sets (RMAN). Every record is kept in the control file, which in turn is protected by autobackup.',
+        'The <span class="term">retention policy</span> decides how much to keep. According to the guide the default is <code>REDUNDANCY 1</code>, and older backups beyond the policy become OBSOLETE. Oracle deletes obsolete files in the FRA automatically when space is needed, and you can also delete them any time with <code>DELETE OBSOLETE</code>.',
+      ],
+      callout: { kind: 'tip', text: 'With all archived logs you can go back not only to "just before the failure" but also to "just before a mistake". Point-in-time recovery in stage 6 of the DBA labs does exactly that.' },
+      changes: ['~ online redo → archived logs → backup sets', '~ retention policy REDUNDANCY 1 (default)'],
+      metrics: { mode: 'ARCHIVELOG', cur: 'Group 1', arch: 'Per policy', bk: 'Daily', rp: 'Any time you choose' },
+      show: ['term', 'lgwr', 'arcn', 'r1', 'r2', 'r3', 'dbf', 'ctl', 'arch', 'bset', 'auto'], focus: [],
+      tags: { r1: [{ text: '① LGWR', tone: 'redo' }], arch: [{ text: '② ARCn', tone: 'redo' }], bset: [{ text: '③ RMAN', tone: 'data' }], auto: [{ text: '④ autobackup', tone: 'undo' }] },
+      flows: [
+        { link: 'w1', kind: 'redo', n: 1 },
+        { link: 'copy', kind: 'redo', n: 1, rate: 0.7 },
+        { link: 'bk2', kind: 'redo', n: 1, rate: 0.6 },
+        { link: 'bk1', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'ab', kind: 'undo', n: 1, rate: 0.5 },
+      ],
+      console: { title: 'RMAN', lines: ['RMAN> report obsolete;', 'RMAN> delete noprompt obsolete;', 'RMAN> list backup summary;'] },
+    },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

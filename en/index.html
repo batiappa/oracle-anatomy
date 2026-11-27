@@ -160,7 +160,7 @@ const LESSON = {
     { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: 'oracle/instance/', note: 'Ready' }, 'SGA and PGA', 'Background processes'] },
     { part: 'Part 2 · Transactions', items: ['The Journey of a COMMIT', 'Undo and read consistency', 'Locks and waits', 'Checkpoints'], current: 0 },
     { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
-    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: 'oracle/archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
   ],
   zones: [
     { id: 'sga', from: [5.2, -1.4], to: [11.2, 8.4], label: 'SGA · shared memory', members: ['bc', 'lb'] },
