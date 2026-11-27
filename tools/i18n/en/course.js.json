@@ -59,5 +59,18 @@
 "Oracle 해부도": "Oracle Anatomy",
 "⟦0⟧단계 레슨 ⟦1⟧": "Stage ⟦0⟧, lesson ⟦1⟧",
 "⟦0⟧ ⟦1⟧장면 · ⟦2⟧": "⟦0⟧ scene ⟦1⟧ · ⟦2⟧",
-"<div class=\"theory\"><span class=\"theory-k\">원리 먼저 보기</span>⟦0⟧</div>": "<div class=\"theory\"><span class=\"theory-k\">See the principle first</span>⟦0⟧</div>"
+"<div class=\"theory\"><span class=\"theory-k\">원리 먼저 보기</span>⟦0⟧</div>": "<div class=\"theory\"><span class=\"theory-k\">See the principle first</span>⟦0⟧</div>",
+"컨트롤 파일": "Control file",
+"지워진 암호 파일 다시 만들기": "Re-create a deleted password file",
+"졸업 미션: 재부팅 뒤 아침 점검": "Graduation mission: morning check after a reboot",
+"지워진 데이터 파일 하나 되살리기": "Bring back one deleted data file",
+"SYSTEM 데이터 파일을 잃은 DB 살리기": "Save a DB that lost its SYSTEM data file",
+"컨트롤 파일 사본 하나를 잃었을 때": "When one control file copy is lost",
+"컨트롤 파일을 모두 잃었을 때": "When all control files are lost",
+"인스턴스와 데이터베이스": "Instance and database",
+"두 가지": "Two things",
+"파라미터 파일": "Parameter file",
+"인스턴스 복구": "Instance recovery",
+"데이터 파일": "Data files",
+"⟦0⟧ ⟦1⟧장면부터 · 관련 장면 ⟦2⟧개": "⟦0⟧ from scene ⟦1⟧ · ⟦2⟧ related scenes"
 }

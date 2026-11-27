@@ -26,6 +26,7 @@
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <script src="../lang.js"></script>
+<script src="../stats.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -159,7 +160,7 @@ const LESSON = {
       { text: '1단계 리눅스 기초', href: '../lab/#lesson-1', note: '레슨 9개' },
       { text: '2단계 오라클용 리눅스 준비', href: '../lab/#lesson-10', note: '레슨 9개' },
     ] },
-    { part: '3 · Oracle 해부도', items: [{ text: 'COMMIT의 여정', href: '../', note: '다음 순서' }] },
+    { part: '3 · Oracle 해부도', items: [{ text: '인스턴스와 데이터베이스', href: '../oracle/instance/', note: '다음 순서' }, { text: 'COMMIT의 여정', href: '../', note: '그다음' }] },
     { part: '4 · DBA 실습', items: [{ text: '3~11단계', href: '../dba/', note: '레슨 44개' }] },
   ],
   zones: [

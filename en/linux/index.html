@@ -26,6 +26,7 @@
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <script src="../lang.js"></script>
+<script src="../stats.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -159,7 +160,7 @@ const LESSON = {
       { text: 'Stage 1 Linux basics', href: '../lab/#lesson-1', note: '9 lessons' },
       { text: 'Stage 2 Preparing Linux for Oracle', href: '../lab/#lesson-10', note: '9 lessons' },
     ] },
-    { part: '3 · Oracle Anatomy', items: [{ text: 'The Journey of a COMMIT', href: '../', note: 'Next in order' }] },
+    { part: '3 · Oracle Anatomy', items: [{ text: 'Instance and database', href: '../oracle/instance/', note: 'Next in order' }, { text: 'The Journey of a COMMIT', href: '../', note: 'After that' }] },
     { part: '4 · DBA Lab', items: [{ text: 'Stages 3–11', href: '../dba/', note: '44 lessons' }] },
   ],
   zones: [

@@ -23,8 +23,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 # 번역할 원본(한글이 든 파일)과 그대로 복사할 파일
 SOURCES = ['index.html', 'anatomy.js', 'course.js', 'tips.js', 'session.js', 'lang.js',
-           'linux/index.html', 'lab/index.html', 'dba/index.html']
-COPY = ['anatomy.css', 'favicon.svg', 'og.jpg', 'sw.js']
+           'linux/index.html', 'lab/index.html', 'dba/index.html', 'oracle/instance/index.html']
+COPY = ['anatomy.css', 'favicon.svg', 'og.jpg', 'sw.js', 'stats.js']
 SITE = 'https://batiappa.github.io/oracle-anatomy/'
 LANGS = {
     'en': {'html_lang': 'en', 'og_locale': 'en_US'},

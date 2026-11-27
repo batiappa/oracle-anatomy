@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/linux/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/linux/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/linux/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/linux/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/linux/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/linux/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/linux/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/linux/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/lab/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/lab/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/lab/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/lab/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/lab/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/lab/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/lab/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/lab/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/dba/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/dba/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/dba/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/dba/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/dba/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/dba/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/dba/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/dba/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/instance/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/instance/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+</urlset>
