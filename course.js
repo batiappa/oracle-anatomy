@@ -1,6 +1,6 @@
 /* 실습 과정 공용 내비게이션: 리눅스 실습실(lab/)과 DBA 실습(dba/)을 1~11단계 한 과정으로 보여 준다.
    st는 페이지 안에서 쓰는 단계 키이고, 화면에 보이는 단계 번호(no)는 이 배열의 순서로 매긴다.
-   (SQL 기초는 나중에 만들어 키가 10이지만 3단계 뒤에 두어 4단계로 보인다. RAC 기초는 키 11, 11단계.)
+   (SQL 기초는 나중에 만들어 키가 10이지만 3단계 뒤에 두어 4단계로 보인다. RAC 기초는 키 11, 11단계. 레슨 104~108은 나중에 넣었지만 졸업 미션 103 앞에 둔다.)
    각 페이지는 이 파일을 불러 Course.render()로 단계 메뉴를 그린다. 진행 상황은 두 페이지가 각자 저장한
    localStorage 값(ohb:lab:done, ohb:dba:done)을 함께 읽어 계산한다. */
 (function () {
@@ -17,7 +17,7 @@
     { st: 7, part: 'dba', group: 'DBA', name: '패치', ids: range(61, 63) },
     { st: 8, part: 'dba', group: 'DBA', name: 'SQL 튜닝 입문', ids: range(71, 73) },
     { st: 9, part: 'dba', group: 'DBA', name: 'Data Guard 기초', ids: range(81, 83) },
-    { st: 11, part: 'dba', group: 'DBA', name: 'RAC 기초', ids: range(101, 103) },
+    { st: 11, part: 'dba', group: 'DBA', name: 'RAC 기초', ids: [101, 102, 104, 105, 106, 107, 108, 103] },
   ];
   STAGES.forEach((s, i) => { s.no = i + 1; });
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };
