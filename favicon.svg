@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <path d="M16 3 29 10.5 16 18 3 10.5Z" fill="#c27400"/>
-  <path d="M3 10.5v4L16 22v-4Z" fill="#8a5300"/>
-  <path d="M29 10.5v4L16 22v-4Z" fill="#613a00"/>
-  <path d="M3 17.5 16 25l13-7.5v4L16 29 3 21.5Z" fill="#0b8582"/>
-  <path d="M16 25v4l13-7.5v-4Z" fill="#06504e"/>
+  <!-- 미스터오라클 로고: DB 원통 + 터미널 프롬프트 -->
+  <path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="#2453c7"/>
+  <ellipse cx="16" cy="8" rx="11" ry="4" fill="#8ea6e6"/>
+  <path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

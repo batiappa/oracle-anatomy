@@ -15,7 +15,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:site_name" content="Oracle 해부도">
+<meta property="og:site_name" content="미스터오라클">
 <meta property="og:title" content="COMMIT의 여정 · Oracle 해부도">
 <meta property="og:description" content="Oracle Database 19c에서 UPDATE와 COMMIT이 Buffer Cache, Undo, Redo, LGWR, DBWn을 거치는 과정을 10단계 애니메이션으로 따라갑니다.">
 <meta name="twitter:card" content="summary_large_image">
@@ -31,14 +31,8 @@
 <body>
 <header class="top">
   <div class="top-in">
+    <a class="logo" href="./" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
     <div class="brand">
-      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 3 29 10.5 16 18 3 10.5Z" fill="var(--c-redo)"/>
-        <path d="M3 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 70%, #000)"/>
-        <path d="M29 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 50%, #000)"/>
-        <path d="M3 17.5 16 25l13-7.5v4L16 29 3 21.5Z" fill="var(--c-data)"/>
-        <path d="M16 25v4l13-7.5v-4Z" fill="color-mix(in srgb, var(--c-data) 60%, #000)"/>
-      </svg>
       <span class="brand-name">Oracle 해부도</span>
       <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
     </div>
@@ -117,13 +111,13 @@
     <div>
       <h2>이 프로젝트에 대해</h2>
       <p>Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하도록 만든 인터랙티브 학습 사이트입니다. 다이어그램은 외부 그래픽 라이브러리 없이 SVG와 JavaScript로 그리며, 레슨은 데이터만 추가하면 늘어나는 구조입니다.</p>
-      <p class="credit">만든 사람: 김영조 · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
     </div>
     <div class="legal">
       <h2>참고 사항</h2>
       <p>설명은 Oracle Database 19c 기준입니다. 화면의 SCN, 블록 번호, 시간 같은 수치는 설명을 위한 예시 값입니다.</p>
       <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html" target="_blank" rel="noopener">Concepts 19c · Process Architecture (LGWR, DBW)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html" target="_blank" rel="noopener">Concepts 19c · Transactions</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html" target="_blank" rel="noopener">Concepts 19c · Memory Architecture</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html" target="_blank" rel="noopener">SQL Language Reference 19c · COMMIT</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/lnpls/transaction-processing-and-control.html" target="_blank" rel="noopener">PL/SQL Language Reference 19c · COMMIT Statement</a>.</p>
-      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
     </div>
   </div>
 </footer>
