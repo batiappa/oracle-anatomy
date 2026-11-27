@@ -182,4 +182,32 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/btree/"/>
     <lastmod>2026-11-27</lastmod>
   </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/dataguard/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/dataguard/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/dataguard/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/oracle/rac/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/rac/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/rac/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/rac/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
+  <url>
+    <loc>https://batiappa.github.io/oracle-anatomy/en/oracle/rac/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/rac/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/rac/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://batiappa.github.io/oracle-anatomy/oracle/rac/"/>
+    <lastmod>2026-11-27</lastmod>
+  </url>
 </urlset>

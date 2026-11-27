@@ -61,6 +61,14 @@ SGA를 8G에서 12G로 늘렸더니 인스턴스가 뜨지 않은 사례로 시�
 
 `ship_date`에 인덱스가 있는데 `ship_date IS NULL` 조회가 테이블 전체를 읽는 사례로 시작합니다. 루트·브랜치·리프 블록, 균형 트리와 높이(BLEVEL + 1), 리프의 키와 rowid, 인덱스 고유 스캔과 범위 스캔, 클러스터링 팩터, 인덱스가 DML에 주는 비용을 따라갑니다. 사례는 단일 열 B-tree 인덱스에 NULL이 저장되지 않는다는 문서 규칙에서 출발해 복합 인덱스로 해결하는 순서이며, 해결 방법은 그 규칙에서 이끌어 낸 것임을 화면에 밝혔습니다.
 
+### Oracle 해부도 · Data Guard (10장면, `oracle/dataguard/`)
+
+새벽에 주 DB 서버(dbserver02)의 저장 장치가 망가진 사례로 시작합니다. 블록 단위 복제본인 물리 대기 DB, redo 전송과 RFS·대기 리두 로그, MRP0의 Redo Apply와 실시간 적용, SYNC·ASYNC와 세 보호 모드, transport lag·apply lag, 브로커(DGMGRL), 스위치오버와 페일오버를 따라갑니다. 사례는 지연을 확인한 뒤 `FAILOVER TO orclstby`(완전 페일오버)로 대기 DB를 주 DB로 올리고, 수리한 옛 주 DB를 `REINSTATE DATABASE`로 되살리는 순서입니다.
+
+### Oracle 해부도 · RAC (10장면, `oracle/rac/`)
+
+새벽에 racnode2가 재부팅된 뒤 정산 배치가 두 배 느려진 사례(DBA 실습 레슨 103과 같은 장애)로 시작합니다. DB 하나를 여러 인스턴스가 여는 구조(인스턴스별 SGA·redo thread·Undo), SCAN과 서비스(preferred·available), Cache Fusion과 GCS·GES·GRD, LMS·LMD·LMON, gc 대기, 노드 장애 때 VIP와 서비스가 옮겨 가는 과정을 따라갑니다. 사례는 자동으로 돌아오지 않은 서비스를 `srvctl relocate service`로 되돌리는 순서입니다.
+
 ## 무엇을 보여 주나
 
 첫 레슨 **COMMIT의 여정**은 `UPDATE` 한 문장과 `COMMIT` 한 번을 10단계로 따라갑니다. 주요 내용은 다음과 같습니다.
@@ -276,7 +284,7 @@ python3 -m http.server 8000
 
 ## 로드맵
 
-- 해부도 다음 레슨: Data Guard, RAC
+- Oracle 해부도: 계획한 12개 레슨(파트 1~4) 완성
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 

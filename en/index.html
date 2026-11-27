@@ -160,7 +160,7 @@ const LESSON = {
     { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: 'oracle/instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: 'oracle/memory/', note: 'Ready' }] },
     { part: 'Part 2 · Transactions', items: ['The Journey of a COMMIT', { text: 'Undo and read consistency', href: 'oracle/undo/', note: 'Ready' }, { text: 'Locks and waits', href: 'oracle/lock/', note: 'Ready' }, { text: 'Checkpoints', href: 'oracle/checkpoint/', note: 'Ready' }], current: 0 },
     { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the Shared Pool', href: 'oracle/parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: 'oracle/optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: 'oracle/btree/', note: 'Ready' }] },
-    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: 'oracle/archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: 'oracle/archive/', note: 'Ready' }, { text: 'Data Guard', href: 'oracle/dataguard/', note: 'Ready' }, { text: 'RAC and Cache Fusion', href: 'oracle/rac/', note: 'Ready' }] },
   ],
   zones: [
     { id: 'sga', from: [5.2, -1.4], to: [11.2, 8.4], label: 'SGA · shared memory', members: ['bc', 'lb'] },

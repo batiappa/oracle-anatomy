@@ -165,6 +165,17 @@
     { page: 'btree', step: 6, t: '범위 스캔', lessons: [72] },
     { page: 'btree', step: 9, t: 'NULL', lessons: [73] },
     { page: 'btree', step: 10, t: '정리', lessons: [72] },
+    { page: 'dataguard', step: 1, t: '문제', lessons: [83] },
+    { page: 'dataguard', step: 4, t: '적용', lessons: [82] },
+    { page: 'dataguard', step: 7, t: '브로커', lessons: [81] },
+    { page: 'dataguard', step: 9, t: '페일오버', lessons: [83] },
+    { page: 'rac', step: 1, t: '문제', lessons: [103] },
+    { page: 'rac', step: 2, t: '구조', lessons: [101] },
+    { page: 'rac', step: 3, t: '접속', lessons: [102] },
+    { page: 'rac', step: 6, t: 'gc 대기', lessons: [103] },
+    { page: 'rac', step: 7, t: '노드 장애', lessons: [106] },
+    { page: 'rac', step: 8, t: '서비스 이동', lessons: [102] },
+    { page: 'rac', step: 9, t: '되돌리기', lessons: [103] },
   ];
   const TITLES = {
     1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기', 5: 'oracle 계정과 권한 이해하기', 6: 'DB가 살아 있는지 프로세스로 확인하기',
@@ -174,9 +185,11 @@
     24: '꽉 찬 테이블스페이스에 공간 늘리기', 26: '지워진 암호 파일 다시 만들기', 27: '락을 잡고 있는 세션 정리하기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기', 29: '졸업 미션: 재부팅 뒤 아침 점검',
     31: '지워진 데이터 파일 하나 되살리기', 32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때',
     41: '실수 직전 시각으로 DB 되돌리기 (시점 복구)', 42: '컨트롤 파일을 모두 잃었을 때', 51: '지금 무엇을 기다리는지 보기 (대기 이벤트)', 52: 'AWR 보고서로 어젯밤 배치 들여다보기', 53: '졸업 미션: 주문 저장이 멈춘 아침',
-    71: '느린 SQL의 실행 계획 읽기', 72: '조건을 고쳐 인덱스 타게 하기', 73: '졸업 미션: 고객별 주문 조회가 느린 아침', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
+    71: '느린 SQL의 실행 계획 읽기', 72: '조건을 고쳐 인덱스 타게 하기', 73: '졸업 미션: 고객별 주문 조회가 느린 아침', 81: '주 DB와 대기 DB 상태 점검', 82: '적용이 멈춘 대기 DB',
+    83: '졸업 미션: 계획된 전환(스위치오버)', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK', 101: 'RAC 클러스터 상태 점검', 102: '서비스를 옮기고 인스턴스 하나 내리기',
+    103: '졸업 미션: 노드 장애 뒤 서비스 되돌리기', 106: '노드 정비: 인스턴스 비우고 Clusterware 내렸다 올리기',
   };
-  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo와 읽기 일관성', dir: 'oracle/undo/' }, lock: { name: '잠금과 대기', dir: 'oracle/lock/' }, checkpoint: { name: '체크포인트', dir: 'oracle/checkpoint/' }, memory: { name: 'SGA·PGA와 백그라운드 프로세스', dir: 'oracle/memory/' }, parse: { name: '파싱과 Shared Pool', dir: 'oracle/parse/' }, optimizer: { name: '옵티마이저와 실행계획', dir: 'oracle/optimizer/' }, btree: { name: 'B-tree 인덱스', dir: 'oracle/btree/' } };
+  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' }, archive: { name: 'Archivelog와 RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo와 읽기 일관성', dir: 'oracle/undo/' }, lock: { name: '잠금과 대기', dir: 'oracle/lock/' }, checkpoint: { name: '체크포인트', dir: 'oracle/checkpoint/' }, memory: { name: 'SGA·PGA와 백그라운드 프로세스', dir: 'oracle/memory/' }, parse: { name: '파싱과 Shared Pool', dir: 'oracle/parse/' }, optimizer: { name: '옵티마이저와 실행계획', dir: 'oracle/optimizer/' }, btree: { name: 'B-tree 인덱스', dir: 'oracle/btree/' }, dataguard: { name: 'Data Guard', dir: 'oracle/dataguard/' }, rac: { name: 'RAC', dir: 'oracle/rac/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `${s.no}단계 레슨 ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

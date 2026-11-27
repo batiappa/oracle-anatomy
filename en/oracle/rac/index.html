@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RAC · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that dissects how several instances open one database together in Oracle RAC 19c (per-instance SGA, redo thread and undo, shared storage), SCAN and services, Cache Fusion with GCS and GES, gc waits, and how VIPs and services move when a node fails. It also covers a case where a service did not return to its place after the node came back, causing slowness.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/rac/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/rac/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/rac/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/rac/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="RAC · Oracle Anatomy">
+<meta property="og:description" content="After racnode2 rebooted overnight, the morning settlement batch is twice as slow. Dissect RAC, where two servers open one database together, in 10 steps.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 4 · Availability</b> / lesson 3 of 3</div>
+      <div class="head-row">
+        <h1>RAC</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">14 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">When instances on two servers open one database together, how do blocks move between them, and where do connections and services go when one server dies?</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of an app connecting through the SCAN listener to PAYDB1 on racnode1 and PAYDB2 on racnode2, the two instances exchanging blocks over the interconnect, and both using data files and per-instance redo threads on shared storage"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Connections · services</li>
+            <li><i style="background:var(--c-data)"></i>Buffer cache · data blocks</li>
+            <li><i style="background:var(--c-undo)"></i>Cache Fusion (interconnect)</li>
+            <li><i style="background:var(--c-redo)"></i>redo thread</li>
+            <li><i style="background:var(--c-signal)"></i>Failures · waits</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server names (racnode1, racnode2), database (PAYDB), instances (PAYDB1, PAYDB2), services (pay_oltp, pay_batch) with their preferred and available settings, and the 03:10 reboot and 07:40 return match DBA labs stage 11; session counts and wait counts are example values. Part of the description that a failed node's VIP moves to another node so clients get an immediate connection refused, the -failback option (19.3 and later), and services moving to an available instance comes from a summary of the RAC Administration Guide. Which instance recovers a failed instance and in what order, and the details of how many hops (2-way, 3-way) a block transfer takes, were not confirmed and are not covered. The crsctl and srvctl output is trimmed, and the state shown in the crsctl resource table after a VIP fails over and the gc statistic names in GV$SYSSTAT were not confirmed in the pages read, so they may differ from real output.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/introduction-to-oracle-rac.html" target="_blank" rel="noopener">Real Application Clusters Administration and Deployment Guide 19c · Introduction to Oracle RAC (instances, redo threads, undo, Cache Fusion, GCS, GES, GRD, interconnect, VIP, SCAN)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/glossary.html" target="_blank" rel="noopener">RAC 19c · Glossary (LMON, LMS, Cache Fusion, GCS)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/workload-management-with-dynamic-database-services.html" target="_blank" rel="noopener">RAC 19c · Workload Management with Dynamic Database Services (preferred and available, no automatic failback, -failback)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (gc cr request, gc current request, gc buffer busy acquire, gc cr block 2-way)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 4 "RAC". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=접속·서비스, data=버퍼 캐시·데이터 블록, undo=Cache Fusion, redo=redo thread, signal=장애·대기
+   racnode1·2, PAYDB1·2, pay_oltp·pay_batch는 DBA 실습 11단계(레슨 101~108)와 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'rac',
+  base: '../../',
+  storeKey: 'rac:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'n1', label: 'racnode1 · PAYDB1' },
+    { key: 'n2', label: 'racnode2 · PAYDB2' },
+    { key: 'oltp', label: 'pay_oltp' },
+    { key: 'batch', label: 'pay_batch' },
+    { key: 'gc', label: 'gc waits' },
+  ],
+  goals: [
+    { text: 'One database, many instances', step: 2 },
+    { text: 'SCAN and services', step: 3 },
+    { text: 'Cache Fusion', step: 4 },
+    { text: 'GCS, GES, LMS and LMON', step: 5 },
+    { text: 'Waits starting with gc', step: 6 },
+    { text: 'What happens when a node dies', step: 7 },
+    { text: 'Why services move and do not come back', step: 8 },
+  ],
+  zones: [
+    { id: 'n1', from: [3.4, -2.0], to: [8.4, 2.6], label: 'racnode1', members: ['i1'] },
+    { id: 'n2', from: [3.4, 4.4], to: [8.4, 9.0], label: 'racnode2', members: ['i2'] },
+    { id: 'st', from: [10.6, -1.2], to: [16.8, 8.6], label: 'Shared storage (ASM +DATA)', members: ['dbf', 't1', 't2'] },
+  ],
+  entities: {
+    app:  { type: 'box', at: [-4.0, 2.4], size: [2.2, 1.8, 0.5], label: 'Payment app · batch', tone: 'sql' },
+    scan: { type: 'box', at: [0.0, 2.4], size: [2.0, 1.8, 0.8], label: 'SCAN listener', tone: 'sql', led: true },
+    i1:   { type: 'box', at: [4.0, -1.4], size: [3.6, 3.2, 0.9], label: 'PAYDB1 · buffer cache', tone: 'data', cells: [4, 3], led: true },
+    i2:   { type: 'box', at: [4.0, 5.0], size: [3.6, 3.2, 0.9], label: 'PAYDB2 · buffer cache', tone: 'data', cells: [4, 3], led: true, tagDir: 'down' },
+    dbf:  { type: 'cyl', at: [13.6, 0.8], r: 1.2, h: 1.6, label: 'Data files (one set)', tone: 'data' },
+    t1:   { type: 'box', at: [11.4, 4.6], size: [2.4, 1.4, 0.4], label: 'redo thread 1', tone: 'redo', cells: [3, 1], tagDir: 'down' },
+    t2:   { type: 'box', at: [14.2, 4.6], size: [2.4, 1.4, 0.4], label: 'redo thread 2', tone: 'redo', cells: [3, 1], tagDir: 'down', labelPos: 'right' },
+  },
+  links: {
+    c:  { from: 'app', to: 'scan' },
+    s1: { from: 'scan', to: 'i1' },
+    s2: { from: 'scan', to: 'i2' },
+    ic: { from: 'i1', to: 'i2', via: [[8.9, 0.2], [8.9, 6.6]], onDemand: true },
+    r1: { from: 'i1', to: 'dbf', onDemand: true },
+    r2: { from: 'i2', to: 'dbf', via: [[9.8, 6.6], [9.8, 1.6]], onDemand: true },
+    w1: { from: 'i1', to: 't1', via: [[9.4, 0.6], [9.4, 5.3]], onDemand: true },
+    w2: { from: 'i2', to: 't2', via: [[10.2, 7.4], [15.4, 7.4]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'After a node rebooted overnight, the morning batch is twice as slow',
+      body: [
+        'The payment database PAYDB is a RAC of two servers, racnode1 and racnode2. The night log says: "03:10 racnode2 rebooted after a hardware alarm, 07:40 confirmed back up." Both nodes are fine now, and PAYDB1 and PAYDB2 are both open.',
+        'Yet the morning settlement batch is twice as slow as usual and the payment screen is a little slow too. Every server is alive, so what changed? The answer lies in who works where in RAC.',
+      ],
+      callout: { kind: 'insight', text: 'This is the same incident as the DBA labs stage 11 graduation mission (lesson 103). There you solved it with commands; here you see what happened underneath.' },
+      changes: ['× 03:10 racnode2 rebooted', '~ 07:40 back', '× batch twice as slow'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: '?', gc: 'High' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2'],
+      dim: ['dbf', 't1', 't2'],
+      cells: { i1: { 0: 'signal', 1: 'signal', 4: 'signal', 5: 'signal', 8: 'signal' } },
+      tags: { i1: [{ text: 'Busy', tone: 'signal' }], i2: [{ text: 'Idle', tone: 'data' }] },
+      flows: [{ link: 'c', kind: 'sql', n: 3 }, { link: 's1', kind: 'sql', n: 4, rate: 1.4 }, { link: 's2', kind: 'sql', n: 1, rate: 0.5 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: ['$ srvctl status database -db paydb', 'Instance PAYDB1 is running on node racnode1', 'Instance PAYDB2 is running on node racnode2'],
+      },
+    },
+    {
+      short: 'Structure',
+      chapter: 'technique',
+      title: 'One database, two instances: each with its own SGA, redo thread and undo',
+      body: [
+        'According to the RAC Administration Guide, in RAC several instances access one database together, each running on a separate server. The data files exist once, on shared storage (here the ASM disk group +DATA).',
+        'Each instance has its own SGA and background processes, and, as the documentation says, its own <span class="term">redo thread</span> and instance-specific undo tablespace. PAYDB1 writes redo to thread 1 and PAYDB2 to thread 2. All of it is on shared storage, so each can read the other\'s redo.',
+      ],
+      callout: { kind: 'tip', text: 'GV$ views show information from all open instances along with INST_ID. In DBA lab 101 you compared V$INSTANCE (one row) and GV$INSTANCE (two rows).' },
+      changes: ['+ data files: one set on shared storage', '+ per instance: SGA · redo thread · undo'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: '-', batch: '-', gc: '-' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2', 'dbf', 't1', 't2'],
+      dim: ['app', 'scan'],
+      cells: { t1: { 0: 'redo' }, t2: { 0: 'redo' } },
+      tags: { dbf: [{ text: '+DATA', tone: 'data' }] },
+      flows: [{ link: 'r1', kind: 'data', n: 1 }, { link: 'r2', kind: 'data', n: 1 }, { link: 'w1', kind: 'redo', n: 1 }, { link: 'w2', kind: 'redo', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select inst_id, instance_name, host_name, thread# from gv$instance order by inst_id;',
+          '   INST_ID INSTANCE_NAME    HOST_NAME            THREAD#',
+          '---------- ---------------- -------------------- ----------',
+          '         1 PAYDB1           racnode1                      1',
+          '         2 PAYDB2           racnode2                      2',
+        ],
+      },
+    },
+    {
+      short: 'Connecting',
+      chapter: 'technique',
+      title: 'Come in through SCAN, work through services',
+      body: [
+        'The app connects with the <span class="term">SCAN</span> name, not node names. According to the documentation, the SCAN name resolves to three IPs in round robin, and the SCAN listeners send each connection to a suitable instance. The app\'s connect string stays the same as nodes are added or removed.',
+        'What the app names when connecting is a <span class="term">service</span>. Each service has preferred instances where it normally runs, and available instances that take over if a preferred one fails. In PAYDB, pay_oltp runs on both instances, and pay_batch runs only on PAYDB2 (preferred), with PAYDB1 available.',
+      ],
+      callout: { kind: 'tip', text: 'Splitting the payment screen and settlement batch into services on different instances reduces both nodes modifying the same blocks at once. The next scene shows why.' },
+      changes: ['~ SCAN: 3 IPs, round robin', '~ pay_batch: preferred PAYDB2, available PAYDB1'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB2', gc: 'Low' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['app', 'scan', 'i1', 'i2'],
+      dim: ['dbf', 't1', 't2'],
+      tags: { i1: [{ text: 'pay_oltp', tone: 'sql' }], i2: [{ text: 'pay_oltp · pay_batch', tone: 'sql' }] },
+      flows: [{ link: 'c', kind: 'sql', n: 2 }, { link: 's1', kind: 'sql', n: 2 }, { link: 's2', kind: 'sql', n: 2 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: ['$ srvctl config service -db paydb -service pay_batch', 'Service name: pay_batch', 'Preferred instances: PAYDB2', 'Available instances: PAYDB1'],
+      },
+    },
+    {
+      short: 'Cache Fusion',
+      chapter: 'technique',
+      title: 'Cache Fusion: a block in another instance\'s cache comes over the network, not from disk',
+      body: [
+        'What if a block PAYDB1 wants is already in PAYDB2\'s cache? According to the documentation, <span class="term">Cache Fusion</span> sends a copy of the block directly from the holding instance\'s memory cache to the requesting instance\'s cache. The caches behave logically as one.',
+        'Blocks travel over the <span class="term">interconnect</span>, a private network used only between nodes. The documentation explains this is often faster than reading from disk, and that even consistent-read (CR) blocks are obtained from another instance. That is why the interconnect must be a dedicated network of at least Gigabit speed.',
+      ],
+      callout: { kind: 'insight', text: 'Fast is not free. If two instances take turns modifying the same block, it keeps crossing the interconnect, and that means waiting.' },
+      changes: ['~ PAYDB2 cache → interconnect → PAYDB1 cache', '~ no disk read'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB2', gc: 'Low' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2'],
+      dim: ['app', 'scan', 't1', 't2'],
+      cells: { i2: { 5: 'data' }, i1: { 6: 'data' } },
+      tags: { i2: [{ text: 'Holds the block', tone: 'data' }], i1: [{ text: 'Receives a copy', tone: 'undo' }] },
+      flows: [{ link: 'ic', kind: 'undo', n: 2, bounce: true }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select inst_id, name, value from gv$sysstat where name in (\'gc cr blocks received\', \'gc current blocks received\') order by 1, 2;',
+          '   INST_ID NAME                                VALUE',
+          '---------- ------------------------------ ----------',
+          '         1 gc cr blocks received               18240',
+          '         1 gc current blocks received          22610',
+          '         2 gc cr blocks received               15120',
+          '         2 gc current blocks received          19830',
+        ],
+      },
+    },
+    {
+      short: 'GCS · GES',
+      chapter: 'technique',
+      title: 'Who holds which block: GCS, GES and the GRD',
+      body: [
+        'Remembering and coordinating which instance holds a block in which mode is the job of <span class="term">GCS</span> (Global Cache Service); coordinating enqueues such as locks is <span class="term">GES</span> (Global Enqueue Service). According to the documentation, this information lives in the <span class="term">GRD</span> (Global Resource Directory), which is distributed across the active instances.',
+        'RAC-specific background processes do this work. As the documentation says, <b>LMS</b> transmits block images between buffer caches, <b>LMD</b> handles incoming remote resource requests and deadlock detection, and <b>LMON</b> monitors global resources across the cluster and manages instance deaths and the associated recovery.',
+      ],
+      callout: { kind: 'tip', text: 'If Linux <code>ps</code> shows processes like ora_lms0_PAYDB1 and ora_lmon_PAYDB1, it is a RAC instance.' },
+      changes: ['+ GCS: block location and mode', '+ GES: enqueue', '+ LMS · LMD · LMON'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB2', gc: 'Low' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2'],
+      dim: ['app', 'scan', 'dbf', 't1', 't2'],
+      tags: { i1: [{ text: 'LMS · LMD · LMON', tone: 'undo' }], i2: [{ text: 'LMS · LMD · LMON', tone: 'undo' }] },
+      flows: [{ link: 'ic', kind: 'undo', n: 3 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: [
+          '$ ps -ef | grep -E "ora_(lms|lmd|lmon)" | grep -v grep',
+          'oracle    4410     1  0 07:41 ?        00:00:12 ora_lmon_PAYDB1',
+          'oracle    4412     1  0 07:41 ?        00:00:05 ora_lmd0_PAYDB1',
+          'oracle    4416     1  1 07:41 ?        00:03:20 ora_lms0_PAYDB1',
+        ],
+      },
+    },
+    {
+      short: 'gc waits',
+      chapter: 'technique',
+      title: 'Waits starting with gc: waiting for another instance\'s block',
+      body: [
+        'The Database Reference wait event list includes global cache waits starting with gc. <code>gc cr request</code> and <code>gc current request</code> mean a block has been requested from another instance and is awaited; <code>gc cr block 2-way</code> means a CR block was received from another instance. <code>gc buffer busy acquire</code> means waiting because another session in the same instance has already requested that block.',
+        'Many of these waits mean the two instances exchange the same blocks often. They grow especially when sessions on both nodes modify the same blocks of the same table at the same time.',
+      ],
+      callout: { kind: 'warn', text: 'In RAC, look at waits with GV$SESSION, not V$, and split by INST_ID. Looking at one node misses problems on the other.' },
+      changes: ['+ gc cr request · gc current request', '+ gc buffer busy acquire'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB1, PAYDB2 ?', gc: 'High' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2'],
+      dim: ['app', 'scan', 'dbf', 't1', 't2'],
+      cells: { i1: { 6: 'signal' }, i2: { 5: 'signal' } },
+      tags: { i1: [{ text: 'gc current request', tone: 'signal' }], i2: [{ text: 'Same block', tone: 'signal' }] },
+      flows: [{ link: 'ic', kind: 'signal', n: 4, bounce: true, rate: 1.4 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select inst_id, event, count(*) from gv$session where wait_class = \'Cluster\' group by inst_id, event;',
+          '   INST_ID EVENT                          COUNT(*)',
+          '---------- ---------------------------- ----------',
+          '         1 gc current request                     7|warn',
+          '         1 gc buffer busy acquire                 5|warn',
+          '         1 gc cr block 2-way                      3',
+        ],
+      },
+    },
+    {
+      short: 'Node failure',
+      chapter: 'case',
+      title: '03:10, racnode2 dies: the VIP and recovery',
+      body: [
+        'When racnode2 stops, PAYDB2 disappears with it. According to the documentation, that node\'s VIP fails over to another node, and clients trying to connect to the relocated VIP get an immediate connection refused error instead of waiting for a TCP timeout, so they can retry another address.',
+        'PAYDB2\'s unfinished changes are in redo thread 2, and that redo is on shared storage. As the documentation glossary says, LMON manages instance deaths and the associated recovery, handling the part related to global resources. Meanwhile PAYDB1 stays open.',
+      ],
+      callout: { kind: 'tip', text: 'DBA lab 106 is the planned version: node maintenance (draining the instance and restarting Clusterware). The difference between a failure and maintenance is whether sessions were moved first.' },
+      changes: ['× racnode2 · PAYDB2 gone', '~ VIP → racnode1', '~ redo thread 2 → recovery'],
+      metrics: { n1: 'Open', n2: 'Down', oltp: 'PAYDB1', batch: 'Moving', gc: '-' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 't2', 'scan'],
+      dim: ['i2'],
+      cells: {
+        i2: {
+          0: 'signal',
+          1: 'signal',
+          2: 'signal',
+          3: 'signal',
+          4: 'signal',
+          5: 'signal',
+          6: 'signal',
+          7: 'signal',
+          8: 'signal',
+          9: 'signal',
+          10: 'signal',
+          11: 'signal',
+        },
+        t2: { 0: 'redo', 1: 'redoDirty' },
+      },
+      tags: { i2: [{ text: '03:10 reboot', tone: 'signal' }], t2: [{ text: 'Remains on shared storage', tone: 'redo' }] },
+      flows: [{ link: 's2', kind: 'signal', n: 2, bounce: true }, { link: 's1', kind: 'sql', n: 3 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: [
+          '$ crsctl stat res -t   # 03:12',
+          '…',
+          'ora.racnode2.vip',
+          '      1        ONLINE  INTERMEDIATE racnode1         FAILED OVER|warn',
+          'ora.paydb.db',
+          '      2        ONLINE  OFFLINE                       |warn',
+        ],
+      },
+    },
+    {
+      short: 'Service move',
+      chapter: 'case',
+      title: 'pay_batch moves to its available instance and does not come back on its own',
+      body: [
+        'When the preferred instance (PAYDB2) disappeared, Clusterware moved pay_batch to its available instance, PAYDB1. The settlement batch can keep running on PAYDB1.',
+        'At 07:40 racnode2 and PAYDB2 came back. But according to the RAC Administration Guide, Oracle does not automatically move the service back to the preferred instance when it restarts. From 19.3, giving the service the <code>-failback</code> option makes it return when a preferred instance becomes available.',
+      ],
+      callout: { kind: 'warn', text: 'Always add "are services where they belong (srvctl status service)" to the post-recovery checklist. DBA lab 102 practices the command for moving services.' },
+      changes: ['~ pay_batch: PAYDB2 → PAYDB1', '~ 07:40 PAYDB2 back', '× pay_batch stays on PAYDB1'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB1 (misplaced)', gc: 'Rising' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2', 'scan'],
+      dim: ['dbf', 't1', 't2'],
+      cells: { i1: { 0: 'data', 1: 'data', 4: 'data', 5: 'data' } },
+      tags: { i1: [{ text: 'pay_oltp · pay_batch', tone: 'signal' }], i2: [{ text: 'pay_oltp only', tone: 'sql' }] },
+      flows: [{ link: 's1', kind: 'sql', n: 4, rate: 1.3 }, { link: 's2', kind: 'sql', n: 1, rate: 0.6 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: [
+          '$ srvctl status service -db paydb',
+          'Service pay_batch is running on instance(s) PAYDB1|warn',
+          'Service pay_oltp is running on instance(s) PAYDB1,PAYDB2',
+        ],
+      },
+    },
+    {
+      short: 'Relocate back',
+      chapter: 'case',
+      title: 'Fix: split the work piled on one node back out by service',
+      body: [
+        'This is the cause from scene 1. Payment sessions and the settlement batch piled onto PAYDB1, competing for CPU, and exchanging the same blocks with PAYDB2\'s payment sessions raised gc waits. Every server is alive, but the work is lopsided.',
+        'After agreeing on timing with the settlement team, move pay_batch back to PAYDB2 with <code>srvctl relocate service</code>. Without <code>-force</code>, running batch sessions are not killed; new work goes to PAYDB2. To prevent recurrence, add a service location check after node recovery to the runbook, or consider <code>-failback</code>.',
+      ],
+      callout: { kind: 'insight', text: 'RAC failures show up more often as "things differ from normal after it came back" than as "a server died". Always check service locations and which instance sessions have piled onto.' },
+      changes: ['~ srvctl relocate service pay_batch → PAYDB2', '~ gc waits drop'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB2', gc: 'Low' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: ['i1', 'i2', 'scan'],
+      dim: ['dbf', 't1', 't2'],
+      cells: { i1: { 0: 'data', 4: 'data' }, i2: { 1: 'data', 5: 'data', 9: 'data' } },
+      tags: { i1: [{ text: 'pay_oltp', tone: 'sql' }], i2: [{ text: 'pay_oltp · pay_batch', tone: 'sql' }] },
+      flows: [{ link: 's1', kind: 'sql', n: 2 }, { link: 's2', kind: 'sql', n: 3 }, { link: 'ic', kind: 'undo', n: 1, rate: 0.5 }],
+      console: {
+        title: 'bash (racnode1)',
+        lines: [
+          '$ srvctl relocate service -db paydb -service pay_batch -oldinst PAYDB1 -newinst PAYDB2',
+          '$ echo $?',
+          '0|ok',
+          '$ srvctl status service -db paydb -service pay_batch',
+          'Service pay_batch is running on instance(s) PAYDB2|ok',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: one set of data, work divided by services',
+      body: [
+        'RAC has several instances open one database on shared storage. Each instance has its own SGA, redo thread and undo, and blocks in another instance\'s cache arrive over the interconnect by Cache Fusion. GCS and GES coordinate this with the GRD, and LMS, LMD and LMON do the work.',
+        'Apps connect through SCAN and services, and when a node dies its VIP and services move. Services do not come back on their own, though, so after a node returns, check where services run and move them back.',
+      ],
+      callout: { kind: 'insight', text: 'This is the last lesson of the anatomy plan. From Linux to the instance, SQL execution, recovery and availability, use each lesson\'s practice buttons to review alongside the DBA labs.' },
+      changes: ['~ one database + many instances', '~ Cache Fusion · services · VIP'],
+      metrics: { n1: 'Open', n2: 'Open', oltp: 'PAYDB1, PAYDB2', batch: 'PAYDB2', gc: 'Low' },
+      show: ['app', 'scan', 'i1', 'i2', 'dbf', 't1', 't2'],
+      focus: [],
+      cells: { i1: { 0: 'data', 4: 'data' }, i2: { 1: 'data', 5: 'data' }, t1: { 0: 'redo' }, t2: { 0: 'redo' } },
+      tags: { scan: [{ text: '① SCAN · services', tone: 'sql' }], i1: [{ text: '② instances', tone: 'data' }], dbf: [{ text: '③ shared storage', tone: 'data' }] },
+      flows: [
+        { link: 'c', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 's1', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 's2', kind: 'sql', n: 1, rate: 0.6 },
+        { link: 'ic', kind: 'undo', n: 1, rate: 0.5 },
+        { link: 'r1', kind: 'data', n: 1, rate: 0.5 },
+      ],
+      console: {
+        title: 'bash (racnode1)',
+        lines: [
+          '$ srvctl status service -db paydb',
+          'Service pay_batch is running on instance(s) PAYDB2|ok',
+          'Service pay_oltp is running on instance(s) PAYDB1,PAYDB2|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, { text: 'SGA, PGA and background processes', href: '../memory/', note: 'Ready' }] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }] },
+    { part: 'Part 3 · SQL execution', items: [{ text: 'Parsing and the shared pool', href: '../parse/', note: 'Ready' }, { text: 'The optimizer and execution plans', href: '../optimizer/', note: 'Ready' }, { text: 'B-tree indexes', href: '../btree/', note: 'Ready' }] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, { text: 'Data Guard', href: '../dataguard/', note: 'Ready' }, 'RAC and Cache Fusion'], current: 2 },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>
