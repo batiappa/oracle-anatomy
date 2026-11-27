@@ -33,6 +33,18 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 온라인 리두 로그를 돌려 쓰는 방식과 NOARCHIVELOG의 한계에서 시작합니다. ARCHIVELOG로 바꾸는 순서, ARCn이 남기는 아카이브 로그, 빠른 복구 영역(FRA), RMAN 백업 세트와 컨트롤 파일 자동 백업을 차례로 따라갑니다. 사례는 두 가지로, 데이터 파일을 잃었을 때의 RESTORE와 RECOVER, FRA가 가득 찼을 때 나는 `ORA-19809`와 `ORA-00257`입니다. 근거는 19c Administrator's Guide 12장과 Backup and Recovery User's Guide입니다. 컨트롤 파일 자동 백업의 기본값은 19c 문서 두 곳의 설명이 달라서, 레슨 화면에도 그렇게 밝혀 두었습니다.
 
+### Oracle 해부도 · 잠금과 대기 (10장면, `oracle/lock/`)
+
+점심시간에 주문 저장이 멈춘 사례로 시작합니다. UPDATE가 고친 행마다 잡는 행 잠금(TX)과 블록 헤더의 ITL, 읽기는 Undo로 막히지 않는 이유, 같은 행을 고치려는 세션이 `enq: TX - row lock contention`으로 줄 서는 모습, 테이블 잠금(TM)이 DDL을 막는 이유를 따라갑니다. 사례는 V$SESSION의 `BLOCKING_SESSION`으로 원인 세션을 찾아 정리하는 순서와 교착 상태(`ORA-00060`)입니다. 근거는 19c Concepts의 Data Concurrency and Consistency 장, Database Reference의 대기 이벤트·잠금 이름 표, Performance Tuning Guide입니다.
+
+### Oracle 해부도 · Undo와 읽기 일관성 (10장면, `oracle/undo/`)
+
+두 시간 돌던 월말 보고서가 `ORA-01555`로 끝난 사례로 시작합니다. UPDATE가 고치기 전 값을 Undo에 남기는 것, ROLLBACK, 쿼리가 시작 시점(SCN)의 데이터를 보는 문장 단위 읽기 일관성, Undo로 CR 사본을 만드는 과정, 커밋 뒤 Undo를 남기는 `UNDO_RETENTION`(기본 900초, 하한값)을 따라갑니다. 사례는 V$UNDOSTAT의 `TUNED_UNDORETENTION`으로 원인을 확인하고 보존 기간과 공간을 늘리는 순서입니다. 고정 크기 Undo에서 UNDO_RETENTION이 무시되는지는 Administrator's Guide와 Database Reference(19.7 RU부터)가 달라 화면에 함께 적었습니다.
+
+### Oracle 해부도 · 체크포인트 (10장면, `oracle/checkpoint/`)
+
+야간 배치의 DML이 모두 `log file switch (checkpoint incomplete)`에서 멈춘 사례로 시작합니다. 커밋은 리두만 쓰고 데이터 블록은 더티 버퍼로 남는 것, 가장 오래된 더티 버퍼로 정해지는 체크포인트 위치, CKPT(기록)와 DBWn(쓰기)의 역할, 로그 스위치와 V$LOG의 ACTIVE·INACTIVE를 따라갑니다. 사례는 로그 전환 횟수 확인, 리두 로그 크기·개수 늘리기, `FAST_START_MTTR_TARGET`입니다.
+
 ## 무엇을 보여 주나
 
 첫 레슨 **COMMIT의 여정**은 `UPDATE` 한 문장과 `COMMIT` 한 번을 10단계로 따라갑니다. 주요 내용은 다음과 같습니다.

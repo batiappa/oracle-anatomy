@@ -157,8 +157,8 @@ const LESSON = {
   ],
   outline: [
     { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: 'linux/', note: 'Linux basics' }] },
-    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: 'oracle/instance/', note: 'Ready' }, 'SGA and PGA', 'Background processes'] },
-    { part: 'Part 2 · Transactions', items: ['The Journey of a COMMIT', 'Undo and read consistency', 'Locks and waits', 'Checkpoints'], current: 0 },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: 'oracle/instance/', note: 'Ready' }, 'SGA, PGA and background processes'] },
+    { part: 'Part 2 · Transactions', items: ['The Journey of a COMMIT', { text: 'Undo and read consistency', href: 'oracle/undo/', note: 'Ready' }, { text: 'Locks and waits', href: 'oracle/lock/', note: 'Ready' }, { text: 'Checkpoints', href: 'oracle/checkpoint/', note: 'Ready' }], current: 0 },
     { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
     { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: 'oracle/archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
   ],

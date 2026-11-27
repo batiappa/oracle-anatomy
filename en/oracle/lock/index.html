@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Locks and waits · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that follows how, in Oracle Database 19c, an UPDATE takes a row lock (TX) and a table lock (TM), and how sessions that want the same row queue up on enq: TX - row lock contention. It also covers why reads are never blocked, how to find and clear the blocking session with V$SESSION, and deadlocks (ORA-00060).">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/lock/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/lock/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/lock/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/lock/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Locks and waits · Oracle Anatomy">
+<meta property="og:description" content="The order screen froze at lunchtime. Follow in 10 steps how one uncommitted row makes sessions queue up.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 2 · Transactions</b> / lesson 3 of 4</div>
+      <div class="head-row">
+        <h1>Locks and waits</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">When the database is not slow but waiting for something, find out what that something is and where it is recorded.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of changes and waits passing between three sessions, a data block in the buffer cache, the ITL in its block header, the table lock, undo and V$SESSION"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Sessions · commands</li>
+            <li><i style="background:var(--c-data)"></i>Data block · rows</li>
+            <li><i style="background:var(--c-undo)"></i>Lock records · undo</li>
+            <li><i style="background:var(--c-redo)"></i>Table lock (TM)</li>
+            <li><i style="background:var(--c-signal)"></i>Waits · errors</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02), accounts (APP, APP_BATCH) and session number 142 match the DBA labs stage 3 lesson "Clear the session that holds a lock"; table names, row values, times and second counts are example values. The column layout of the V$SESSION query results could not be confirmed against documentation examples. The statements that row-lock information lives only in the block and is never escalated, and that a deadlock rolls back only one statement, come from a summary of the later part of the Concepts chapter. The error number for DDL blocked by DML locks and the wait class of enq: TX - row lock contention were not found in the pages read, so they are not given.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Data Concurrency and Consistency (row locks TX, table locks TM, ITL, readers and writers, deadlocks, lock duration)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/descriptions-of-wait-events.html" target="_blank" rel="noopener">Database Reference 19c · Descriptions of Wait Events (enq: TX - row lock contention)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/oracle-enqueue-names.html" target="_blank" rel="noopener">Database Reference 19c · Oracle Enqueue Names (TX, TM)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/instance-tuning-using-performance-views.html" target="_blank" rel="noopener">Database Performance Tuning Guide 19c · Instance Tuning Using Performance Views (blocking session in V$SESSION, V$LOCK)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 2 "잠금과 대기". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=세션·명령, data=데이터 블록·행, undo=ITL·Undo, redo=테이블 잠금(TM), signal=대기·오류
+   세션 142(APP_BATCH)와 dbserver02는 DBA 실습(dba/) 3단계 레슨 27과 같은 값이다.
+   ===================================================================== */
+const LESSON = {
+  page: 'lock',
+  base: '../../',
+  storeKey: 'lock:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'hold', label: 'Holder' },
+    { key: 'wait', label: 'Waiting' },
+    { key: 'ev', label: 'Wait event' },
+    { key: 'row', label: 'Locked rows' },
+    { key: 'ord', label: 'Order screen' },
+  ],
+  goals: [
+    { text: 'The row lock (TX) an UPDATE takes, and how long it lasts', step: 2 },
+    { text: 'How lock information is kept in the block\'s ITL', step: 3 },
+    { text: 'Why reads never block writes', step: 4 },
+    { text: 'How sessions that change the same row queue up', step: 5 },
+    { text: 'Why the table lock (TM) blocks DDL', step: 6 },
+    { text: 'The steps to find and clear the blocking session', step: 7 },
+    { text: 'Deadlocks and ORA-00060', step: 9 },
+  ],
+  zones: [
+    { id: 'sess', from: [0.6, -1.4], to: [4.6, 7.6], label: 'Sessions (server processes)', members: ['s142', 's201', 's305'] },
+    { id: 'sga', from: [5.4, -1.6], to: [13.4, 7.8], label: 'SGA · buffer cache', members: ['blk', 'itl', 'tm', 'undo'] },
+    { id: 'dict', from: [14.2, -1.0], to: [18.6, 6.6], label: 'Dynamic performance views', members: ['vs'] },
+  ],
+  entities: {
+    term: { type: 'box', at: [-2.8, 3.2], size: [2, 2, 0.5], label: 'sqlplus (DBA)', tone: 'sql' },
+    s142: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'Session 142 · batch', tone: 'sql', led: true },
+    s201: { type: 'box', at: [1.8, 2.4], size: [1.7, 1.6, 1.1], label: 'Session 201 · order screen', tone: 'sql', led: true },
+    s305: { type: 'box', at: [1.8, 5.4], size: [1.7, 1.6, 1.1], label: 'Session 305 · query', tone: 'sql', led: true, labelPos: 'left', tagDir: 'down' },
+    blk:  { type: 'box', at: [6.4, -0.6], size: [3.6, 2.6, 0.6], label: 'Data block · ORDERS', tone: 'data', cells: [4, 2] },
+    itl:  { type: 'box', at: [6.4, 3.6], size: [1.8, 1.4, 0.6], label: 'ITL (block header)', tone: 'undo', tagDir: 'down' },
+    tm:   { type: 'box', at: [9.6, 3.8], size: [2.0, 1.4, 0.6], label: 'TM lock · ORDERS', tone: 'redo', tagDir: 'down' },
+    undo: { type: 'cyl', at: [12.0, 0.6], r: 0.9, h: 1.2, label: 'Undo (old values)', tone: 'undo' },
+    vs:   { type: 'box', at: [15.2, 1.6], size: [2.2, 1.8, 0.8], label: 'V$SESSION', tone: 'sql', labelPos: 'right' },
+  },
+  links: {
+    u142:  { from: 's142', to: 'blk' },
+    u201:  { from: 's201', to: 'blk', via: [[5.0, 3.2], [5.0, 1.0]], onDemand: true },
+    r305:  { from: 's305', to: 'blk', via: [[5.4, 6.2], [5.4, 1.4]], onDemand: true },
+    old:   { from: 'undo', to: 's305', via: [[12.0, 7.2], [3.6, 7.2]], onDemand: true },
+    mkitl: { from: 'blk', to: 'itl', onDemand: true },
+    mktm:  { from: 's142', to: 'tm', via: [[4.2, -1.0], [10.6, -1.0], [10.6, 3.8]], onDemand: true },
+    ddl:   { from: 'term', to: 'tm', via: [[-1.8, 8.2], [10.6, 8.2]], onDemand: true },
+    q:     { from: 'term', to: 'vs', via: [[-1.8, 8.6], [16.3, 8.6]], onDemand: true },
+    kill:  { from: 'term', to: 's142', via: [[-1.8, 0.2]], onDemand: true },
+    w1:    { from: 's201', to: 's142', via: [[1.2, 3.2], [1.2, 0.2]], onDemand: true },
+    w2:    { from: 's142', to: 's201', via: [[4.0, 0.2], [4.0, 3.2]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: '12:10 p.m.: the order save button just spins',
+      body: [
+        'At 12:10, in the lunchtime order rush, the app owner calls: "When I press Save, the screen freezes." The server CPU is idle and the disks are quiet. The database does not look slow, yet orders are not being saved.',
+        'In a case like this the sessions are not working, they are <span class="term">waiting</span>, and Oracle records exactly what they wait for. This lesson follows what is behind that wait: <span class="term">locks</span>.',
+      ],
+      callout: { kind: 'insight', text: 'If the CPU is idle but nothing responds, suspect waiting before slowness. Waits often trace back to a single cause, so once found they clear quickly.' },
+      changes: ['× saving orders hangs', '~ CPU and disks are idle'],
+      metrics: { hold: '?', wait: 'Many', ev: '?', row: '?', ord: 'Frozen' },
+      show: ['s142', 's201', 's305', 'blk'],
+      focus: ['s201'],
+      dim: ['s142', 's305', 'blk'],
+      tags: { s201: [{ text: 'No response', tone: 'signal' }] },
+      flows: [],
+      console: {
+        title: 'top',
+        lines: [
+          '$ top -b -n 1 | head -3',
+          'top - 12:10:41 up 21 days,  2 users,  load average: 0.31, 0.28, 0.25',
+          '%Cpu(s):  3.1 us,  1.0 sy,  0.0 ni, 95.6 id,  0.2 wa|ok',
+        ],
+      },
+    },
+    {
+      short: 'Row lock',
+      chapter: 'technique',
+      title: 'An UPDATE locks every row it changes (TX)',
+      body: [
+        'Twenty minutes ago, the batch owner ran an UPDATE that changes order status in session 142. According to Concepts, a transaction acquires a <span class="term">row lock</span> (TX) for <b>each row</b> modified by INSERT, UPDATE, DELETE, MERGE or SELECT … FOR UPDATE.',
+        'The lock is not released when the statement ends. As the documentation says, a row lock exists until the transaction issues <code>COMMIT</code> or <code>ROLLBACK</code>. The batch owner ran the UPDATE, did not commit, and went to lunch.',
+      ],
+      callout: { kind: 'warn', text: 'When you run DML by hand in SQL*Plus or SQL Developer, someone has to commit. "1 row updated." does not mean the change is saved; it means you now hold the lock.' },
+      changes: ['+ session 142: UPDATE orders … (not committed)', '+ 2 row locks (TX)'],
+      metrics: { hold: '142', wait: '0', ev: '-', row: '2 rows', ord: 'Normal' },
+      show: ['s142', 's201', 's305', 'blk'],
+      focus: ['s142', 'blk'],
+      dim: ['s201', 's305'],
+      cells: { blk: { 1: 'dataDirty', 2: 'dataDirty' } },
+      tags: { s142: [{ text: 'Transaction open', tone: 'redo' }], blk: [{ text: 'Orders 1001, 1002 locked', tone: 'data' }] },
+      flows: [{ link: 'u142', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus · session 142',
+        lines: ['SQL> update orders set status = \'PAID\' where order_id in (1001, 1002);', '2 rows updated.|ok', 'SQL> -- (leaves without COMMIT)|warn'],
+      },
+    },
+    {
+      short: 'ITL',
+      chapter: 'technique',
+      title: 'Locks are written in the block, not in a list in memory',
+      body: [
+        'Where does a row lock live? According to Concepts, the header of every segment block holds an <span class="term">ITL</span> (interested transaction list), and its entries describe which transactions have rows locked. The lock information is stored in the data block that contains the locked row.',
+        'So no matter how many rows are locked, Oracle keeps no separate list of row locks in memory and never escalates row locks into a table lock. Change a million rows and only those million rows are locked.',
+      ],
+      callout: { kind: 'tip', text: 'If you have used other databases you may have learned that "many locks turn into a table lock". Oracle does not do that, according to the documentation. The ITL details in this lesson come from a summary of the Concepts chapter.' },
+      changes: ['+ ITL entry: transaction 142 → 2 rows', '~ no lock list kept in memory'],
+      metrics: { hold: '142', wait: '0', ev: '-', row: '2 rows', ord: 'Normal' },
+      show: ['s142', 's201', 's305', 'blk', 'itl'],
+      focus: ['blk', 'itl'],
+      dim: ['s201', 's305'],
+      cells: { blk: { 1: 'dataDirty', 2: 'dataDirty' } },
+      tags: { itl: [{ text: 'Transaction 142', tone: 'undo' }] },
+      flows: [{ link: 'mkitl', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select type, count(*) from v$lock',
+          '  2  where type in (\'TX\', \'TM\') group by type;',
+          'TY   COUNT(*)',
+          '-- ----------',
+          'TM          1',
+          'TX          1|ok',
+        ],
+      },
+    },
+    {
+      short: 'Reads',
+      chapter: 'technique',
+      title: 'The query session is not blocked: it sees committed values through undo',
+      body: [
+        'Meanwhile session 305 queries the same order 1001. The documentation says readers and writers of data do not block one another. Session 305 does not wait at the locked row; it gets its result right away.',
+        'But what session 305 sees is not <code>PAID</code> from session 142; it is the old committed value <code>NEW</code>. Oracle keeps the value from before the change in <span class="term">undo</span> and uses it to rebuild the block as of the query\'s start. The lesson "Undo and read consistency" looks at this in detail.',
+      ],
+      callout: { kind: 'insight', text: 'That is why "queries work, only saving hangs" is the classic picture of a row lock. A working query screen does not mean the database is fine.' },
+      changes: ['+ session 305: SELECT … where order_id = 1001', '~ sees the committed value (NEW) through undo'],
+      metrics: { hold: '142', wait: '0', ev: '-', row: '2 rows', ord: 'Queries work' },
+      show: ['s142', 's201', 's305', 'blk', 'itl', 'undo'],
+      focus: ['s305', 'undo'],
+      dim: ['s201', 'itl'],
+      cells: { blk: { 1: 'dataDirty', 2: 'dataDirty' } },
+      tags: { s305: [{ text: 'Gets a result at once', tone: 'data' }], undo: [{ text: 'status = \'NEW\'', tone: 'undo' }] },
+      flows: [{ link: 'r305', kind: 'sql', n: 1 }, { link: 'old', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus · session 305',
+        lines: ['SQL> select order_id, status from orders where order_id = 1001;', '  ORDER_ID STATUS', '---------- ----------', '      1001 NEW|ok'],
+      },
+    },
+    {
+      short: 'Writers queue',
+      chapter: 'technique',
+      title: 'A session that wants to change the same row waits in line',
+      body: [
+        'Now session 201 from the order screen tries to change the same order 1001. As the documentation says, a writer of a row blocks a concurrent writer of the same row. Session 201 sees in the ITL that transaction 142 holds the row and waits for that transaction to end.',
+        'The wait event recorded here is <code>enq: TX - row lock contention</code>. The Database Reference says it occurs when a session tries to update or delete a row another session is modifying, and is released when the holder commits or rolls back. It also occurs when inserting a duplicate key into a unique index.',
+      ],
+      callout: { kind: 'warn', text: 'By default the waiting session waits with no time limit. If the app\'s connection pool fills up with such sessions, even orders unrelated to the locked rows cannot be saved. That is how a lunchtime incident grows.' },
+      changes: ['+ session 201: UPDATE … where order_id = 1001', '× waits on enq: TX - row lock contention'],
+      metrics: { hold: '142', wait: '201', ev: 'enq: TX', row: '2 rows', ord: 'Frozen' },
+      show: ['s142', 's201', 's305', 'blk', 'itl', 'undo'],
+      focus: ['s201', 'itl'],
+      dim: ['s305', 'undo'],
+      cells: { blk: { 1: 'signal', 2: 'dataDirty' } },
+      tags: { s201: [{ text: 'enq: TX - row lock contention', tone: 'signal' }], itl: [{ text: 'Transaction 142', tone: 'undo' }] },
+      flows: [{ link: 'u201', kind: 'signal', n: 2, bounce: true }],
+      console: { title: 'SQL*Plus · session 201', lines: ['SQL> update orders set status = \'CANCEL\' where order_id = 1001;', '-- (the prompt does not return)|warn'] },
+    },
+    {
+      short: 'Table lock',
+      chapter: 'technique',
+      title: 'DML also puts one lock (TM) on the table',
+      body: [
+        'Besides its row locks, session 142 holds one <span class="term">table lock</span> (TM) on the ORDERS table. In the Database Reference list of enqueue names, TM is the DML enqueue and TX the transaction enqueue. The TM taken by DML is in the Row Exclusive (RX) mode described in Concepts, which still allows other sessions\' DML.',
+        'What this lock blocks is DDL that changes the table\'s structure. The documentation says table locks prevent DDL operations that would conflict with the transaction. If someone tried to add a column or rebuild an index on this table at lunchtime, that work would also run into this transaction.',
+      ],
+      callout: { kind: 'tip', text: 'So before DDL on a live table, first check that no long-open transaction is on it. The V$SESSION query used in stage 3 lesson 27 is that check.' },
+      changes: ['+ TM lock (ORDERS, RX mode)', '~ other DML passes; conflicting DDL is blocked'],
+      metrics: { hold: '142', wait: '201', ev: 'enq: TX', row: '2 rows', ord: 'Frozen' },
+      show: ['term', 's142', 's201', 's305', 'blk', 'itl', 'tm', 'undo'],
+      focus: ['tm', 's142'],
+      dim: ['s305', 'undo', 'itl'],
+      cells: { blk: { 1: 'signal', 2: 'dataDirty' } },
+      tags: { tm: [{ text: 'RX · session 142', tone: 'redo' }], s201: [{ text: 'Waiting', tone: 'signal' }] },
+      flows: [{ link: 'mktm', kind: 'redo', n: 2 }, { link: 'ddl', kind: 'signal', n: 1, bounce: true }],
+      console: { title: 'SQL*Plus', lines: ['SQL> alter table orders add (memo varchar2(100));', '-- (conflicts with the TM lock of the open DML)|warn'] },
+    },
+    {
+      short: 'Find',
+      chapter: 'case',
+      title: 'Case: find the blocking session with V$SESSION',
+      body: [
+        'The DBA first looks at what is being waited for. According to the Performance Tuning Guide, V$SESSION holds each session\'s wait information together with the <span class="term">blocking session</span> responsible for the current wait (its ID and status). Selecting only sessions whose <code>BLOCKING_SESSION</code> is not empty shows the whole queue at a glance.',
+        'All three waiting sessions point to 142. Next, look at who 142 is (account, program, logon time, seconds since the last call). It is the batch account, INACTIVE for 20 minutes: holding locks while doing no work.',
+      ],
+      callout: { kind: 'tip', text: 'INACTIVE does not mean harmless. An uncommitted transaction keeps its locks while the session sits idle. You run exactly this query in DBA labs stage 3, lesson 27.' },
+      changes: ['~ BLOCKING_SESSION = 142 (3 sessions)', '~ 142: APP_BATCH, INACTIVE for 20 minutes'],
+      metrics: { hold: '142', wait: '3', ev: 'enq: TX', row: '2 rows', ord: 'Frozen' },
+      show: ['term', 's142', 's201', 's305', 'blk', 'itl', 'tm', 'undo', 'vs'],
+      focus: ['vs', 's142'],
+      dim: ['s305', 'undo', 'itl', 'tm'],
+      cells: { blk: { 1: 'signal', 2: 'dataDirty' } },
+      tags: { vs: [{ text: 'BLOCKING_SESSION = 142', tone: 'signal' }], s142: [{ text: 'INACTIVE · 1,214 s', tone: 'signal' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 2 }, { link: 'w1', kind: 'signal', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sid, username, blocking_session, event from v$session',
+          '  2  where blocking_session is not null;',
+          '  SID USERNAME   BLOCKING_SESSION EVENT',
+          '----- ---------- ---------------- ------------------------------',
+          '  201 APP                     142 enq: TX - row lock contention',
+          '  207 APP                     142 enq: TX - row lock contention',
+          '  215 APP                     142 enq: TX - row lock contention|warn',
+          'SQL> select sid, serial#, username, status, program, last_call_et',
+          '  2  from v$session where sid = 142;',
+          '  SID SERIAL# USERNAME   STATUS   PROGRAM          LAST_CALL_ET',
+          '----- ------- ---------- -------- ---------------- ------------',
+          '  142   31175 APP_BATCH  INACTIVE sqlplus@batch01          1214',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'case',
+      title: 'Case: clear it after confirming, and the queue drains at once',
+      body: [
+        'The best fix is for the batch owner to come back and COMMIT or ROLL BACK. If they cannot be reached and business is stopped, the DBA gets confirmation from the owner or team lead and ends the session with <code>ALTER SYSTEM KILL SESSION \'142,31175\'</code>. Giving both SID and SERIAL# makes sure the right session is ended.',
+        'The ended session\'s uncommitted changes are rolled back, and when the rollback finishes the locks are released. At that moment session 201, first in line, gets the row and finishes its UPDATE. The other sessions follow, and the order screen comes back.',
+      ],
+      callout: { kind: 'warn', text: 'KILL throws away that person\'s work. Always get confirmation, and afterwards tell the owner what was rolled back so it can be rerun. The DBA labs stage 7 graduation mission is this scene.' },
+      changes: ['~ KILL SESSION 142 → changes rolled back', '+ session 201 UPDATE completes'],
+      metrics: { hold: '201', wait: '0', ev: '-', row: '1 row (201)', ord: 'Normal' },
+      show: ['term', 's142', 's201', 's305', 'blk', 'itl', 'tm', 'undo', 'vs'],
+      focus: ['s142', 's201'],
+      dim: ['s305', 'undo', 'vs', 'tm'],
+      cells: { blk: { 1: 'dataDirty' } },
+      tags: { s142: [{ text: 'Ended · rolled back', tone: 'muted' }], s201: [{ text: '1 row updated', tone: 'data' }] },
+      flows: [{ link: 'kill', kind: 'signal', n: 1 }, { link: 'u201', kind: 'data', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> alter system kill session \'142,31175\';',
+          'System altered.|ok',
+          'SQL> select sid, blocking_session, event from v$session where blocking_session is not null;',
+          'no rows selected|ok',
+        ],
+      },
+    },
+    {
+      short: 'Deadlock',
+      chapter: 'case',
+      title: 'Case: when two sessions wait for each other, Oracle wakes one',
+      body: [
+        'Another day, session 142 changes order 1001 first and session 201 changes order 1002. Then 142 tries to change 1002 and 201 tries 1001. Each waits for the row the other holds, so neither can finish. This is a <span class="term">deadlock</span>.',
+        'According to Concepts, Oracle detects deadlocks automatically, resolves them, and returns <code>ORA-00060: deadlock detected</code> to one session. In the documentation\'s example, what is rolled back is one statement, not that session\'s whole transaction. The session that got the error still holds its other locks, so the app must COMMIT or ROLL BACK before the other side is released.',
+      ],
+      callout: { kind: 'tip', text: 'A deadlock is usually for the app to fix, not for the DBA to KILL. If every program changes multiple rows in the same order (for example, ascending order number), it does not happen.' },
+      changes: ['~ 142 waits for 1002, 201 waits for 1001', '× ORA-00060 (one session, one statement rolled back)'],
+      metrics: { hold: '142 · 201', wait: 'Each other', ev: 'ORA-00060', row: '2 rows', ord: 'One side errors' },
+      show: ['s142', 's201', 'blk', 'itl'],
+      focus: ['s142', 's201'],
+      cells: { blk: { 1: 'signal', 2: 'signal' } },
+      tags: { s142: [{ text: 'Holds 1001 · waits 1002', tone: 'signal' }], s201: [{ text: 'Holds 1002 · waits 1001', tone: 'signal' }] },
+      flows: [{ link: 'w1', kind: 'signal', n: 2 }, { link: 'w2', kind: 'signal', n: 2 }],
+      console: {
+        title: 'SQL*Plus · session 201',
+        lines: [
+          'SQL> update orders set status = \'CANCEL\' where order_id = 1001;',
+          'update orders set status = \'CANCEL\' where order_id = 1001',
+          '*',
+          'ERROR at line 1:',
+          'ORA-00060: deadlock detected while waiting for resource|warn',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: writes lock row by row, and every wait is recorded',
+      body: [
+        'DML takes a TX lock for each changed row and a TM lock on the table. Lock information is written in the block\'s ITL and released when the transaction commits or rolls back. Readers see committed values through undo and are never blocked; only writers of the same row queue up.',
+        'While sessions wait, Oracle records what they wait for and because of whom (<code>EVENT</code>, <code>BLOCKING_SESSION</code>) in V$SESSION. The DBA\'s job is to read that record, find the cause, and clear it after confirmation.',
+      ],
+      callout: { kind: 'insight', text: '"The journey of a COMMIT" showed what a commit writes; this lesson shows what stays behind when you do not commit. A commit saves your work and also gives your locks back.' },
+      changes: ['~ TX: per row · TM: per table', '~ released at: COMMIT · ROLLBACK'],
+      metrics: { hold: '-', wait: '0', ev: '-', row: '0', ord: 'Normal' },
+      show: ['term', 's142', 's201', 's305', 'blk', 'itl', 'tm', 'undo', 'vs'],
+      focus: [],
+      cells: { blk: { 1: 'data', 2: 'data' } },
+      tags: {
+        blk: [{ text: '① TX', tone: 'data' }],
+        itl: [{ text: '② ITL', tone: 'undo' }],
+        tm: [{ text: '③ TM', tone: 'redo' }],
+        vs: [{ text: '④ BLOCKING_SESSION', tone: 'sql' }],
+      },
+      flows: [
+        { link: 'u142', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'mkitl', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'old', kind: 'undo', n: 1, rate: 0.5 },
+        { link: 'q', kind: 'sql', n: 1, rate: 0.5 },
+      ],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select sid, blocking_session, event, seconds_in_wait',
+          '  2  from v$session where type = \'USER\' and wait_class <> \'Idle\';',
+          'no rows selected|ok',
+        ],
+      },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA, PGA and background processes'] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, { text: 'Undo and read consistency', href: '../undo/', note: 'Ready' }, 'Locks and waits', { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }], current: 2 },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

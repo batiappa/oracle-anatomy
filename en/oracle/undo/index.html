@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Undo and read consistency · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that follows how, in Oracle Database 19c, an UPDATE keeps the old values in undo and uses that undo for ROLLBACK and read consistency (consistent-read copies). It also covers how long undo stays after commit (UNDO_RETENTION), and why a long report ends with ORA-01555 snapshot too old and what to do about it.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/undo/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/undo/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/undo/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/undo/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Undo and read consistency · Oracle Anatomy">
+<meta property="og:description" content="At 3 a.m. a month-end report that ran for two hours ended with ORA-01555. Follow in 10 steps where the old values are kept, and for how long.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 2 · Transactions</b> / lesson 2 of 4</div>
+      <div class="head-row">
+        <h1>Undo and read consistency</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">13 min</span><span class="badge">Intermediate</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Learn how a report produces numbers for a single point in time while other sessions keep changing data, and the moment that breaks.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of old values passing between two sessions, the current block and a consistent-read copy in the buffer cache, the extents of the undo tablespace, and V$UNDOSTAT"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Sessions · commands</li>
+            <li><i style="background:var(--c-data)"></i>Current block · read copy</li>
+            <li><i style="background:var(--c-undo)"></i>Undo (old values)</li>
+            <li><i style="background:var(--c-redo)"></i>SCN · point in time</li>
+            <li><i style="background:var(--c-signal)"></i>Errors</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02) and undo tablespace name (UNDOTBS1) match the virtual server in the DBA labs; SCNs, times, second counts and row values are example values. The rollback segment number and name in the ORA-01555 message and the values in the V$UNDOSTAT result are examples, and the name is shortened with an ellipsis (…). A list naming undo extent states ACTIVE, UNEXPIRED and EXPIRED was not found in the pages read; the drawing follows the documentation's description of unexpired and expired undo and the tutorial's statement that undo of an active transaction is never overwritten. Whether UNDO_RETENTION is ignored for a fixed-size undo tablespace differs between the Administrator's Guide and the Database Reference (changed from Release Update 19.7).</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/data-concurrency-and-consistency.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Data Concurrency and Consistency (statement-level read consistency, CR copies, isolation levels)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-undo.html" target="_blank" rel="noopener">Administrator's Guide 19c · Managing Undo (uses of undo, automatic retention tuning, RETENTION GUARANTEE, V$UNDOSTAT, UNDOTBS1)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/UNDO_RETENTION.html" target="_blank" rel="noopener">Database Reference 19c · UNDO_RETENTION (default 900, low threshold)</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-01555/" target="_blank" rel="noopener">Oracle Error Help · ORA-01555</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-manage-undo/index.html" target="_blank" rel="noopener">Oracle tutorial · Manage Undo Data</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 2 "Undo와 읽기 일관성". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=세션·명령, data=현재 블록·CR 사본, undo=Undo, redo=SCN, signal=오류
+   UNDOTBS1과 dbserver02는 DBA 실습(dba/)의 가상 서버와 같은 값이다. undo 칸: undoDirty=진행 중(ACTIVE), undo=커밋 뒤 보존(UNEXPIRED), 빈 칸=덮어써도 됨.
+   ===================================================================== */
+const LESSON = {
+  page: 'undo',
+  base: '../../',
+  storeKey: 'undo:maxSeen',
+  consoleTitle: 'SQL*Plus',
+  multiHost: true,
+  metrics: [
+    { key: 'scn', label: 'Current SCN' },
+    { key: 'q', label: 'Report as of' },
+    { key: 'act', label: 'Active undo' },
+    { key: 'ret', label: 'Undo kept' },
+    { key: 'rep', label: 'Report' },
+  ],
+  goals: [
+    { text: 'What undo keeps, and what it is for', step: 2 },
+    { text: 'How ROLLBACK uses undo', step: 3 },
+    { text: 'Statement-level read consistency and the SCN', step: 4 },
+    { text: 'How a CR copy is built from undo', step: 5 },
+    { text: 'How long undo stays after commit (UNDO_RETENTION)', step: 6 },
+    { text: 'Why ORA-01555 happens', step: 7 },
+    { text: 'Checking with V$UNDOSTAT and choosing a fix', step: 8 },
+  ],
+  zones: [
+    { id: 'sess', from: [0.6, -1.4], to: [4.6, 7.6], label: 'Sessions', members: ['s201', 's305'] },
+    { id: 'sga', from: [5.4, -1.6], to: [12.6, 7.8], label: 'SGA · buffer cache', members: ['bc', 'cr', 'scn'] },
+    { id: 'utbs', from: [13.4, -1.6], to: [19.6, 2.6], label: 'Undo tablespace', members: ['undo'] },
+    { id: 'dict', from: [13.4, 3.2], to: [19.6, 7.8], label: 'Dynamic performance views', members: ['vu'] },
+  ],
+  entities: {
+    term: { type: 'box', at: [-2.8, 3.2], size: [2, 2, 0.5], label: 'sqlplus (DBA)', tone: 'sql' },
+    s201: { type: 'box', at: [1.8, -0.6], size: [1.7, 1.6, 1.1], label: 'Session 201 · order UPDATE', tone: 'sql', led: true },
+    s305: { type: 'box', at: [1.8, 4.6], size: [1.7, 1.6, 1.1], label: 'Session 305 · month-end report', tone: 'sql', led: true, labelPos: 'left', tagDir: 'down' },
+    scn:  { type: 'box', at: [10.4, 5.2], size: [1.6, 1.4, 0.5], label: 'SCN', tone: 'redo', labelPos: 'right' },
+    bc:   { type: 'box', at: [6.4, -0.6], size: [3.6, 2.6, 0.6], label: 'Current block · ORDERS', tone: 'data', cells: [4, 2] },
+    cr:   { type: 'box', at: [6.6, 4.0], size: [2.4, 1.8, 0.6], label: 'CR copy (for reads)', tone: 'data', cells: [4, 2], tagDir: 'down' },
+    undo: { type: 'box', at: [14.2, -0.8], size: [4.8, 1.8, 0.8], label: 'UNDOTBS1', tone: 'undo', cells: [6, 1] },
+    vu:   { type: 'box', at: [15.2, 4.4], size: [2.4, 1.8, 0.8], label: 'V$UNDOSTAT', tone: 'sql', labelPos: 'right', tagDir: 'down' },
+  },
+  links: {
+    w:    { from: 's201', to: 'bc' },
+    bu:   { from: 'bc', to: 'undo', via: [[12.8, 0.6]], onDemand: true },
+    rb:   { from: 'undo', to: 'bc', via: [[12.8, 0.6]], onDemand: true },
+    rq:   { from: 's305', to: 'bc', via: [[5.0, 5.4], [5.0, 1.4]], onDemand: true },
+    cp:   { from: 'bc', to: 'cr', onDemand: true },
+    mk:   { from: 'undo', to: 'cr', via: [[12.8, 0.2], [12.8, 4.9]], onDemand: true },
+    crq:  { from: 'cr', to: 's305', onDemand: true },
+    tick: { from: 'scn', to: 's305', via: [[11.2, 7.4], [2.6, 7.4]], onDemand: true },
+    q:    { from: 'term', to: 'vu', via: [[-1.8, 8.6], [16.4, 8.6]], onDemand: true },
+  },
+  baseCells: {  },
+  steps: [
+    {
+      short: 'Problem',
+      chapter: 'problem',
+      title: 'A month-end report ran for two hours, then ended with ORA-01555',
+      body: [
+        'A month-end sales report started at 1 a.m. and ended with an error at 3:04. Online orders kept arriving all that time, changing the same table. The error is <code>ORA-01555: snapshot too old</code>. There is plenty of disk and every other session is fine.',
+        'What is an "old snapshot"? The report must see data as of one point in time so its numbers do not shift midway. The material for rebuilding that point in time is <span class="term">undo</span>, and the error means that material is gone. This lesson follows how undo is made, used, and lost.',
+      ],
+      callout: { kind: 'insight', text: 'ORA-01555 is not caused by a wrong report query; it happens because the database had already discarded the old values the report needed. Rerunning may succeed, or fail again.' },
+      changes: ['× 03:04 ORA-01555', '~ order UPDATEs continued meanwhile'],
+      metrics: { scn: '2,418,900', q: '1,000', act: '?', ret: '?', rep: 'Failed' },
+      show: ['s201', 's305', 'bc', 'undo'],
+      focus: ['s305'],
+      dim: ['s201', 'bc', 'undo'],
+      tags: { s305: [{ text: 'ORA-01555', tone: 'signal' }] },
+      flows: [],
+      console: {
+        title: 'SQL*Plus · session 305',
+        lines: [
+          'SQL> @month_end_sales.sql',
+          '…',
+          'ERROR at line 1:',
+          'ORA-01555: snapshot too old: rollback segment number 7 with name "_SYSSMU7_…$" too small|warn',
+        ],
+      },
+    },
+    {
+      short: 'Undo',
+      chapter: 'technique',
+      title: 'An UPDATE first keeps the old value in undo',
+      body: [
+        'Session 201 changes order 1001 from <code>NEW</code> to <code>PAID</code>. Before the block in the buffer cache changes, the old value <code>NEW</code> is written to undo. The Administrator\'s Guide describes undo as records of the actions of transactions, primarily before they are committed, and says it maintains the before image of the data.',
+        'The documentation lists five uses of undo: rolling back transactions, database recovery, read consistency, Flashback Query, and recovering from logical corruption (wrongly changed data). A database created with DBCA gets an autoextending <code>UNDOTBS1</code>, and automatic undo management is the default.',
+      ],
+      callout: { kind: 'tip', text: 'This is the undo block you saw in scene 3 of "The journey of a COMMIT". This lesson follows what happens to that undo after the commit.' },
+      changes: ['+ Undo: order 1001 status = NEW', '~ current block: PAID (not committed)'],
+      metrics: { scn: '1,040', q: '-', act: '1', ret: '-', rep: 'Waiting' },
+      show: ['s201', 's305', 'bc', 'undo'],
+      focus: ['s201', 'bc', 'undo'],
+      dim: ['s305'],
+      cells: { bc: { 1: 'dataDirty' }, undo: { 0: 'undoDirty' } },
+      tags: { bc: [{ text: '1001: PAID', tone: 'data' }], undo: [{ text: '1001: NEW', tone: 'undo' }] },
+      flows: [{ link: 'w', kind: 'data', n: 2 }, { link: 'bu', kind: 'undo', n: 2 }],
+      console: { title: 'SQL*Plus · session 201', lines: ['SQL> update orders set status = \'PAID\' where order_id = 1001;', '1 row updated.|ok'] },
+    },
+    {
+      short: 'ROLLBACK',
+      chapter: 'technique',
+      title: 'ROLLBACK applies undo in reverse',
+      body: [
+        'Session 201 changes its mind and issues <code>ROLLBACK</code>. Oracle writes the old value <code>NEW</code> kept in undo back into the block, undoing the transaction\'s work in reverse order.',
+        'Recovery after an instance crash uses the same material. According to Concepts, instance recovery rolls forward with redo and then rolls back uncommitted changes (transaction recovery). That is the work SMON did in scene 7 of "Instance and database".',
+      ],
+      callout: { kind: 'warn', text: 'Large transactions also take long to roll back. If you end a session that changed a million rows, its locks stay while those rows are being undone. The KILL in scene 8 of "Locks and waits" releases locks only when the rollback finishes.' },
+      changes: ['~ undo → block: 1001 = NEW', '- transaction ends, locks released'],
+      metrics: { scn: '1,050', q: '-', act: '0', ret: '-', rep: 'Waiting' },
+      show: ['s201', 's305', 'bc', 'undo'],
+      focus: ['bc', 'undo'],
+      dim: ['s305'],
+      cells: { bc: { 1: 'data' }, undo: { 0: 'undo' } },
+      tags: { bc: [{ text: '1001: NEW', tone: 'data' }] },
+      flows: [{ link: 'rb', kind: 'undo', n: 2 }],
+      console: { title: 'SQL*Plus · session 201', lines: ['SQL> rollback;', 'Rollback complete.|ok'] },
+    },
+    {
+      short: 'One point in time',
+      chapter: 'technique',
+      title: 'A query sees data as of the moment it started (SCN)',
+      body: [
+        'At 1 a.m. session 305 starts the month-end report. At that moment the database <span class="term">SCN</span> (system change number) is 1,000. According to Concepts, under the default READ COMMITTED isolation level, the data a statement returns is committed and consistent for a single point in time: the moment the statement was opened.',
+        'So even if the SCN passes two million while the report runs for two hours, the report adds up only numbers as of SCN 1,000 to the end. Orders committed later and uncommitted changes are both invisible. To pin a whole transaction to one point in time, use the SERIALIZABLE isolation level.',
+      ],
+      callout: { kind: 'insight', text: 'Thanks to this, a report\'s totals match the books at exactly one instant. The price is that the undo needed to rebuild that instant must survive until the report ends.' },
+      changes: ['+ session 305: report starts (as of SCN 1,000)', '~ later committed or uncommitted changes are invisible'],
+      metrics: { scn: '1,000', q: '1,000', act: '0', ret: '-', rep: 'Running' },
+      show: ['s201', 's305', 'bc', 'undo', 'scn'],
+      focus: ['s305', 'scn'],
+      dim: ['s201', 'undo'],
+      cells: { bc: { 1: 'data' } },
+      tags: { s305: [{ text: 'As of SCN 1,000', tone: 'redo' }], scn: [{ text: '1,000', tone: 'redo' }] },
+      flows: [{ link: 'tick', kind: 'redo', n: 1 }, { link: 'rq', kind: 'sql', n: 2 }],
+      console: {
+        title: 'SQL*Plus · session 305',
+        lines: ['SQL> select current_scn from v$database;', 'CURRENT_SCN', '-----------', '       1000', 'SQL> @month_end_sales.sql'],
+      },
+    },
+    {
+      short: 'CR copy',
+      chapter: 'technique',
+      title: 'A block changed in the meantime is rebuilt as it was, using undo',
+      body: [
+        'At 1:20, session 201 changed order 1001 to <code>PAID</code> and committed (SCN 1,200). When the report reaches this block, it was changed after the report\'s SCN of 1,000. Reading it as is would break the single point in time.',
+        'Concepts explains that the database then copies the current block to a new buffer and applies undo to reconstruct the previous version. This is a <span class="term">CR copy</span> (consistent read clone). The report reads <code>NEW</code> from it. The current block stays untouched, so writers are not blocked either.',
+      ],
+      callout: { kind: 'tip', text: 'If a block changed many times, undo must be applied back through all those changes. The longer a report reads a busy table, the further back the undo it needs.' },
+      changes: ['+ current block copied → new buffer', '~ undo applied → as of SCN 1,000 (CR copy)'],
+      metrics: { scn: '1,200', q: '1,000', act: '0', ret: 'Needed', rep: 'Running' },
+      show: ['s201', 's305', 'bc', 'undo', 'scn', 'cr'],
+      focus: ['cr', 'undo', 'bc'],
+      dim: ['s201'],
+      cells: { bc: { 1: 'dataDirty' }, cr: { 1: 'data' }, undo: { 0: 'undo' } },
+      tags: { bc: [{ text: '1001: PAID (SCN 1,200)', tone: 'data' }], cr: [{ text: '1001: NEW (as of SCN 1,000)', tone: 'data' }] },
+      flows: [{ link: 'cp', kind: 'data', n: 1 }, { link: 'mk', kind: 'undo', n: 2 }, { link: 'crq', kind: 'data', n: 2 }],
+      console: { title: 'SQL*Plus · session 305', lines: ['-- the report reads the CR copy, not the current block'] },
+    },
+    {
+      short: 'Retention',
+      chapter: 'technique',
+      title: 'Undo stays for a while even after commit: UNDO_RETENTION',
+      body: [
+        'Once a transaction commits, its undo is no longer needed for rollback, but long queries like the one in scene 5 still need it. So Oracle keeps committed undo instead of dropping it at once. The documentation calls undo still within the retention period unexpired, and older undo expired. Undo of an active transaction is never overwritten until it commits.',
+        'The setting that governs how long to keep it is <code>UNDO_RETENTION</code>. According to the Database Reference, its default is 900 seconds and it is a <b>low threshold</b> for retention. Under automatic undo management, Oracle tunes the actual retention itself, looking at things like the longest query. But if space runs short, even unexpired undo may be given to new transactions.',
+      ],
+      callout: {
+        kind: 'warn',
+        text: 'For a fixed-size undo tablespace, Oracle tunes retention to the best it can for that size. The Administrator\'s Guide says UNDO_RETENTION is then ignored, while the Database Reference says that from Release Update 19.7 at least this value is kept even for fixed-size tablespaces. Judge by your database\'s RU.',
+      },
+      changes: ['~ committed undo: kept as unexpired', '~ UNDO_RETENTION 900 seconds (low threshold)'],
+      metrics: { scn: '480,000', q: '1,000', act: '2', ret: '≥ 900 s', rep: 'Running' },
+      show: ['s201', 's305', 'bc', 'undo', 'scn', 'cr'],
+      focus: ['undo'],
+      dim: ['s305', 'cr', 'scn'],
+      cells: { bc: { 1: 'dataDirty' }, undo: { 0: 'undo', 1: 'undo', 2: 'undo', 3: 'undoDirty', 4: 'undoDirty' } },
+      tags: { undo: [{ text: 'Kept (unexpired) 3 · active 2 · free 1', tone: 'undo' }] },
+      flows: [{ link: 'w', kind: 'data', n: 2 }, { link: 'bu', kind: 'undo', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> show parameter undo',
+          'NAME                                 TYPE        VALUE',
+          '------------------------------------ ----------- ------------------------------',
+          'undo_management                      string      AUTO',
+          'undo_retention                       integer     900',
+          'undo_tablespace                      string      UNDOTBS1',
+        ],
+      },
+    },
+    {
+      short: 'ORA-01555',
+      chapter: 'case',
+      title: 'Case: when the needed undo is overwritten, ORA-01555',
+      body: [
+        'An hour and fifty minutes in, the report reaches a block it has not read yet. The block was changed at 1:05, and only its undo can rebuild it as of SCN 1,000. But the order transactions that came in overnight needed space, and that undo has already been overwritten.',
+        'This is exactly what Oracle Error Help describes: rollback records needed by a reader for consistent read were overwritten by other writers. The writers (orders) all succeeded without error; the only failure is the one long-running report.',
+      ],
+      callout: { kind: 'insight', text: 'The victim of ORA-01555 is always the long reader. That is why reports come from overnight batches, month-end reports and large extracts, not from daytime work.' },
+      changes: ['× undo for the 01:05 block overwritten', '× session 305: ORA-01555'],
+      metrics: { scn: '2,418,900', q: '1,000', act: '6', ret: 'Too short', rep: 'Failed' },
+      show: ['s201', 's305', 'bc', 'undo', 'scn', 'cr'],
+      focus: ['s305', 'undo', 'cr'],
+      dim: ['s201', 'scn'],
+      cells: {
+        bc: { 1: 'dataDirty', 5: 'dataDirty' },
+        cr: { 5: 'signal' },
+        undo: { 0: 'undoDirty', 1: 'undoDirty', 2: 'undoDirty', 3: 'undoDirty', 4: 'undoDirty', 5: 'undoDirty' },
+      },
+      tags: { undo: [{ text: '01:05 undo gone', tone: 'signal' }], s305: [{ text: 'ORA-01555', tone: 'signal' }] },
+      flows: [{ link: 'w', kind: 'data', n: 3 }, { link: 'bu', kind: 'undo', n: 3 }, { link: 'mk', kind: 'signal', n: 1, bounce: true }],
+      console: { title: 'SQL*Plus · session 305', lines: ['ORA-01555: snapshot too old: rollback segment number 7 with name "_SYSSMU7_…$" too small|warn'] },
+    },
+    {
+      short: 'V$UNDOSTAT',
+      chapter: 'case',
+      title: 'Case: compare retention with query length in V$UNDOSTAT',
+      body: [
+        'The DBA first checks how much undo was kept during that time. According to the Administrator\'s Guide, <code>V$UNDOSTAT</code> shows one row per 10-minute interval for four days (576 rows), and the <code>TUNED_UNDORETENTION</code> column holds the retention Oracle tuned, in seconds. Records older than four days are in AWR\'s <code>DBA_HIST_UNDOSTAT</code>.',
+        'Retention between 1 and 3 a.m. was around 3,000 seconds, but the report ran for 6,800 seconds. Undo did not survive as long as the report needed. The view also records the length and SQL ID of long-running queries.',
+      ],
+      callout: { kind: 'tip', text: 'The Undo Advisor (EM Express or DBMS_ADVISOR) uses the same AWR data to work out how much undo is needed to keep a given retention.' },
+      changes: ['~ 01–03 a.m. TUNED_UNDORETENTION ≈ 3,000 s', '~ report run time ≈ 6,800 s'],
+      metrics: { scn: '2,418,900', q: '-', act: '6', ret: '≈ 3,000 s', rep: 'Needs 6,800 s' },
+      show: ['term', 's201', 's305', 'scn', 'bc', 'cr', 'undo', 'vu'],
+      focus: ['vu', 'undo'],
+      dim: ['s201', 'bc', 'cr', 'scn'],
+      cells: { undo: { 0: 'undoDirty', 1: 'undoDirty', 2: 'undo', 3: 'undo' } },
+      tags: { vu: [{ text: 'TUNED_UNDORETENTION ≈ 3000', tone: 'signal' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 2 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> select to_char(begin_time,\'HH24:MI\') begin_time, to_char(end_time,\'HH24:MI\') end_time,',
+          '  2  tuned_undoretention from v$undostat where begin_time > trunc(sysdate) order by end_time;',
+          'BEGIN_TIME END_TIME   TUNED_UNDORETENTION',
+          '---------- ---------- -------------------',
+          '01:00      01:10                     3104',
+          '01:10      01:20                     2987',
+          '…',
+          '02:50      03:00                     2911|warn',
+        ],
+      },
+    },
+    {
+      short: 'Fix',
+      chapter: 'case',
+      title: 'Case: raise retention, and give it the space to match',
+      body: [
+        'Oracle Error Help\'s action is to increase <code>undo_retention</code> under automatic undo management, and the Oracle tutorial says to increase the retention or the size of the undo tablespace. If the report runs about 7,000 seconds, set retention comfortably above that and give enough space for the undo that piles up in that time.',
+        'With <code>RETENTION GUARANTEE</code>, as the documentation says, Oracle never overwrites unexpired undo even if transactions fail. The report is protected, but if space runs short, the order DML fails instead. It is disabled by default; turn it on only after deciding business priorities.',
+      ],
+      callout: {
+        kind: 'tip',
+        text: 'There is also work on the report side: run it outside busy hours, or tune the SQL so it finishes sooner, and less undo is needed at all. Adding space to the undo tablespace works like the tablespace lesson in DBA labs stage 3.',
+      },
+      changes: ['~ undo_retention 900 → 7200', '+ more space for UNDOTBS1'],
+      metrics: { scn: '2,420,000', q: '-', act: '2', ret: '≥ 7,200 s', rep: 'Rerun' },
+      show: ['term', 's201', 's305', 'scn', 'bc', 'cr', 'undo', 'vu'],
+      focus: ['undo', 'term'],
+      dim: ['s201', 'bc', 'cr', 'scn'],
+      cells: { undo: { 0: 'undo', 1: 'undo', 2: 'undo', 3: 'undoDirty' } },
+      tags: { undo: [{ text: 'Retain 7,200 s', tone: 'undo' }] },
+      flows: [{ link: 'q', kind: 'sql', n: 1 }],
+      console: {
+        title: 'SQL*Plus',
+        lines: [
+          'SQL> alter system set undo_retention = 7200;',
+          'System altered.|ok',
+          'SQL> alter database datafile \'/u02/oradata/ORCL/undotbs01.dbf\' resize 8g;',
+          'Database altered.|ok',
+        ],
+      },
+    },
+    {
+      short: 'Recap',
+      chapter: 'recap',
+      title: 'Recap: undo is the material for undoing and for reading one point in time',
+      body: [
+        'DML keeps the old values in undo. ROLLBACK and instance recovery apply it in reverse, and queries use it to build CR copies as of their starting SCN. That is why readers and writers do not block each other.',
+        'Committed undo stays for a while, per UNDO_RETENTION and automatic tuning, then is overwritten. If it is kept for less time than the longest query, ORA-01555 follows. Compare retention with query length in V$UNDOSTAT, and adjust retention and space together.',
+      ],
+      callout: { kind: 'insight', text: 'Undo is not just scratch space for rollback; it is the basis of read consistency. The CR copy in this lesson is why the query in scene 4 of "Locks and waits" was not blocked.' },
+      changes: ['~ uses: rollback · recovery · read consistency · Flashback', '~ retention: UNDO_RETENTION (low threshold) + auto-tuning'],
+      metrics: { scn: '2,431,000', q: '2,420,500', act: '2', ret: '≥ 7,200 s', rep: 'Succeeded' },
+      show: ['term', 's201', 's305', 'scn', 'bc', 'cr', 'undo', 'vu'],
+      focus: [],
+      cells: { bc: { 1: 'dataDirty' }, cr: { 1: 'data' }, undo: { 0: 'undo', 1: 'undo', 2: 'undoDirty' } },
+      tags: { undo: [{ text: '① old values', tone: 'undo' }], cr: [{ text: '② one point in time', tone: 'data' }], vu: [{ text: '③ check retention', tone: 'sql' }] },
+      flows: [
+        { link: 'w', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'bu', kind: 'undo', n: 1, rate: 0.6 },
+        { link: 'mk', kind: 'undo', n: 1, rate: 0.5 },
+        { link: 'crq', kind: 'data', n: 1, rate: 0.5 },
+      ],
+      console: { title: 'SQL*Plus · session 305', lines: ['SQL> @month_end_sales.sql', '…', '-- finishes normally after 7,000 seconds|ok'] },
+    },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: [{ text: 'Instance and database', href: '../instance/', note: 'Ready' }, 'SGA, PGA and background processes'] },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, 'Undo and read consistency', { text: 'Locks and waits', href: '../lock/', note: 'Ready' }, { text: 'Checkpoints', href: '../checkpoint/', note: 'Ready' }], current: 1 },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: [{ text: 'Archivelog and RMAN', href: '../archive/', note: 'Ready' }, 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

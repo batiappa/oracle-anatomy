@@ -80,5 +80,17 @@
 "RMAN 백업": "RMAN backup",
 "자동 백업": "Autobackup",
 "복원·복구": "Restore & recover",
-"FRA 가득": "FRA full"
+"FRA 가득": "FRA full",
+"쓰기 줄 서기": "Writers queue",
+"찾기": "Find",
+"락을 잡고 있는 세션 정리하기": "Clean up a session holding a lock",
+"졸업 미션: 주문 저장이 멈춘 아침": "Graduation mission: the morning order saving stopped",
+"잠금과 대기": "Locks and waits",
+"한 시점": "One point in time",
+"대책": "Fix",
+"꽉 찬 테이블스페이스에 공간 늘리기": "Add space to a full tablespace",
+"Undo와 읽기 일관성": "Undo and read consistency",
+"못 따라잡음": "Falling behind",
+"확인": "Check",
+"체크포인트": "Checkpoints"
 }

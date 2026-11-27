@@ -134,20 +134,33 @@
     { page: 'archive', step: 8, t: 'Restore & recover', lessons: [31, 32] },
     { page: 'archive', step: 9, t: 'FRA full', lessons: [34] },
     { page: 'archive', step: 10, t: 'Summary', lessons: [41, 34] },
+    { page: 'undo', step: 2, t: 'Undo', lessons: [95] },
+    { page: 'undo', step: 3, t: 'ROLLBACK', lessons: [95] },
+    { page: 'undo', step: 4, t: 'One point in time', lessons: [95] },
+    { page: 'undo', step: 9, t: 'Fix', lessons: [24] },
+    { page: 'undo', step: 10, t: 'Summary', lessons: [95] },
+    { page: 'lock', step: 1, t: 'Problem', lessons: [27, 53] },
+    { page: 'lock', step: 5, t: 'Writers queue', lessons: [27] },
+    { page: 'lock', step: 7, t: 'Find', lessons: [27, 51] },
+    { page: 'lock', step: 8, t: 'Summary', lessons: [27, 53] },
+    { page: 'lock', step: 10, t: 'Summary', lessons: [53] },
+    { page: 'checkpoint', step: 1, t: 'Problem', lessons: [51] },
+    { page: 'checkpoint', step: 6, t: 'Falling behind', lessons: [51] },
+    { page: 'checkpoint', step: 7, t: 'Check', lessons: [51, 52] },
+    { page: 'checkpoint', step: 9, t: 'MTTR', lessons: [22] },
+    { page: 'checkpoint', step: 10, t: 'Summary', lessons: [52] },
   ];
   const TITLES = {
-    1: 'Connecting to the DB server for the first time', 2: 'Exploring the directories where Oracle lives', 3: 'Finding errors in the alert log', 4: 'Writing a work log with vi',
-    5: 'Understanding the oracle account and permissions', 6: 'Checking that the DB is alive through its processes', 7: 'Responding to a "disk is full" call',
-    8: 'sqlplus: command not found?', 9: 'Graduation mission: do the morning check on your own', 10: 'Receiving a new server: pre-installation server check',
-    11: 'Preparing for installation in one go with the preinstall RPM', 12: 'Checking kernel parameters', 13: 'Checking resource limits',
-    14: 'Configuring HugePages and checking THP', 15: 'Checking the disk I/O scheduler and the clock', 16: 'Creating role-separation groups and the grid user',
-    17: 'Creating installation directories and path conventions', 18: 'Graduation mission: check and fix a server someone else prepared',
-    21: 'Connecting to the DB with SQL*Plus for the first time', 22: 'Shutting down the DB and starting it up step by step', 26: 'Re-create a deleted password file', 28: 'Switching to archivelog mode and taking the first RMAN backup',
-    29: 'Graduation mission: morning check after a reboot', 31: 'Bring back one deleted data file', 32: 'Save a DB that lost its SYSTEM data file', 33: 'When one control file copy is lost', 42: 'When all control files are lost',
-    34: 'When the DB stops because the fast recovery area is full', 41: 'Roll the DB back to just before the mistake (point-in-time recovery)', 51: 'Seeing what the DB is waiting on right now (wait events)',
-    52: 'Looking into last night\'s batch with an AWR report', 91: 'Reading tables with SELECT', 95: 'INSERT, UPDATE, DELETE and COMMIT, ROLLBACK',
+    1: 'Connecting to the DB server for the first time', 2: 'Exploring the directories where Oracle lives', 3: 'Finding errors in the alert log', 4: 'Writing a work log with vi', 5: 'Understanding the oracle account and permissions', 6: 'Checking that the DB is alive through its processes',
+    7: 'Responding to a "disk is full" call', 8: 'sqlplus: command not found?', 9: 'Graduation mission: do the morning check on your own', 10: 'Receiving a new server: pre-installation server check', 11: 'Preparing for installation in one go with the preinstall RPM',
+    12: 'Checking kernel parameters', 13: 'Checking resource limits', 14: 'Configuring HugePages and checking THP', 15: 'Checking the disk I/O scheduler and the clock', 16: 'Creating role-separation groups and the grid user',
+    17: 'Creating installation directories and path conventions', 18: 'Graduation mission: check and fix a server someone else prepared', 21: 'Connecting to the DB with SQL*Plus for the first time', 22: 'Shutting down the DB and starting it up step by step', 24: 'Add space to a full tablespace',
+    26: 'Re-create a deleted password file', 27: 'Clean up a session holding a lock', 28: 'Switching to archivelog mode and taking the first RMAN backup', 29: 'Graduation mission: morning check after a reboot', 31: 'Bring back one deleted data file',
+    32: 'Save a DB that lost its SYSTEM data file', 33: 'When one control file copy is lost', 34: 'When the DB stops because the fast recovery area is full', 41: 'Roll the DB back to just before the mistake (point-in-time recovery)', 42: 'When all control files are lost',
+    51: 'Seeing what the DB is waiting on right now (wait events)', 52: 'Looking into last night\'s batch with an AWR report', 53: 'Graduation mission: the morning order saving stopped', 91: 'Reading tables with SELECT',
+    95: 'INSERT, UPDATE, DELETE and COMMIT, ROLLBACK',
   };
-  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' }, archive: { name: 'Archivelog and RMAN', dir: 'oracle/archive/' } };
+  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' }, archive: { name: 'Archivelog and RMAN', dir: 'oracle/archive/' }, undo: { name: 'Undo and read consistency', dir: 'oracle/undo/' }, lock: { name: 'Locks and waits', dir: 'oracle/lock/' }, checkpoint: { name: 'Checkpoints', dir: 'oracle/checkpoint/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `Stage ${s.no}, lesson ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

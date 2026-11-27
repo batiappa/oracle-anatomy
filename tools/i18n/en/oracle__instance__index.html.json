@@ -23,7 +23,6 @@
 "명령 한 줄의 여정": "The journey of one command line",
 "리눅스 기초": "Linux basics",
 "파트 1 · 아키텍처": "Part 1 · Architecture",
-"SGA와 PGA": "SGA and PGA",
 "백그라운드 프로세스": "Background processes",
 "파트 2 · 트랜잭션": "Part 2 · Transactions",
 "COMMIT의 여정": "The Journey of a COMMIT",
@@ -43,7 +42,6 @@
 "Oracle Database 19c의 STARTUP이 NOMOUNT, MOUNT, OPEN을 거치며 파라미터 파일, SGA, 백그라운드 프로세스, 컨트롤 파일, 데이터 파일, 온라인 리두 로그를 차례로 여는 과정을 10단계 애니메이션으로 따라가는 레슨. ORA-00205, ORA-01157 같은 시작 장애가 어느 단계에서 나는지 함께 봅니다.": "A 10-step animated lesson that follows how STARTUP in Oracle Database 19c goes through NOMOUNT, MOUNT and OPEN, opening the parameter file, SGA, background processes, control files, data files and online redo logs in turn. It also shows at which stage startup failures such as ORA-00205 and ORA-01157 occur.",
 "STARTUP 한 번이 NOMOUNT, MOUNT, OPEN을 거치며 무엇을 여는지 10단계로 따라가고, 시작 장애가 어느 단계에서 나는지 봅니다.": "Follow in 10 steps what a single STARTUP opens as it goes through NOMOUNT, MOUNT and OPEN, and see at which stage startup failures occur.",
 "<a class=\"site-tab\" href=\"../../linux/\"><span class=\"n\">1</span>리눅스 해부도</a><a class=\"site-tab\" href=\"../../lab/\"><span class=\"n\">2</span>리눅스 실습</a><a class=\"site-tab\" aria-current=\"page\" href=\"../../\"><span class=\"n\">3</span>Oracle 해부도</a><a class=\"site-tab\" href=\"../../dba/\"><span class=\"n\">4</span>DBA 실습</a>": "<a class=\"site-tab\" href=\"../../linux/\"><span class=\"n\">1</span>Linux Anatomy</a><a class=\"site-tab\" href=\"../../lab/\"><span class=\"n\">2</span>Linux Lab</a><a class=\"site-tab\" aria-current=\"page\" href=\"../../\"><span class=\"n\">3</span>Oracle Anatomy</a><a class=\"site-tab\" href=\"../../dba/\"><span class=\"n\">4</span>DBA Lab</a>",
-"<b>파트 1 · 아키텍처</b> / 3개 중 1번째 레슨": "<b>Part 1 · Architecture</b> / lesson 1 of 3",
 "<span class=\"badge ver\">Oracle Database 19c</span><span class=\"badge\">12분</span><span class=\"badge\">입문</span><span class=\"badge\" id=\"stepBadge\">10단계</span>": "<span class=\"badge ver\">Oracle Database 19c</span><span class=\"badge\">12 min</span><span class=\"badge\">Beginner</span><span class=\"badge\" id=\"stepBadge\">10 steps</span>",
 "<code>STARTUP</code> 한 번이 무엇을 어떤 순서로 여는지 따라가며, \"MOUNT에서 멈췄다\"는 말이 무슨 뜻인지 알아봅니다.": "Follow what a single <code>STARTUP</code> opens and in what order, and learn what \"it stopped at MOUNT\" really means.",
 "파라미터 파일, 인스턴스(SGA와 백그라운드 프로세스), 데이터베이스 파일(컨트롤 파일, 데이터 파일, 온라인 리두 로그)의 구조와 시작 순서 다이어그램": "Diagram of the parameter file, the instance (SGA and background processes) and the database files (control files, data files, online redo logs) and the order in which they start",
@@ -151,5 +149,7 @@
 "2/2 열림": "2/2 open",
 "실패": "Failed",
 "복구 열림": "Recovered",
-"모두": "All"
+"모두": "All",
+"<b>파트 1 · 아키텍처</b> / 2개 중 1번째 레슨": "<b>Part 1 · Architecture</b> / lesson 1 of 2",
+"SGA·PGA와 백그라운드 프로세스": "SGA, PGA and background processes"
 }
