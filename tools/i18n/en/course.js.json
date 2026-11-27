@@ -128,5 +128,6 @@
 "서비스를 옮기고 인스턴스 하나 내리기": "Move services and shut down one instance",
 "졸업 미션: 노드 장애 뒤 서비스 되돌리기": "Graduation mission: restore services after a node failure",
 "노드 정비: 인스턴스 비우고 Clusterware 내렸다 올리기": "Node maintenance: empty the instance, then stop and restart Clusterware",
-"OS 원인 장애": "OS-caused failures"
+"OS 원인 장애": "OS-caused failures",
+"현장 업무 흐름": "Field workflow"
 }

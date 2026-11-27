@@ -241,6 +241,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
   <p><b>Stage 4 SQL basics</b>: confirmed in the official documentation are the format of the ORA-00001 and ORA-01400 error messages (Database Concepts 19c examples), "Table created." and the "n rows selected." behavior of SET FEEDBACK, EXITCOMMIT defaulting to ON (commit) when SQL*Plus exits, that a zero-length string is NULL and that = NULL is not true, that aggregate functions other than COUNT(*) ignore NULLs, that a left outer join fills unmatched rows with NULLs, and that DDL implicitly commits before and after (SQL Language Reference 19c). <b>Not confirmed</b>: DML feedback messages such as "1 row created./updated./deleted.", the full screen text of ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, and 01427, how the position of NULLs in sorting is displayed, and column widths. Such lines get an ⓘ mark in the terminal. The employee and department rows of the STUDY schema and the constraint names (SYS_C...) are illustrative examples.</p>
   <p><b>Stage 11 RAC basics</b>: confirmed in the official documentation are the per-node CRS-4537, 4529, and 4533 line format of crsctl check cluster -all (Clusterware 19c documentation example); the -n, -s, -c, -l, and -t options of olsnodes and the -n output example; the structure of the crsctl stat res -t table and the "Instance ... is running on node ..." message (21c Private Cloud Appliance documentation example); that CRSCTL is in the Grid home's bin and SRVCTL is run from the database home; that SRVCTL prints nothing on success; the -stopoption values of stop instance; the -oldinst and -newinst syntax of relocate service; the meaning of preferred and available instances and that a service does not automatically return to its original instance; INST_ID in GV$ views; and the gc cr block 2-way and gc current block 2-way wait events and the Cluster wait class (Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c). <b>Not confirmed</b>: the exact wording of the lines of srvctl status and config service and config database, the "is not running" message, the column spacing of crsctl stat res -t and the service resource names (ora.paydb.*.svc), the screen text of check crs and query crs activeversion, the capitalization of olsnodes -s, and the PRC and PRK error numbers on failure (replaced with ⓘ guidance instead of being made up). Cluster, node, DB, and service names, IPs, session counts, and times are illustrative examples. <b>Lessons 104 to 108 (reflecting the RAC 19c CRSCTL and SRVCTL field guide)</b>: confirmed in the official documentation are the operators of the crsctl stat res -w filter (=, !=, co, st, en, AND, OR) and the advice not to manage ora. resources directly with CRSCTL, that cluster commands depend on OHASD (Clusterware 19c), the column layout of crsctl query css votedisk (19c OCR and voting files chapter example), the CRS-4639 message (19c error messages), the meaning of query crs activeversion -f (CRS-04172 usage), the line names and order and the -all option of srvctl config database, -startoption defaulting to OPEN, that disable database also disables the instances, not running SRVCTL on the same target concurrently, exit codes 0, 1, and 2, -eval, and the meaning of the -statefile and -scannumber options (RAC 19c), usage examples of -drain_timeout, -stopoption, and -failover for stop instance and relocate service (High Availability Overview 19c), and the layout of srvctl config asm and status asm -verbose (Clusterware 19c). Confirmed only in the 11.2 CRSCTL documentation because part of the 19c documentation could not be read: the CRS-4638 line of check crs, CRS-4622 and CRS-4621 of config crs, the explanation that stop crs fails if resources remain and -f stops unconditionally, the explanation that for several nodes stop cluster prevents resource relocation, the "Located n voting disk(s)." line, and the NAME=, TYPE=, TARGET=, STATE= layout without -t. <b>Not confirmed</b>: the progress lines of crsctl stop crs and start crs (CRS-2791, 2673, 2677, 2793, 4133, 4123, 2672, 2676, 6016, 6017, 6023, 6024), the full list and detailed wording of the -init table, the official definitions of Target and State values (INTERMEDIATE, UNKNOWN, etc.), the "Instance status:" wording of srvctl status -detail, the line wording of config scan, scan_listener, vip, network, nodeapps, listener, and service, the wording of status diskgroup and vip, the full syntax of stop home and start home and the contents of the state file, the description of the -wait option, and the error numbers when privileges are missing. Of the explanations in the field guide the site owner provided, "crsctl stop crs with the DB open may use shutdown abort" and "stop diskgroup -force does not stop the DB first" could not be confirmed in the official documentation, and the lessons say so.</p>
   <p><b>Stage 12 OS-caused failures</b>: Confirmed from official sources: the ORA-09925 message and action (Oracle Error Help), the line format "Linux-x86_64 Error: 28: No space left on device" (My Oracle Support document titles), Linux error 28 being ENOSPC (kernel source), the OOM killer badness score and the oom_score_adj range (kernel documentation), the format of the kernel messages "invoked oom-killer" and "Out of memory: Killed process" (current kernel source mm/oom_kill.c), HugePages not being swapped, disabling THP, and AMM not working with HugePages (Linux administration reference 19c), the CRS-2409 and CRS-4700 messages, CTSS running in observer mode when NTP is present and CTSS being deprecated (Grid installation guide 19c), the Clusterware alert log location (Clusterware 19c troubleshooting appendix), and the chronyc tracking fields, the makestep warning and the maxslewrate default (chrony 4.5 documentation). Not confirmed or made up for the lab: the exact OOM wording on the Oracle Linux 8 kernel, what the alert log records when OOM kills the instance, the look of the systemctl status screen, the full crsctl check ctss output, and the [OCTSSD(...)] tag in the alert log.</p>
+  <p><b>Stage 13 field workflow</b>: The syntax for adding a data file and the conditions for DROP DATAFILE (the database must be open, only an empty file, not the first file, and the physical file is deleted too) were confirmed in the Administrator's Guide 19c. The intake record, first report, change plan and incident report forms and the severity levels are lab examples, not copied from any standard. Follow your company's forms and procedures.</p>
   <p>The SQL engine imitates only what the lab needs: SELECT (joins, outer joins, subqueries, WHERE, GROUP BY, HAVING, ORDER BY, aggregate functions), INSERT, UPDATE, DELETE, COMMIT, and ROLLBACK on the lab's STUDY schema, and a few DDL statements. Numbers, dates, SIDs, PIDs, DBIDs, backup file names, and rows of business tables are illustrative examples.</p>
   <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Linux is a registered trademark of Linus Torvalds.</p>
 </footer>
@@ -7039,6 +7040,209 @@ LESSONS.push(
 );
 
 /* =====================================================================
+   13단계. 현장 업무 흐름: 장애 접수 → 작업계획서 → 장애보고서 (레슨 121~123)
+   ===================================================================== */
+const INC = '/home/oracle/incident';
+const INTAKE = INC + '/INC-1127-01.txt', FIRST = INC + '/INC-1127-01_1st.txt', PLAN = INC + '/CHG-1127-01.txt', REPORT = INC + '/INC-1127-01_report.txt';
+const APPROVAL = '/home/oracle/inbox/approval_CHG-1127-01.txt';
+function ftxt(p) { const r = lookup(p); return r && r.node && r.node.t === 'f' ? (r.node.gen ? r.node.gen() : r.node.txt || '') : ''; }
+function fv(p, label) { const m = new RegExp('^\\s*' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[:：]\\s*(.*\\S)', 'm').exec(ftxt(p)); return m ? m[1] : ''; }
+const hasF = (p, ...ls) => ls.every(l => fv(p, l));
+const FORMS13 = {
+  'severity_guide.txt': `[Incident severity levels - lab example, differs by company]
+Sev 1: whole core service down (e.g. no orders or payments at all)  -> report to team lead and on-call executive now, update every 30 minutes
+Sev 2: part of core work failing or badly slow (hard to work around) -> report to team lead now, update every hour
+Sev 3: some functions failing, workaround exists                    -> fix the same day, report after fixing
+Sev 4: questions, simple requests                                   -> schedule by agreement
+`,
+  'intake_form.txt': `[Incident intake form]
+Ticket no:
+Received at:
+Reported by:
+Symptom:
+Scope of impact:
+Severity:
+`,
+  'first_report_form.txt': `[First report form] Keep it short, separate facts from guesses
+Current status:
+Suspected cause:
+Next action:
+Next update:
+`,
+  'change_plan_form.txt': `[Change plan form]
+Change no:
+Purpose:
+Target:
+Pre-check:
+Procedure:
+Verification:
+Rollback:
+Impact:
+`,
+  'incident_report_form.txt': `[Incident report form]
+Started at:
+Detected at:
+Recovered at:
+Impact:
+Cause:
+Action taken:
+Prevention:
+`,
+};
+function makeWorld13(lid) {
+  makeWorld3(1);
+  const O = 'oracle', OI = 'oinstall';
+  const base = ago(0, 9, 30) > NOW ? 1 : 0;
+  const at = (h, m, s) => { const d = ago(base, h, m); d.setSeconds(s || 0); return d; };
+  S.wf = { base, at };
+  const home = lookup('/home/oracle').node.c;
+  home.forms = D(O, OI, 0o755, Object.fromEntries(Object.entries(FORMS13).map(([k, v]) => [k, F(O, OI, 0o644, v, { mt: ago(60, 10, 0) })])), { mt: ago(60, 10, 0) });
+  home.inbox = D(O, OI, 0o755, { 'INC-1127-01.txt': F(O, OI, 0o644, `[Incident report] INC-1127-01
+Received: ${p2(at(9, 14).getHours())}:14 (service desk phone call)
+Reported by: Kim, order team manager (ext. 2231)
+Details: "Since about 9 o'clock some orders are not being saved. The screen only says 'System error, please try again later'.
+       Searching works. Some orders fail again when we retry, others go through."
+`, { mt: at(9, 14) }) }, { mt: at(9, 14) });
+  home.incident = D(O, OI, 0o755, {}, { mt: at(9, 15) });
+  // 09:02부터 주문 이력 적재가 USERS 공간 부족으로 실패
+  const an = lookup(ALERT).node; const L = [];
+  for (const [m, s] of [[2, 11], [2, 40], [4, 3], [5, 52], [7, 18], [8, 9], [9, 47], [11, 30], [12, 5], [13, 41]]) L.push(ts(at(9, m, s), 100000 + m * 7919 % 800000), 'ORA-1653: unable to extend table APP.ORDER_HIST by 1024 in tablespace USERS');
+  an.txt += L.join('\n') + '\n'; an.mt = at(9, 13, 41);
+  const put = (p, txt, d) => putFile(p, F(O, OI, 0o644, txt, { mt: d }));
+  if (lid >= 2) {
+    put(INTAKE, `Ticket no: INC-1127-01
+Received at: 09:14
+Reported by: Kim, order team (ext. 2231)
+Symptom: Some order saves fail. ORA-1653 (APP.ORDER_HIST, USERS) 10 times in the alert log since 09:02
+Scope of impact: Order saving (loading new order history). Searching is normal
+Severity: 2
+`, at(9, 21));
+    put(FIRST, `Current status: Some order saves failing since 09:02 (Sev 2)
+Suspected cause: Not enough space in tablespace USERS (ORA-1653, users01.dbf autoextend off)
+Next action: Write a change plan to add a data file, get approval, then do the work
+Next update: 10:20
+`, at(9, 24));
+  }
+  if (lid >= 3) {
+    put(PLAN, `Change no: CHG-1127-01
+Purpose: Recover INC-1127-01, secure space in USERS
+Target: ORCL, tablespace USERS
+Pre-check: ~/incident/precheck.txt (users01.dbf 4096MB autoextend NO, plenty of room on /u02, no users02.dbf)
+Procedure: alter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;
+Verification: users02.dbf in dba_data_files, Completed in the alert log, order team retries
+Rollback: alter tablespace users drop datafile '/u02/app/oracle/oradata/ORCL/users02.dbf'; (only while the file is empty)
+Impact: Online change, no service outage, under 1 minute
+`, at(9, 41));
+    putFile('/home/oracle/incident/precheck.txt', F(O, OI, 0o644, 'FILE_NAME                                          MB AUT\n-------------------------------------------------- ---------- ---\n/u02/app/oracle/oradata/ORCL/users01.dbf                 4096 NO\n', { mt: at(9, 33) }));
+    put(APPROVAL, APPROVAL_TXT(at(9, 48)), at(9, 48));
+  }
+}
+const APPROVAL_TXT = (d) => `From: Park (team lead)
+Date: ${dayName(d)}
+Subject: RE: [Change plan] CHG-1127-01 add a data file to USERS
+
+Approved. Go ahead now.
+When you finish, ask Kim in the order team to retry, and send the incident report today.
+`;
+function planOk() { return hasF(PLAN, 'Purpose', 'Target', 'Procedure', 'Verification', 'Rollback', 'Impact') && /add\s+datafile/i.test(fv(PLAN, 'Procedure')) && /drop\s+datafile/i.test(fv(PLAN, 'Rollback')); }
+function deliverApproval() {
+  if (!S.wf || S.wf.approved) return; S.wf.approved = true;
+  const d = new Date(); putFile(APPROVAL, F('oracle', 'oinstall', 0o644, APPROVAL_TXT(d), { mt: d }));
+  print(note('The change plan was sent to Park, the team lead. A reply (approval_CHG-1127-01.txt) arrived in ~/inbox/ (in the lab it comes at once).'));
+}
+function hm(d) { return p2(d.getHours()) + ':' + p2(d.getMinutes()); }
+function recoveredAt() { const t = ftxt(ALERT); const m = /^(\d{4}-\d\d-\d\dT(\d\d):(\d\d)[^\n]*)\n(?:alter tablespace users add datafile[^\n]*\n)?Completed: alter tablespace users add datafile/m.exec(t); return m ? m[2] + ':' + m[3] : null; }
+function reportOk() {
+  if (!hasF(REPORT, 'Started at', 'Detected at', 'Recovered at', 'Impact', 'Cause', 'Action taken', 'Prevention')) return false;
+  const rec = recoveredAt(); const r = fv(REPORT, 'Recovered at');
+  const near = rec && (r.includes(rec) || (() => { const [h, m] = rec.split(':').map(Number); const t = h * 60 + m; return [-1, 1].some(x => r.includes(p2(Math.floor((t + x + 1440) % 1440 / 60)) + ':' + p2((t + x + 1440) % 60))); })());
+  return /09:02/.test(fv(REPORT, 'Started at')) && /09:14/.test(fv(REPORT, 'Detected at')) && near && /1653|USERS|공간/i.test(fv(REPORT, 'Cause'));
+}
+Object.assign(SRC, {
+  dropdf:  ['Administrator\'s Guide 19c · Managing Data Files and Temp Files 14.6 Dropping Data Files (empty files only, not the first file, the physical file is deleted too)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-data-files-and-temp-files.html'],
+});
+LESSONS.push(
+  { id: 121, stage: 13, title: 'Incident intake: check the facts and send the first report', short: 'Incident intake', start: 'oracle',
+    who: 'Service desk (passing on an incident report)',
+    situation: 'At 09:14 a phone call from Kim in the order team came in as incident INC-1127-01. The report is in ~/inbox/. Before fixing anything, today\'s job is to check the facts, leave an intake record and send a first report to the team lead. The forms are in ~/forms/.',
+    tasks: [
+      { text: 'Read the incident report', hint: 'cat ~/inbox/INC-1127-01.txt', done: ev => ev.read.has('/home/oracle/inbox/INC-1127-01.txt'),
+        why: 'The reporter says "some orders are not saved, searching works". What a reporter says is a symptom before the facts are checked. Check it against the database\'s records before guessing a cause.' },
+      { text: 'Find errors at the same time in the alert log', hint: 'grep -n ORA- /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT),
+        why: 'From 09:02, <code>ORA-1653: unable to extend table APP.ORDER_HIST by 1024 in tablespace USERS</code> repeats. It matches the reported time (about 9 o\'clock). The time line just above an error is when it happened.' },
+      { text: 'Count how many times the error happened', hint: 'grep -c ORA-1653 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && argOf(ev, 'grep').includes('-c'),
+        why: 'Numbers are the backbone of a report. "10 times since 09:02" is more accurate than "it happens often". grep -c counts the matching lines.' },
+      { text: 'Confirm the cause from the data file state', hint: "sqlplus / as sysdba\nset linesize 200\ncol file_name format a50\nselect file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES'),
+        why: 'There is a single users01.dbf of 4096MB with autoextend NO. The error message and the data file state agree, so the cause can be judged as "not enough space in USERS". Writing down what you confirmed separately from what you guess is the heart of an intake record.' },
+      { text: 'Read the severity levels', hint: 'exit\ncat ~/forms/severity_guide.txt', done: ev => ev.read.has('/home/oracle/forms/severity_guide.txt'),
+        why: 'These levels are a lab example. Real severity levels and reporting intervals are set by each company, so find and read them first when you join. In this case, core work (saving orders) is partly failing and users have no way around it.' },
+      { text: 'Write the facts into the intake record (form: ~/forms/intake_form.txt)', hint: "echo 'Ticket no: INC-1127-01' > ~/incident/INC-1127-01.txt\necho 'Received at: 09:14' >> ~/incident/INC-1127-01.txt\necho 'Reported by: Kim, order team (ext. 2231)' >> ~/incident/INC-1127-01.txt\necho 'Symptom: Some order saves fail. ORA-1653 (APP.ORDER_HIST, USERS) 10 times in the alert log since 09:02' >> ~/incident/INC-1127-01.txt\necho 'Scope of impact: Order saving. Searching is normal' >> ~/incident/INC-1127-01.txt", done: () => hasF(INTAKE, 'Ticket no', 'Received at', 'Reported by', 'Symptom', 'Scope of impact') && /1653/.test(fv(INTAKE, 'Symptom')),
+        why: '> writes a new file and >> appends to the end. Use > only on the first line. In the symptom field, write what the reporter said together with the facts you confirmed in the database (error number, time, count). The start time and detection time in the incident report later come from this record.' },
+      { text: 'Write the severity', hint: "echo 'Severity: 2' >> ~/incident/INC-1127-01.txt", done: () => /^\s*[1-4]/.test(fv(INTAKE, 'Severity')),
+        why: 'By the (example) severity levels, core work (saving orders) is partly failing and hard to work around, so it is Sev 2. The severity decides who gets reports and how often updates go out.' },
+      { text: 'Write the first report for the team lead (form: ~/forms/first_report_form.txt)', hint: "echo 'Current status: Some order saves failing since 09:02 (Sev 2)' > ~/incident/INC-1127-01_1st.txt\necho 'Suspected cause: Not enough space in tablespace USERS (ORA-1653, autoextend off)' >> ~/incident/INC-1127-01_1st.txt\necho 'Next action: Write a change plan to add a data file, get approval, then do the work' >> ~/incident/INC-1127-01_1st.txt\necho 'Next update: 10:20' >> ~/incident/INC-1127-01_1st.txt", done: () => hasF(FIRST, 'Current status', 'Suspected cause', 'Next action', 'Next update'),
+        why: 'A first report goes out fast and short. The cause is still written as a "guess", and you promise what you will do and when the next update comes. In the example levels, Sev 2 means an update every hour, so the next update is set within an hour.' },
+      { text: 'Read the records you wrote once more', hint: 'cat ~/incident/INC-1127-01.txt ~/incident/INC-1127-01_1st.txt', done: ev => ev.read.has(INTAKE) && ev.read.has(FIRST),
+        why: 'Read it once before sending. Check that the time, error number and severity agree with each other. Well done. In the next lesson you write a change plan.' },
+    ],
+    field: 'Incident response starts with "telling" before "fixing". An intake record keeps the reporter, time, symptom and scope of impact as facts, and separates what is confirmed from what is guessed about the cause. The forms and severity levels in this lesson are lab examples, not copied from any standard. Follow your company\'s forms, report recipients and reporting intervals.',
+    sources: ['errmg2'] },
+
+  { id: 122, stage: 13, title: 'Write a change plan and keep the pre-checks', short: 'Change plan', start: 'oracle',
+    who: 'Park, team lead (messenger)',
+    situation: '"Got your first report. This is a change during business hours, so write a change plan and send it first. Keep the pre-check results in a file, and be sure to write the rollback. Do the work once it is approved." The intake record and first report are in ~/incident/.',
+    tasks: [
+      { text: 'Read the change plan form', hint: 'cat ~/forms/change_plan_form.txt', done: ev => ev.read.has('/home/oracle/forms/change_plan_form.txt'),
+        why: 'Purpose, target, pre-check, procedure, verification, rollback, impact. A change plan lets the approver see at a glance "what, why, how, and what if it goes wrong".' },
+      { text: 'Start keeping the pre-checks in a file (SPOOL)', hint: 'sqlplus / as sysdba\nspool ~/incident/precheck.txt', done: ev => !!ev.spool,
+        why: 'With SPOOL on, screen output from then on is also saved to a file. The pre-check results are evidence of the state before the change and the baseline to return to on rollback.' },
+      { text: 'Check the USERS data files', hint: "set linesize 200\ncol file_name format a50\nselect file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES') && S.sql && S.sql.spool,
+        why: 'users01.dbf 4096MB, autoextend NO. These are the facts for the "target" and "pre-check" fields of the plan.' },
+      { text: 'Check the disk for the new file and that no file with that name exists', hint: 'host df -h /u02\nhost ls /u02/app/oracle/oradata/ORCL', done: ev => ev.host && (has(ev, 'ls') || has(ev, 'df')) && S.sql && S.sql.spool,
+        why: '/u02 has plenty of room and there is no users02.dbf yet. ADD DATAFILE with a name that already exists fails (the name follows the existing files\' naming).' },
+      { text: 'Turn SPOOL off and leave SQL*Plus', hint: 'spool off\nexit', done: ev => ev.type === 'sql-exit' && /users01\.dbf/i.test(ftxt('/home/oracle/incident/precheck.txt')),
+        why: 'The file is closed only after SPOOL OFF. The check results are now in ~/incident/precheck.txt.' },
+      { text: 'Write the change plan (purpose, target, pre-check)', hint: "echo 'Change no: CHG-1127-01' > ~/incident/CHG-1127-01.txt\necho 'Purpose: Recover INC-1127-01, secure space in USERS' >> ~/incident/CHG-1127-01.txt\necho 'Target: ORCL, tablespace USERS' >> ~/incident/CHG-1127-01.txt\necho 'Pre-check: ~/incident/precheck.txt (users01.dbf 4096MB autoextend NO, plenty of room on /u02, no users02.dbf)' >> ~/incident/CHG-1127-01.txt", done: () => hasF(PLAN, 'Change no', 'Purpose', 'Target', 'Pre-check'),
+        why: 'Writing the incident number in the purpose lets you trace between incident and change records later.' },
+      { text: 'Write the procedure and verification', hint: "echo \"Procedure: alter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;\" >> ~/incident/CHG-1127-01.txt\necho 'Verification: users02.dbf in dba_data_files, Completed in the alert log, order team retries' >> ~/incident/CHG-1127-01.txt", done: () => /add\s+datafile/i.test(fv(PLAN, 'Procedure')) && !!fv(PLAN, 'Verification'),
+        why: 'The procedure holds the exact statement you will run. During the work you copy and run the statement from the plan and do not retype or change it on the spot. Verification covers both the database side (views, alert log) and the business side (users retry).' },
+      { text: 'Write the rollback and impact', hint: "echo \"Rollback: alter tablespace users drop datafile '/u02/app/oracle/oradata/ORCL/users02.dbf'; (only while the file is empty)\" >> ~/incident/CHG-1127-01.txt\necho 'Impact: Online change, no service outage, under 1 minute' >> ~/incident/CHG-1127-01.txt", done: () => { const okk = planOk(); if (okk) deliverApproval(); return okk; },
+        why: 'Administrator\'s Guide 19c (dropping data files): the DROP DATAFILE clause of ALTER TABLESPACE drops a single data file, but the database must be open, and a file that is not empty or the first (or only) file of a tablespace cannot be dropped. Dropping removes it from the data dictionary and control files and deletes the physical file. That is why the condition "only while the file is empty" is written with it. The approver also needs to know this rollback becomes impossible once data goes into the file.' },
+      { text: 'Read the team lead\'s reply', hint: 'cat ~/inbox/approval_CHG-1127-01.txt', done: ev => ev.read.has(APPROVAL),
+        why: 'It is approved. Keep the approval record (who and when) together with the change plan. In the next lesson you do the work as planned and write the incident report.' },
+    ],
+    field: 'A change plan is written so that the approver can decide, more than to say what you will do. The rollback in particular is written after checking in the documentation that it is really possible (including any conditions, as here). Even in an urgent incident, a change during operation is made after approval as a rule, and many companies have a separate emergency change process. The forms are lab examples.',
+    sources: ['addf', 'dropdf'] },
+
+  { id: 123, stage: 13, title: 'Do the work as planned and write the incident report', short: 'Incident report', start: 'oracle',
+    who: 'Park, team lead (approval mail)',
+    situation: 'Change plan CHG-1127-01 has been approved (~/inbox/approval_CHG-1127-01.txt). Do the work following the procedure in the plan (~/incident/CHG-1127-01.txt), verify it, and write the incident report. The report form is ~/forms/incident_report_form.txt.',
+    tasks: [
+      { text: 'Read the plan again before the work', hint: 'cat ~/incident/CHG-1127-01.txt', done: ev => ev.read.has(PLAN),
+        why: 'Read the plan again just before the work and copy the statement to run exactly as written. This is so you do not do anything other than what was approved.' },
+      { text: 'Run the procedure in the plan', hint: "sqlplus / as sysdba\nalter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;", done: ev => ev.ddl && ev.ddl.kind === 'add-datafile' && ev.ddl.ts === 'USERS',
+        why: '<code>Tablespace altered.</code> Remember when you ran it. It becomes the recovery time in the report (it is also in the alert log).' },
+      { text: 'Verify as the plan\'s verification says', hint: "select file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES') && S.db.files.filter(f => f.ts === 'USERS').length >= 2,
+        why: 'users02.dbf 1024MB, autoextend YES. Ask Kim in the order team to retry and get an answer that orders save normally (in the lab we assume they do).' },
+      { text: 'Collect times from the alert log (start and recovery)', hint: 'exit\ngrep -n -E "ORA-1653|Completed: alter tablespace" -B2 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT) && !!recoveredAt(),
+        why: 'The 19c alert log writes a time line and the content below it. The time line above the first ORA-1653 is the start time (09:02), and the time line above <code>Completed: alter tablespace users add datafile</code> (just above the statement that was run) is the recovery time. -B2 also shows the two lines before each match.' },
+      { text: 'Check the detection time in the intake record', hint: 'cat ~/incident/INC-1127-01.txt', done: ev => ev.read.has(INTAKE),
+        why: 'The 12 minutes between start (09:02) and detection (09:14) mean "monitoring did not notice first". This goes into prevention.' },
+      { text: 'Incident report: write the three times and the impact', hint: () => { const r = recoveredAt() || 'HH:MM'; return `echo 'Started at: 09:02 (first ORA-1653 in the alert log)' > ~/incident/INC-1127-01_report.txt
+echo 'Detected at: 09:14 (order team report)' >> ~/incident/INC-1127-01_report.txt
+echo 'Recovered at: ${r} (data file added)' >> ~/incident/INC-1127-01_report.txt
+echo 'Impact: Some order saves failed (ORA-1653 10 times), searching normal' >> ~/incident/INC-1127-01_report.txt`; }, done: () => hasF(REPORT, 'Started at', 'Detected at', 'Recovered at', 'Impact'),
+        why: 'For the recovery time, write the time of the Completed line in the alert log (the hint contains the actual time from this lab).' },
+      { text: 'Incident report: write the cause, action taken and prevention', hint: "echo 'Cause: Not enough space in tablespace USERS. users01.dbf (4096MB) filled up with autoextend off (ORA-1653)' >> ~/incident/INC-1127-01_report.txt\necho 'Action taken: After approval of CHG-1127-01, added users02.dbf 1GB (autoextend, max 10GB)' >> ~/incident/INC-1127-01_report.txt\necho 'Prevention: Add an 85% tablespace usage alert, include USERS in the daily checklist, monitor ORA- in the alert log' >> ~/incident/INC-1127-01_report.txt", done: () => reportOk(),
+        why: 'The cause goes as far as "what happened and why it was in that state" (the space filled up + autoextend was off). Prevention is written as mechanisms (alerts, checklists), not as people being careful. Monitoring that shortens the 12 minutes between start and detection is the key.' },
+      { text: 'Read the report once more', hint: 'cat ~/incident/INC-1127-01_report.txt', done: ev => ev.read.has(REPORT) && reportOk(),
+        why: 'Well done. You have finished stage 13. You handled one incident from start to end: intake (checking facts, severity, first report) → change plan (pre-check, procedure, rollback, approval) → work and incident report (collecting times from records, cause, prevention).' },
+    ],
+    field: 'An incident report is not a document to blame someone, but one to stop the same thing happening again. Times come from records (alert log, intake record, approval mail), the cause from confirmed facts, and prevention as tasks with an owner and a deadline. The forms are lab examples.',
+    sources: ['addf', 'dropdf'] },
+);
+
+/* =====================================================================
    9. 레슨 진행
    ===================================================================== */
 let cur = null, prog = {};
@@ -7052,7 +7256,9 @@ function startLesson(id) {
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
   S.osfail = null; S.chrony = null;
-  if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  S.wf = null;
+  if (S.stage === 13) { makeWorld13(L.id - 120); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -7103,7 +7309,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: 'Stage 3 · Oracle 19c basic operations', sub: 'Stage 3 · Oracle 19c basic operations' }, 4: { name: 'Stage 5 · Incident response', sub: 'Stage 5 · Incident response and recovery' }, 5: { name: 'Stage 6 · Advanced recovery', sub: 'Stage 6 · Point-in-time recovery and control file recovery' }, 6: { name: 'Stage 7 · Performance checks', sub: 'Stage 7 · Wait events and AWR' }, 7: { name: 'Stage 8 · Patching', sub: 'Stage 8 · OPatch and quarterly RUs' }, 8: { name: 'Stage 9 · Intro to SQL tuning', sub: 'Stage 9 · Execution plans and indexes' }, 9: { name: 'Stage 10 · Data Guard basics', sub: 'Stage 10 · Primary DB and physical standby DB' }, 10: { name: 'Stage 4 · SQL basics', sub: 'Stage 4 · SELECT, joins, DML, DDL' }, 11: { name: 'Stage 11 · RAC basics', sub: 'Stage 11 · Clusterware and 2-node RAC' }, 12: { name: 'Stage 12 · OS-caused failures', sub: 'Stage 12 · Disk, memory, clock' } };
+const STAGES = { 3: { name: 'Stage 3 · Oracle 19c basic operations', sub: 'Stage 3 · Oracle 19c basic operations' }, 4: { name: 'Stage 5 · Incident response', sub: 'Stage 5 · Incident response and recovery' }, 5: { name: 'Stage 6 · Advanced recovery', sub: 'Stage 6 · Point-in-time recovery and control file recovery' }, 6: { name: 'Stage 7 · Performance checks', sub: 'Stage 7 · Wait events and AWR' }, 7: { name: 'Stage 8 · Patching', sub: 'Stage 8 · OPatch and quarterly RUs' }, 8: { name: 'Stage 9 · Intro to SQL tuning', sub: 'Stage 9 · Execution plans and indexes' }, 9: { name: 'Stage 10 · Data Guard basics', sub: 'Stage 10 · Primary DB and physical standby DB' }, 10: { name: 'Stage 4 · SQL basics', sub: 'Stage 4 · SELECT, joins, DML, DDL' }, 11: { name: 'Stage 11 · RAC basics', sub: 'Stage 11 · Clusterware and 2-node RAC' }, 12: { name: 'Stage 12 · OS-caused failures', sub: 'Stage 12 · Disk, memory, clock' }, 13: { name: 'Stage 13 · Field workflow', sub: 'Stage 13 · Intake, change plan, incident report' } };
 const stageOf = (l) => l.stage || 3;
 /* 화면에 보이는 단계 번호. 내부 단계 키(stage)는 그대로 두고 course.js의 순서로 번호를 붙인다(4단계 SQL 기초를 3단계 뒤에 넣었다). */
 const dno = (st) => { const i = Course.STAGES.findIndex(x => x.st === st); return i >= 0 ? i + 1 : st; };
