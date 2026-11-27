@@ -216,7 +216,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance, SQL Tuning Guide, PL/SQL Packages and Types Reference)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
   <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 5단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 6·7단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 10단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 5단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 6단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 7단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 9단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 8단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 8단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 10단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p><b>4단계 SQL 기초</b>: 공식 문서로 확인한 것은 ORA-00001·ORA-01400 오류 문구의 형식(Database Concepts 19c 예시), "Table created."와 SET FEEDBACK의 "n rows selected." 동작, SQL*Plus 종료 때 EXITCOMMIT 기본값 ON(커밋), 길이 0인 문자열이 NULL이라는 점과 = NULL이 참이 아니라는 점, COUNT(*)를 뺀 집계 함수가 NULL을 무시한다는 점, 왼쪽 외부 조인이 짝 없는 행을 NULL로 채운다는 점, DDL이 앞뒤로 암묵 커밋한다는 점(SQL Language Reference 19c)입니다. <b>확인하지 못한 것</b>: "1 row created./updated./deleted." 같은 DML 피드백 문구, ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, 01427의 화면 문구 전체, NULL이 정렬에서 놓이는 위치의 화면 표시, 열 폭. 이런 줄에는 터미널에 ⓘ 표시가 붙습니다. STUDY 스키마의 사원·부서 행과 제약 조건 이름(SYS_C...)은 설명용 예시입니다.</p>
-  <p><b>11단계 RAC 기초</b>: 공식 문서로 확인한 것은 crsctl check cluster -all의 노드별 CRS-4537·4529·4533 줄 형식(Clusterware 19c 문서 예시), olsnodes의 -n·-s·-c·-l·-t 옵션과 -n 출력 예시, crsctl stat res -t 표의 구조와 "Instance ... is running on node ..." 문구(21c Private Cloud Appliance 문서 예시), CRSCTL이 Grid 홈 bin에 있고 SRVCTL은 데이터베이스 홈에서 실행한다는 점, SRVCTL이 성공하면 아무것도 출력하지 않는다는 점, stop instance의 -stopoption 값, relocate service의 -oldinst·-newinst 문법, preferred·available 인스턴스의 뜻과 원래 인스턴스로 자동으로 돌아가지 않는다는 점, GV$ 뷰의 INST_ID, gc cr block 2-way·gc current block 2-way 대기 이벤트와 Cluster 대기 클래스(Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c)입니다. <b>확인하지 못한 것</b>: srvctl status·config service와 config database 줄의 정확한 문구, "is not running" 문구, crsctl stat res -t의 열 간격과 서비스 자원 이름(ora.paydb.*.svc), check crs와 query crs activeversion의 화면 문구, olsnodes -s의 대소문자, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 클러스터·노드·DB·서비스 이름, IP, 세션 수와 시각은 설명용 예시입니다.</p>
+  <p><b>11단계 RAC 기초</b>: 공식 문서로 확인한 것은 crsctl check cluster -all의 노드별 CRS-4537·4529·4533 줄 형식(Clusterware 19c 문서 예시), olsnodes의 -n·-s·-c·-l·-t 옵션과 -n 출력 예시, crsctl stat res -t 표의 구조와 "Instance ... is running on node ..." 문구(21c Private Cloud Appliance 문서 예시), CRSCTL이 Grid 홈 bin에 있고 SRVCTL은 데이터베이스 홈에서 실행한다는 점, SRVCTL이 성공하면 아무것도 출력하지 않는다는 점, stop instance의 -stopoption 값, relocate service의 -oldinst·-newinst 문법, preferred·available 인스턴스의 뜻과 원래 인스턴스로 자동으로 돌아가지 않는다는 점, GV$ 뷰의 INST_ID, gc cr block 2-way·gc current block 2-way 대기 이벤트와 Cluster 대기 클래스(Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c)입니다. <b>확인하지 못한 것</b>: srvctl status·config service와 config database 줄의 정확한 문구, "is not running" 문구, crsctl stat res -t의 열 간격과 서비스 자원 이름(ora.paydb.*.svc), check crs와 query crs activeversion의 화면 문구, olsnodes -s의 대소문자, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 클러스터·노드·DB·서비스 이름, IP, 세션 수와 시각은 설명용 예시입니다. <b>레슨 104~108(RAC 19c CRSCTL·SRVCTL 실무 가이드 반영)</b>: 공식 문서로 확인한 것은 crsctl stat res -w 필터의 연산자(=, !=, co, st, en, AND, OR)와 ora. 자원을 CRSCTL로 직접 다루지 말라는 권고, 클러스터 명령이 OHASD에 기대어 동작한다는 점(Clusterware 19c), crsctl query css votedisk의 열 모양(19c OCR·보팅 파일 장 예시), CRS-4639 문구(19c 오류 메시지), query crs activeversion -f의 뜻(CRS-04172 사용법), srvctl config database의 줄 이름과 순서·-all 옵션, -startoption 기본값 OPEN, disable database가 인스턴스까지 비활성화한다는 점, 같은 대상에 SRVCTL을 동시에 실행하지 말라는 점, 종료 코드 0·1·2, -eval, -statefile·-scannumber 옵션의 뜻(RAC 19c), stop instance·relocate service의 -drain_timeout·-stopoption·-failover 사용 예(High Availability Overview 19c), srvctl config asm·status asm -verbose 모양(Clusterware 19c)입니다. 19c 문서 일부가 읽히지 않아 11.2 CRSCTL 문서로만 확인한 것: check crs의 CRS-4638 줄, config crs의 CRS-4622·CRS-4621, stop crs가 남은 자원이 있으면 실패하고 -f가 무조건 멈춘다는 설명, 여러 노드는 stop cluster가 자원 재배치를 막는다는 설명, "Located n voting disk(s)." 줄, -t 없는 NAME=·TYPE=·TARGET=·STATE= 모양. <b>확인하지 못한 것</b>: crsctl stop crs·start crs의 진행 줄(CRS-2791, 2673, 2677, 2793, 4133, 4123, 2672, 2676, 6016, 6017, 6023, 6024), -init 표의 전체 목록과 상세 문구, Target·State 값(INTERMEDIATE, UNKNOWN 등)의 공식 정의, srvctl status -detail의 "Instance status:" 문구, config scan, scan_listener, vip, network, nodeapps, listener, service의 줄 문구, status diskgroup·vip 문구, stop home·start home 문법 전체와 상태 파일 안의 모양, -wait 옵션 설명, 권한이 없을 때의 오류 번호. 선생님이 주신 실무 가이드의 설명 가운데 "DB가 열린 채 crsctl stop crs를 하면 shutdown abort가 쓰일 수 있다", "stop diskgroup -force는 DB를 먼저 멈춰 주지 않는다"는 공식 문서에서 확인하지 못해 레슨에 그렇게 밝혀 두었습니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, 외부 조인, 하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수), 실습용 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -249,6 +249,12 @@ const SRC = {
   racsvc: ['Oracle RAC Administration and Deployment Guide 19c · Workload Management with Dynamic Database Services (preferred·available, failback)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/workload-management-with-dynamic-database-services.html'],
   racmon: ['Oracle RAC Administration and Deployment Guide 19c · Monitoring Performance (GV$ 뷰, 글로벌 캐시 대기)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/monitoring-performance.html'],
   gvviews: ['Oracle Database 19c Reference · About Dynamic Performance Views (GV$ 뷰와 INST_ID)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/about-dynamic-performance-views.html'],
+  haovw: ['Oracle Database High Availability Overview and Best Practices 19c · Server-Side Planned Maintenance Command Examples (-drain_timeout, -failover)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/haovw/server-side-planned-maintenance-command-examples.html'],
+  cwocr: ['Oracle Clusterware Administration and Deployment Guide 19c · Managing Oracle Cluster Registry and Voting Files (crsctl query css votedisk 예시)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/managing-oracle-cluster-registry-and-voting-files.html'],
+  cwsrv: ['Oracle Clusterware Administration and Deployment Guide 19c · Server Control Command Reference (ASM용 SRVCTL)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/server-control-command-reference.html'],
+  crs4639: ['Oracle Database 19c Error Messages · CRS-04639', 'https://docs.oracle.com/en/error-help/db/crs-04639/'],
+  crs4172: ['Oracle Database 19c Error Messages · CRS-04172 (crsctl query crs activeversion [-f] 사용법)', 'https://docs.oracle.com/en/error-help/db/crs-04172/'],
+  crs112: ['Oracle Clusterware Administrative Guide 11g Release 2 · CRSCTL Utility Reference (check crs, config crs, stop cluster, votedisk 예시: 19c에서 확인 못 한 부분의 참고)', 'https://docs.oracle.com/cd/E18246_01/doc/rac.112/e16794/crsref.htm'],
   pcarac: ['Oracle 솔루션 문서 · Deploy Oracle Grid Infrastructure and Oracle RAC Database (21c 예시: crsctl stat res -t, srvctl status db)', 'https://docs.oracle.com/en/solutions/private-cloud-appliance-deploy-rac/deploy-oracle-grid-infrastructure-and-oracle-rac-database.html'],
   dgbrkex: ['Oracle Data Guard Broker 19c · Examples Using the DGMGRL Utility (SHOW CONFIGURATION, SHOW DATABASE, EDIT DATABASE SET STATE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html'],
   dgbrkcmd: ['Oracle Data Guard Broker 19c · Oracle Data Guard Broker Commands (CONNECT, VALIDATE DATABASE, SWITCHOVER)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/oracle-data-guard-broker-commands.html'],
@@ -1723,6 +1729,7 @@ function execOne(argv, io) {
     if (r.node.t === 'd') return fail(`-bash: ${name}: Is a directory\n`, 126);
     if (!can(r.node, 1) || !dirChain(abs)) { S.ev.execDenied = r.path; return fail(`-bash: ${name}: Permission denied\n`, 126); }
     if (r.node.bin && typeof PATHBIN !== 'undefined' && PATHBIN.has(r.node.bin) && CMDS[r.node.bin]) return CMDS[r.node.bin]([r.node.bin].concat(argv.slice(1)), io);
+    if (r.node.bin && typeof RACBIN !== 'undefined' && RACBIN.has(r.node.bin) && CMDS[r.node.bin] && S.rac) { BINVIA = r.path; return CMDS[r.node.bin]([r.node.bin].concat(argv.slice(1)), io); }
     if (r.node.bin) return execOne([r.node.bin].concat(argv.slice(1)), io);
     if (r.node.txt != null) return { out: '', err: '', code: 0, script: { path: r.path, txt: r.node.txt } };
     return ok();
@@ -5214,7 +5221,7 @@ CMDS.srvctl = function (argv) {
   if (verb === 'config' && obj === 'service') {
     const e = need(); if (e) return e; const list = o.service ? [racSvc(o.service)].filter(Boolean) : R.svcs; if (!list.length) return fail(note(`${o.service}라는 서비스가 없습니다(이 실습: pay_oltp, pay_batch).`));
     ex({ service: o.service ? String(o.service).toLowerCase() : null });
-    return ok(list.map(s => `Service name: ${s.name}\nCardinality: ${s.pref.length}\nManagement policy: AUTOMATIC\nPreferred instances: ${s.pref.join(',')}\nAvailable instances: ${s.avail.join(',')}\n`).join('\n') + racNote('srv-cfgsvc', 'srvctl config service 의 실제 출력은 줄이 더 많습니다. 여기서는 Preferred instances, Available instances 같은 핵심 줄만 골랐고, 줄 모양은 19c 문서 예시로 확인하지 못했습니다.'));
+    return ok(list.map(s => `Service name: ${s.name}\nCardinality: ${s.pref.length}\nManagement policy: AUTOMATIC\nPreferred instances: ${s.pref.join(',')}\nAvailable instances: ${s.avail.join(',')}\n` + (s.en === false ? 'Service is disabled.\n' : s.en ? 'Service is enabled.\n' : '')).join('\n') + racNote('srv-cfgsvc', 'srvctl config service 의 실제 출력은 줄이 더 많습니다. 여기서는 Preferred instances, Available instances 같은 핵심 줄만 골랐고, 줄 모양은 19c 문서 예시로 확인하지 못했습니다.'));
   }
   if (verb === 'relocate' && obj === 'service') {
     const e = need(); if (e) return e; const s = racSvc(o.service); if (!s) return fail(note('-service 서비스이름 을 주세요(이 실습: pay_oltp, pay_batch).'));
@@ -5235,6 +5242,367 @@ CMDS.srvctl = function (argv) {
   if (verb === 'status' && obj === 'nodeapps') return ok(R.nodes.map(n => `VIP ${n.name}-vip is enabled\nVIP ${n.name}-vip is running on node: ${n.name}`).join('\n') + '\nNetwork is enabled\nNetwork is running on node: ' + R.nodes.map(n => n.name).join(',') + '\nONS is enabled\nONS daemon is running on node: ' + R.nodes.map(n => n.name).join(',') + '\n' + racNote('srv-nodeapps', 'srvctl status nodeapps 의 문구는 문서 예시로 확인하지 못했습니다.'));
   return ok(note('이 실습의 srvctl에서 쓸 수 있는 명령은 srvctl -h 로 볼 수 있습니다.'));
 };
+/* ---------- 11단계 보강(레슨 104~108): RAC 19c CRSCTL·SRVCTL 실무 가이드(선생님 제공 문서)의 명령을 공식 문서로 확인해 넣었다 ----------
+   새로 흉내 내는 것: crsctl stat res -init -t · -w 필터 · 이름 지정, query css votedisk, query crs activeversion -f,
+   config/enable/disable crs, stop/start crs, stop/start cluster, srvctl의 -detail·-verbose·-failover·-drain_timeout,
+   start/stop database, enable/disable, config scan·vip·nodeapps·listener, Grid 홈 srvctl의 asm·diskgroup, stop/start home.
+   문서 예시로 확인하지 못한 줄은 racNote(ⓘ)로 알린다. */
+function racInit(lid) {
+  const R = S.rac;
+  R.lid = lid; R.autostart = true; R.dbOn = true; R.dbTgt = true;
+  for (const n of R.nodes) { n.crs = true; n.asm = true; n.lsnr = true; }
+  for (const i of R.insts) { i.en = true; i.st = 'Open'; }
+  for (const s of R.svcs) { s.en = true; s.tgt = true; }
+  R.scanSt = [1, 2, 3].map(() => ({ vip: true, l: true }));
+  R.vipOn = { racnode1: 'racnode1', racnode2: 'racnode2' };
+  R.states = {};
+  if (lid >= 4) {
+    R.svcs.push({ name: 'pay_report', pref: ['PAYDB1'], avail: ['PAYDB2'], on: ['PAYDB1'], en: true, tgt: true });
+    const app = (sid, o) => addSession(Object.assign({ sid, serial: 2000 + sid, username: 'PAYRPT', status: 'INACTIVE', osuser: 'report', machine: 'rpt01', terminal: 'unknown', program: 'JDBC Thin Client', logon: ago(0, 7, 30), lastCall: 40, svc: 'pay_report', remote: true, event: 'SQL*Net message from client' }, o || {}));
+    if (lid !== 4) for (let i = 0; i < 4; i++) app(230 + i * 3);
+  }
+  if (lid === 4) { const s = racSvc('pay_report'); s.on = []; s.tgt = false; s.en = false; }
+}
+{ const mk = makeWorld11; makeWorld11 = function (lid) { mk(lid); racInit(lid); racFiles(lid); }; }
+function racFiles(lid) {
+  const home = lookup('/home/oracle').node.c; const O = 'oracle', OI = 'oinstall';
+  USERS.grid = { uid: 54331, gid: 54321, group: 'oinstall', groups: ['oinstall', 'asmadmin', 'asmdba', 'asmoper', 'dba', 'racdba'], home: '/home/grid', pass: null };
+  const memo = {
+    4: `[어제 야간 작업 기록] 작성: 김선배
+- 21:30 리포트 서비스 pay_report 중지 (srvctl stop service), 월말 결산 끝날 때까지 쓰지 않음
+- 21:32 pay_report disable (Clusterware가 다시 띄우지 않게)
+- 그 밖의 자원은 손대지 않음
+※ 아침 점검 때 자원 표에 OFFLINE 줄이 보여도 위 서비스면 정상입니다.
+`,
+    5: `[네트워크팀 작업 요청]
+- 오늘 14:00 코어 스위치 포트 점검. SCAN 주소 1번(10.0.3.31)이 연결된 포트가 대상입니다.
+- 작업 동안 SCAN 1번 VIP와 SCAN 리스너 1번을 잠깐 내려 주세요. 작업이 끝나면 다시 올려 주세요.
+- SCAN 주소: 10.0.3.31(1번), 10.0.3.32(2번), 10.0.3.33(3번)  ← DNS에 paycluster-scan.example.com 으로 등록
+`,
+    6: `[인프라팀 작업 요청] racnode1 펌웨어 업데이트
+- 대상: racnode1 (지금 접속한 서버). 오늘 15:00, 재부팅 포함 약 20분
+- DB팀 요청 사항: 작업 전에 racnode1의 오라클 클러스터 스택을 내려 주시고, 작업 뒤 다시 올려 주세요.
+- 실습용 root 암호: root123 (실제 운영에서는 암호를 파일에 적지 않습니다)
+`,
+    7: `[스토리지팀 공지] 오늘 22:00~22:30 스토리지 컨트롤러 펌웨어 작업
+- 이 시간 동안 공유 디스크 쓰기가 멈출 수 있으니 PAYDB 전체를 내려 주세요.
+- 작업 중에 누가 DB를 올리거나, 서버가 재부팅되어 DB가 저절로 올라오면 안 됩니다.
+- 작업이 끝나면 연락드리겠습니다.
+`,
+    8: `[다음 주 패치 준비] racnode2 DB 홈 패치 리허설
+- racnode2의 DB 홈(${OH})에서 도는 자원만 멈춘 뒤 패치하고, 다시 원래대로 올린다.
+- 정산 배치(pay_batch)는 PAYDB2에서 돌고 있으니 먼저 PAYDB1로 비운다. 도는 세션에는 최대 2분 여유를 준다.
+- 상태 파일은 /tmp/dbhome_racnode2.state 에 남긴다.
+`,
+  }[lid];
+  if (memo) home['work_request.txt'] = F(O, OI, 0o644, memo, { mt: ago(0, 8, 40) });
+}
+/* 실행 파일을 경로로 실행했을 때(예: root가 /u01/app/19.0.0/grid/bin/crsctl) 어느 홈의 것인지 기억한다 */
+const RACBIN = new Set(['crsctl', 'srvctl', 'olsnodes']);
+let BINVIA = null;
+const racLocal = () => S.rac.nodes.find(n => n.name === S.hn);
+const crsDownMsg = () => (S.ev.crs = 'down', fail('CRS-4639: Could not contact Oracle High Availability Services\n' + racNote('crs-4639', 'CRS-4639 문구는 19c 오류 메시지 문서와 같습니다. 이 서버의 Clusterware 스택이 내려가 있어 crsctl이 대답을 받지 못했습니다. root로 crsctl start crs 로 올립니다.'), 1));
+const needRoot = (what) => S.user !== 'root' ? fail(note(`${what} 은(는) root로 실행합니다(Clusterware 19c 문서의 절차는 모두 root, 프롬프트 #). 지금은 ${S.user} 사용자입니다. su - 로 root가 된 뒤, root의 PATH에는 Grid 홈이 없으므로 ${GH}/bin/crsctl 처럼 전체 경로로 실행하세요. 권한이 없을 때의 실제 CRS- 오류 문구는 확인하지 못해 보여 주지 않습니다.`), 1) : null;
+
+/* 자원 목록: crsctl stat res 출력의 바탕. rows: [번호, Target, State, 서버, 상세] */
+function racRes() {
+  const R = S.rac, up = (n) => R.nodes.find(x => x.name === n).crs;
+  const nodeRow = (n, on = true, det = 'STABLE') => ({ num: null, tgt: 'ONLINE', st: up(n.name) && on ? 'ONLINE' : 'OFFLINE', srv: n.name, det: up(n.name) && on ? det : 'STABLE' });
+  const one = (name, type, srv, on = true, det = 'STABLE', tgt = true) => ({ name, type, rows: [{ num: 1, tgt: tgt ? 'ONLINE' : 'OFFLINE', st: on && up(srv) ? 'ONLINE' : 'OFFLINE', srv: on && up(srv) ? srv : '', det }] });
+  const two = (name, type, on = () => true, det = () => 'STABLE') => ({ name, type, rows: R.nodes.map((n, i) => ({ num: i + 1, tgt: 'ONLINE', st: up(n.name) && on(n) ? 'ONLINE' : 'OFFLINE', srv: n.name, det: up(n.name) && on(n) ? det(n) : 'STABLE' })) });
+  const local = [
+    { name: 'ora.LISTENER.lsnr', type: 'ora.listener.type', local: true, rows: R.nodes.map(n => nodeRow(n, n.lsnr)) },
+    { name: 'ora.chad', type: 'ora.chad.type', local: true, rows: R.nodes.map(n => nodeRow(n)) },
+    { name: 'ora.net1.network', type: 'ora.network.type', local: true, rows: R.nodes.map(n => nodeRow(n)) },
+    { name: 'ora.ons', type: 'ora.ons.type', local: true, rows: R.nodes.map(n => nodeRow(n)) },
+  ];
+  const scanOn = (k) => R.scanOn[k];
+  const dbRes = { name: 'ora.paydb.db', type: 'ora.database.type', rows: R.insts.map(i => i.up && up(i.node) ? { num: i.no, tgt: i.tgtOff ? 'OFFLINE' : 'ONLINE', st: 'ONLINE', srv: i.node, det: `${i.st === 'Mounted' ? 'Mounted (Closed)' : 'Open'},HOME=${OH},STABLE` } : { num: i.no, tgt: i.tgtOff ? 'OFFLINE' : 'ONLINE', st: 'OFFLINE', srv: i.tgtOff ? '' : i.node, det: i.tgtOff ? 'Instance Shutdown,STABLE' : 'STABLE' }) };
+  const svcRes = R.svcs.map(s => { const on = s.pref.concat(s.avail).filter(x => s.on.includes(x)); return { name: 'ora.paydb.' + s.name + '.svc', type: 'ora.service.type', rows: on.length ? on.map((x, i) => ({ num: i + 1, tgt: 'ONLINE', st: 'ONLINE', srv: racInst(x).node, det: 'STABLE' })) : [{ num: 1, tgt: s.tgt ? 'ONLINE' : 'OFFLINE', st: 'OFFLINE', srv: '', det: 'STABLE' }] }; });
+  const cluster = [
+    two('ora.ASMNET1LSNR_ASM.lsnr(ora.asmgroup)', 'ora.asm_listener.type', (n) => n.asm),
+    two('ora.DATA.dg(ora.asmgroup)', 'ora.diskgroup.type', (n) => n.asm),
+    one('ora.LISTENER_SCAN1.lsnr', 'ora.scan_listener.type', scanOn(0), R.scanSt[0].l), one('ora.LISTENER_SCAN2.lsnr', 'ora.scan_listener.type', scanOn(1), R.scanSt[1].l), one('ora.LISTENER_SCAN3.lsnr', 'ora.scan_listener.type', scanOn(2), R.scanSt[2].l),
+    two('ora.asm(ora.asmgroup)', 'ora.asm.type', (n) => n.asm, (n) => n.no === 2 ? 'Started,STABLE' : 'STABLE'), two('ora.asmnet1.asmnetwork(ora.asmgroup)', 'ora.asm_network.type'),
+    one('ora.cvu', 'ora.cvu.type', R.nodes[0].crs ? 'racnode1' : 'racnode2'),
+    dbRes, ...svcRes,
+    one('ora.qosmserver', 'ora.qosmserver.type', R.nodes[0].crs ? 'racnode1' : 'racnode2'),
+    one('ora.racnode1.vip', 'ora.cluster_vip_net1.type', R.vipOn.racnode1, true, R.vipOn.racnode1 === 'racnode1' ? 'STABLE' : 'FAILED OVER,STABLE'),
+    one('ora.racnode2.vip', 'ora.cluster_vip_net1.type', R.vipOn.racnode2),
+    one('ora.scan1.vip', 'ora.scan_vip.type', scanOn(0), R.scanSt[0].vip), one('ora.scan2.vip', 'ora.scan_vip.type', scanOn(1), R.scanSt[1].vip), one('ora.scan3.vip', 'ora.scan_vip.type', scanOn(2), R.scanSt[2].vip),
+  ];
+  if (!R.dbTgt) dbRes.rows.forEach(r => { r.tgt = 'OFFLINE'; });
+  return { local, cluster };
+}
+function initRes() { // crsctl stat res -init: 노드 안의 하위 자원(OHASD가 관리)
+  const L = racLocal(); const on = L.crs;
+  const r = (name, det = 'STABLE', tgtOn = true) => ({ name, rows: [{ num: 1, tgt: tgtOn ? 'ONLINE' : 'OFFLINE', st: on && tgtOn ? 'ONLINE' : 'OFFLINE', srv: on && tgtOn ? S.hn : '', det: on && tgtOn ? det : 'STABLE' }] });
+  return [r('ora.asm', 'Started,STABLE'), r('ora.cluster_interconnect.haip'), r('ora.crf'), r('ora.crsd'), r('ora.cssd'), r('ora.cssdmonitor'), r('ora.ctssd', 'OBSERVER,STABLE'), r('ora.diskmon', 'STABLE', false), r('ora.evmd'), r('ora.gipcd'), r('ora.gpnpd'), r('ora.mdnsd'), r('ora.storage')];
+}
+function resTable(groups) {
+  const L = '-'.repeat(80);
+  const row = (x) => ((x.num == null ? '' : String(x.num)).padStart(6) + ' '.repeat(9) + x.tgt.padEnd(8) + x.st.padEnd(13) + (x.srv || '').padEnd(25) + x.det).replace(/\s+$/, '');
+  let out = [L, 'Name           Target  State        Server                   State details', L];
+  for (const [title, list] of groups) { if (!list.length) continue; if (title) out.push(title, L); for (const r of list) out.push(r.name, ...r.rows.map(row)); out.push(L); }
+  return out.join('\n') + '\n';
+}
+/* -w "NAME co paydb", "(NAME co db) AND (STATE = ONLINE)" 같은 필터. 연산자: = != co st en, 묶음: AND OR (Clusterware 19c, Filters) */
+function crsFilter(expr) {
+  const toks = String(expr).match(/\(|\)|"[^"]*"|[^\s()]+/g) || [];
+  let i = 0;
+  const atom = () => {
+    if (toks[i] === '(') { i++; const v = orx(); if (toks[i] === ')') i++; return v; }
+    const attr = (toks[i++] || '').toUpperCase(), op = (toks[i++] || '').toLowerCase(), val = (toks[i++] || '').replace(/"/g, '');
+    if (!['=', '!=', 'co', 'st', 'en'].includes(op)) throw new Error('op');
+    return (r, row) => {
+      const vals = attr === 'NAME' ? [r.name] : attr === 'TYPE' ? [r.type || ''] : attr === 'STATE' ? (row ? [row.st] : r.rows.map(x => x.st)) : attr === 'TARGET' ? (row ? [row.tgt] : r.rows.map(x => x.tgt)) : attr === 'LAST_SERVER' || attr === 'SERVER' ? (row ? [row.srv] : r.rows.map(x => x.srv)) : [''];
+      const t = (v) => op === '=' ? v.toLowerCase() === val.toLowerCase() : op === '!=' ? v.toLowerCase() !== val.toLowerCase() : op === 'co' ? v.toLowerCase().includes(val.toLowerCase()) : op === 'st' ? v.toLowerCase().startsWith(val.toLowerCase()) : v.toLowerCase().endsWith(val.toLowerCase());
+      return vals.some(t);
+    };
+  };
+  const andx = () => { let a = atom(); while ((toks[i] || '').toUpperCase() === 'AND') { i++; const l = a, rr = atom(); a = (r, row) => l(r, row) && rr(r, row); } return a; };
+  const orx = () => { let a = andx(); while ((toks[i] || '').toUpperCase() === 'OR') { i++; const l = a, rr = andx(); a = (r, row) => l(r, row) || rr(r, row); } return a; };
+  const f = orx(); if (i < toks.length) throw new Error('trail');
+  return f;
+}
+function nameForm(r) { // -t 없이: NAME=, TYPE=, TARGET=, STATE= (11.2 CRSCTL 문서 예시의 모양)
+  return `NAME=${r.name}\nTYPE=${r.type || 'ora.local_resource.type'}\nTARGET=${r.rows.map(x => x.tgt).join(', ')}\nSTATE=${r.rows.map(x => x.st === 'ONLINE' ? `ONLINE on ${x.srv}` : 'OFFLINE').join(', ')}\n`;
+}
+
+{ const old = CMDS.crsctl; CMDS.crsctl = function (argv) {
+  if (!S.rac) return old(argv);
+  const via = BINVIA; BINVIA = null;
+  const raw = argv.slice(1); const a = raw.map(x => x.toLowerCase()); const t = a.join(' '); const ev = S.ev, R = S.rac, me = racLocal();
+  const help = a.includes('-help') || a.includes('-h');
+  if (help) return ok(note('CRSCTL은 명령마다 -help 로 문법을 보여 줍니다(예: crsctl stop cluster -help). 실습에서는 영어 도움말 대신 이 레슨에서 쓰는 형식만 적습니다.\n  crsctl check crs | check cluster [-all]\n  crsctl stat res [-t] [-init] [-w "필터"] [자원이름]\n  crsctl query css votedisk | query crs activeversion [-f]\n  crsctl config crs | enable crs | disable crs        (enable·disable은 root)\n  crsctl stop crs [-f] | start crs [-wait]            (root, 이 노드만)\n  crsctl stop cluster [-all | -n 노드] | start cluster [-all | -n 노드]   (root)'));
+  // 스택 제어와 자동 기동 설정
+  if (/^(stop|start) crs\b/.test(t)) {
+    const e = needRoot('crsctl ' + a[0] + ' crs'); if (e) return e;
+    if (a[0] === 'stop') {
+      if (!me.crs) return crsDownMsg();
+      const running = R.insts.filter(i => i.node === S.hn && i.up);
+      ev.crs = 'stop-crs'; ev.crsStopWithDb = running.length > 0;
+      for (const i of running) { i.up = false; R.svcs.forEach(s => { s.on = s.on.filter(x => x !== i.name); }); }
+      if (running.length) { S.db.state = 'DOWN'; S.db.sessions = S.db.sessions.filter(s => s.me); }
+      me.crs = false; me.asm = false;
+      R.vipOn[S.hn] = R.nodes.find(n => n.name !== S.hn).name;
+      R.scanOn = R.scanOn.map(x => x === S.hn ? R.nodes.find(n => n.name !== S.hn).name : x);
+      R.svcs.forEach(s => { if (s.tgt && s.en && !s.on.length) { const alt = s.pref.concat(s.avail).find(x => racInst(x).up); if (alt) s.on = [alt]; } });
+      return ok(`CRS-2791: Starting shutdown of Oracle High Availability Services-managed resources on '${S.hn}'\n` + (running.length ? `CRS-2673: Attempting to stop 'ora.paydb.db' on '${S.hn}'\nCRS-2677: Stop of 'ora.paydb.db' on '${S.hn}' succeeded\n` : '') + `CRS-2673: Attempting to stop 'ora.crsd' on '${S.hn}'\nCRS-2677: Stop of 'ora.crsd' on '${S.hn}' succeeded\nCRS-2673: Attempting to stop 'ora.asm' on '${S.hn}'\nCRS-2677: Stop of 'ora.asm' on '${S.hn}' succeeded\nCRS-2673: Attempting to stop 'ora.cssd' on '${S.hn}'\nCRS-2677: Stop of 'ora.cssd' on '${S.hn}' succeeded\nCRS-2793: Shutdown of Oracle High Availability Services-managed resources on '${S.hn}' has completed\nCRS-4133: Oracle High Availability Services has been stopped.\n`
+        + racNote('crs-stop', '실제 화면에는 자원마다 Attempting to stop … / Stop of … succeeded 줄이 수십 줄 나옵니다. 여기서는 몇 줄만 남겼고, 줄 문구(CRS-2791, 2673, 2677, 2793, 4133)는 공식 문서 예시로 확인하지 못했습니다. 11.2 CRSCTL 문서 설명: crsctl stop crs 는 이 서버의 Oracle High Availability Services를 멈추고, Clusterware가 관리하는 자원이 남아 있으면 실패하며, -f 는 모든 자원을 무조건 멈춘다.')
+        + (running.length ? note(`실습: ${running.map(i => i.name).join(', ')} 인스턴스가 열린 채로 스택을 내렸습니다. Clusterware가 인스턴스도 함께 멈췄지만, 앞서 srvctl로 정상 종료하고 서비스를 옮겨 두는 것이 순서입니다. 첨부 가이드는 이때 shutdown abort가 쓰일 수 있다고 적었는데, 이 부분은 공식 문서에서 확인하지 못했습니다.`) : ''));
+    }
+    if (me.crs) return fail(note('이 노드의 Clusterware 스택은 이미 실행 중입니다. 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.'));
+    me.crs = true; me.asm = true; ev.crs = a.includes('-wait') ? 'start-crs-wait' : 'start-crs';
+    R.vipOn[S.hn] = S.hn;
+    for (const i of R.insts.filter(x => x.node === S.hn && !x.tgtOff && R.dbTgt && x.en && R.dbOn)) { i.up = true; i.st = 'Open'; i.start = new Date(); if (i.no === S.db.instNo) S.db.state = 'OPEN'; R.svcs.forEach(s => { if (s.name === 'pay_oltp' && !s.on.includes(i.name)) s.on.push(i.name); }); }
+    const out = a.includes('-wait') ? `CRS-4123: Starting Oracle High Availability Services-managed resources\nCRS-2672: Attempting to start 'ora.mdnsd' on '${S.hn}'\nCRS-2676: Start of 'ora.mdnsd' on '${S.hn}' succeeded\nCRS-2672: Attempting to start 'ora.cssd' on '${S.hn}'\nCRS-2676: Start of 'ora.cssd' on '${S.hn}' succeeded\nCRS-2672: Attempting to start 'ora.asm' on '${S.hn}'\nCRS-2676: Start of 'ora.asm' on '${S.hn}' succeeded\nCRS-2672: Attempting to start 'ora.crsd' on '${S.hn}'\nCRS-2676: Start of 'ora.crsd' on '${S.hn}' succeeded\nCRS-6023: Starting Oracle Cluster Ready Services-managed resources\nCRS-6017: Processing resource auto-start for servers: ${S.hn}\nCRS-6016: Resource auto-start has completed for server ${S.hn}\nCRS-6024: Completed start of Oracle Cluster Ready Services-managed resources\nCRS-4123: Oracle High Availability Services has been started.\n` : 'CRS-4123: Oracle High Availability Services has been started.\n';
+    return ok(out + racNote('crs-start', (a.includes('-wait') ? '-wait 를 주면 자원 기동이 끝날 때까지 기다리며 진행 줄을 보여 줍니다(첨부 가이드의 권장). 실제로는 줄이 훨씬 많고, ' : '-wait 없이 실행하면 스택 기동을 시작만 해 두고 바로 돌아옵니다. 다 올라왔는지는 crsctl check crs, crsctl stat res -t 로 봅니다. ') + 'CRS-4123, 2672, 2676, 6016, 6017, 6023, 6024 문구는 공식 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (/^(stop|start) cluster\b/.test(t)) {
+    const e = needRoot('crsctl ' + a[0] + ' cluster'); if (e) return e;
+    return fail(note('crsctl stop cluster -all / -n 노드 는 여러 노드의 스택을 한꺼번에 제어하는 명령입니다(OHASD는 남아 있어야 원격 노드를 다룰 수 있습니다: Clusterware 19c, "cluster aware commands ... rely on the OHASD"). 11.2 CRSCTL 문서 설명: 여러 노드를 멈출 때는 stop crs 보다 stop cluster 를 쓰면, 곧 멈출 서버로 자원이 옮겨 가는 일을 막는다. 이 실습에서는 운영 중인 다른 노드까지 내리지 않도록 실행하지 않습니다. 이 노드 하나는 crsctl stop crs 로 다룹니다.'), 1);
+  }
+  if (/^config crs$/.test(t)) { ev.crs = 'config-crs'; return ok(R.autostart ? 'CRS-4622: Oracle High Availability Services autostart is enabled.\n' : 'CRS-4621: Oracle High Availability Services autostart is disabled.\n'); }
+  if (/^(enable|disable) crs$/.test(t)) { const e = needRoot('crsctl ' + a[0] + ' crs'); if (e) return e; R.autostart = a[0] === 'enable'; ev.crs = a[0] + '-crs'; return ok(R.autostart ? 'CRS-4622: Oracle High Availability Services autostart is enabled.\n' : 'CRS-4621: Oracle High Availability Services autostart is disabled.\n'); }
+  // 스택이 내려간 노드에서는 조회도 되지 않는다
+  if (!me.crs && /^(check|stat|status|query)\b/.test(t)) return crsDownMsg();
+  if (/^check crs$/.test(t)) { ev.crs = 'check-crs'; return ok('CRS-4638: Oracle High Availability Services is online\n' + CRS_ONLINE.join('\n') + '\n' + racNote('crs-4638b', '이 네 줄의 모양은 11.2 CRSCTL 문서의 crsctl check crs 예시와 같습니다. 19c 문서 예시로는 확인하지 못했습니다. check crs 는 이 노드(로컬)만 봅니다.')); }
+  if (/^check cluster -all$/.test(t)) { ev.crs = 'check-all'; const star = '*'.repeat(62); return ok('\n' + star + '\n' + R.nodes.map(n => n.crs ? `${n.name}:\n${CRS_ONLINE.join('\n')}\n${star}` : `${n.name}:\nCRS-4404: The following nodes did not reply within the allotted time:\n${star}`).join('\n') + '\n' + (R.nodes.some(n => !n.crs) ? racNote('crs-4404', '스택이 내려간 노드의 줄 문구는 문서 예시로 확인하지 못했습니다.') : '')); }
+  if (/^query css votedisk$/.test(t)) { ev.crs = 'votedisk'; return ok('##  STATE    File Universal Id                File Name Disk group\n--  -----    -----------------                --------- ---------\n 1. ONLINE   5c0b7a1e9d2f4f7cbf1e3a9d0c6b2e41 (/dev/oracleasm/disks/DATA01) [DATA]\nLocated 1 voting disk(s).\n' + racNote('votedisk', '열 제목(##, STATE, File Universal Id, File Name, Disk group)과 줄 모양은 Clusterware 19c 문서(OCR와 보팅 파일 관리)의 예시를 따랐습니다. 마지막 "Located 1 voting disk(s)." 줄은 11.2 문서 예시에만 있었습니다. 디스크 경로와 ID는 예시 값입니다. +DATA를 외부 중복(EXTERNAL)으로 만들어 보팅 파일이 1개인 것으로 꾸몄습니다. 표준 중복(NORMAL)이면 3개가 됩니다.')); }
+  if (/^query crs activeversion -f$/.test(t)) { ev.crs = 'activeversion-f'; return ok('Oracle Clusterware active version on the cluster is [19.0.0.0.0]. The cluster upgrade state is [NORMAL]. The cluster active patch level is [2486153297].\n' + racNote('crs-ver-f', '-f 는 "클러스터 상태와 활성 패치 수준을 함께 보여 준다"(19c 오류 메시지 문서의 CRS-04172 사용법 설명). 줄 문구와 패치 수준 숫자는 문서 예시로 확인하지 못했고 숫자는 예시입니다. 노드마다 패치 수준이 같은지는 crsctl query crs softwarepatch 노드이름 으로 비교합니다(실습에서는 흉내 내지 않음).')); }
+  // 자원 조회
+  if (/^(stat|status) (res|resource)\b/.test(t)) {
+    const rest = raw.slice(2); let tab = false, init = false, filt = null, names = [], more = null;
+    for (let k = 0; k < rest.length; k++) { const x = rest[k].toLowerCase(); if (x === '-t') tab = true; else if (x === '-init') init = true; else if (x === '-w') filt = rest[++k] || ''; else if (/^-(f|p|v|dependency)$/.test(x)) more = x; else names.push(rest[k]); }
+    if (more) return ok(note(`crsctl stat res 자원이름 ${more} 는 자원의 ${more === '-dependency' ? '기동 의존 관계' : '속성 전체(NAME=, TYPE=, ... 수십 줄)'}를 보여 줍니다. 이 실습에서는 흉내 내지 않습니다. 단, ora. 로 시작하는 자원은 crsctl로 조회만 하고, 시작·중지·설정 변경은 srvctl로 합니다(Clusterware 19c: Oracle은 ora. 자원을 CRSCTL로 직접 다루는 것을 강하게 말린다).`));
+    let groups;
+    if (init) groups = [[null, initRes()]];
+    else { const r = racRes(); groups = [['Local Resources', r.local], ['Cluster Resources', r.cluster]]; }
+    if (names.length) groups = groups.map(([g, l]) => [g, l.filter(r => names.some(n => n.toLowerCase() === r.name.toLowerCase()))]);
+    if (filt != null) {
+      let f; try { f = crsFilter(filt); } catch (e) { return fail(note('필터 형식: -w "속성 연산자 값". 연산자는 =, !=, co(포함), st(시작), en(끝)이고 앞뒤에 빈칸이 있어야 합니다. 여러 조건은 (NAME co db) AND (STATE = ONLINE) 처럼 괄호와 AND, OR로 묶습니다(Clusterware 19c, Filters).')); }
+      groups = groups.map(([g, l]) => [g, l.map(r => { const rows = /STATE|TARGET|SERVER/i.test(filt) ? r.rows.filter(row => f(r, row)) : r.rows; return f(r) && rows.length ? Object.assign({}, r, { rows }) : null; }).filter(Boolean)]);
+    }
+    const n = groups.reduce((s, [, l]) => s + l.length, 0);
+    if (!n) return ok(note('조건에 맞는 자원이 없습니다. 자원 이름은 crsctl stat res -t 로 먼저 보세요.'));
+    ev.crs = init ? 'stat-res-init' : filt != null ? 'stat-res-w' : names.length ? 'stat-res-name' : tab ? 'stat-res-t' : 'stat-res';
+    ev.crsFilter = filt; ev.crsNames = names;
+    if (!tab) return ok(groups.flatMap(([, l]) => l).map(nameForm).join('\n') + racNote('crs-nameform', '-t 없이 보면 자원마다 NAME=, TYPE=, TARGET=, STATE= 네 줄이 나옵니다(11.2 CRSCTL 문서 예시의 모양). 인스턴스가 여럿인 자원의 TARGET·STATE를 쉼표로 잇는 모양과 TYPE 이름은 19c 문서 예시로 확인하지 못했습니다.'));
+    return ok(resTable(groups) + (init ? racNote('crs-init', '-init 는 OHASD가 노드 안에서 관리하는 하위 자원(crsd, cssd, evmd, gpnpd, gipcd, haip 등)을 보여 줍니다. 자원 이름은 Clusterware 19c 문서(ora.crsd -init 등)에 나오는 것이고, 이 표의 전체 목록, State details 문구(OBSERVER 등), ora.diskmon이 OFFLINE인 모양은 문서 예시로 확인하지 못했습니다.') : racNote('crs-t', 'crsctl stat res -t 의 제목 줄, Local Resources·Cluster Resources 구역, 자원 이름, STABLE, "Open,HOME=..." 모양은 Oracle 문서의 21c 클러스터 예시를 따랐습니다. 열 간격, 서비스 자원 이름(ora.paydb.pay_oltp.svc), 자원 순서는 19c 문서 예시로 확인하지 못했습니다.')));
+  }
+  return old(argv);
+}; }
+
+/* ---------- srvctl 보강 ---------- */
+function srvAll(argv) { // 값 없는 옵션과 값 있는 옵션을 모두 받는다. -db paydb -detail -verbose ...
+  const o = {}; const al = { d: 'db', s: 'service', i: 'instance', n: 'node', o: 'oraclehome' };
+  for (let i = 3; i < argv.length; i++) { const m = /^-(\w+)$/.exec(argv[i]); if (!m) continue; let k = m[1].toLowerCase(); k = al[k] || k; const v = argv[i + 1] != null && !/^-\w/.test(argv[i + 1]) ? argv[++i] : true; o[k] = v; }
+  return o;
+}
+const SRV_HELP = {
+  'stop instance': 'srvctl stop instance -db db_unique_name {-node node_name | -instance "inst_name_list"} [-stopoption stop_options] [-drain_timeout timeout] [-force] [-failover]',
+  'start instance': 'srvctl start instance -db db_unique_name {-node node_name | -instance "inst_name_list"} [-startoption start_options]',
+  'stop database': 'srvctl stop database -db db_unique_name [-stopoption stop_options] [-drain_timeout timeout] [-force]',
+  'start database': 'srvctl start database -db db_unique_name [-startoption start_options] [-node node_name]',
+  'stop service': 'srvctl stop service -db db_unique_name [-service "service_name_list"] [-instance inst_name | -node node_name] [-stopoption stop_option] [-drain_timeout timeout] [-wait {YES|NO}] [-force]',
+  'relocate service': 'srvctl relocate service -db db_unique_name -service service_name {-oldinst old_inst_name -newinst new_inst_name | -currentnode node -targetnode node} [-drain_timeout timeout] [-wait {YES|NO}] [-stopoption stop_option] [-force]',
+};
+{ const old = CMDS.srvctl; CMDS.srvctl = function (argv) {
+  if (!S.rac) return old(argv);
+  const via = BINVIA || findInPath('srvctl') || ''; BINVIA = null;
+  const grid = via.startsWith(GH);
+  const verb = (argv[1] || '').toLowerCase(), obj = (argv[2] || '').toLowerCase(); const o = srvAll(argv); const R = S.rac, ev = S.ev, me = racLocal();
+  const key = verb + ' ' + obj;
+  if (o.help) { ev.srv = { verb, obj, help: true }; return ok((SRV_HELP[key] ? 'Usage: ' + SRV_HELP[key] + '\n' : '') + racNote('srv-help-' + key, (SRV_HELP[key] ? '실제 도움말은 영어로 옵션마다 설명이 붙어 훨씬 깁니다. 위 한 줄은 이 실습이 정리한 요약이며, 19c 문서에서 문법 전체를 확인하지 못한 옵션이 있습니다. ' : '') + '19c는 -db, -instance, -stopoption 같은 긴 옵션 이름을 씁니다. -help 뒤에 -compatible 을 붙이면 예전 짧은 옵션(-d, -i, -o)과의 대응을 보여 줍니다(RAC 19c SRVCTL 사용 안내의 예: srvctl config database -help -compatible).')); }
+  if (!me.crs) return fail(note('이 노드의 Clusterware 스택이 내려가 있어 srvctl이 클러스터 정보를 읽지 못합니다. 실제로는 PRCR-·PRCD- 오류가 나오지만 문구는 확인하지 못해 보여 주지 않습니다. 먼저 root로 crsctl start crs 를 실행하세요.'), 1);
+  const dbErr = () => { if (!o.db) return fail(note('-db 데이터베이스이름 을 붙여 주세요. 이 실습의 DB 이름은 paydb 입니다.')); if (String(o.db).toLowerCase() !== 'paydb') return fail(note(`클러스터에 ${o.db}라는 DB가 등록되어 있지 않습니다. 이 실습의 DB 이름은 paydb 입니다.`)); return null; };
+  const ex = (x) => { ev.srv = Object.assign({ verb, obj }, x || {}); };
+  const instOn = (i) => i.up && R.nodes.find(n => n.name === i.node).crs;
+  const stOpt = (v, def) => { const s = String(v || def).toUpperCase(); return ['NORMAL', 'TRANSACTIONAL', 'IMMEDIATE', 'ABORT'].includes(s) ? s : null; };
+  // 상태·구성 조회: 자세히
+  if (verb === 'status' && obj === 'database' && (o.detail || o.verbose)) {
+    const e = dbErr(); if (e) return e; ex({ detail: true });
+    return ok(R.insts.map(i => instOn(i) ? `Instance ${i.name} is running on node ${i.node}. Instance status: ${i.st === 'Mounted' ? 'Mounted (Closed)' : 'Open'}.` : `Instance ${i.name} is not running on node ${i.node}`).join('\n') + '\n' + racNote('srv-detail', '-detail(-verbose)를 붙이면 인스턴스 상태(Open, Mounted 등)가 함께 나옵니다. "Instance ... is running on node ..." 앞부분은 Oracle 문서 예시와 같고, 뒤의 "Instance status:" 문구는 19c 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (verb === 'status' && obj === 'instance' && (o.detail || o.verbose)) {
+    const e = dbErr(); if (e) return e; const names = String(o.instance || '').split(',').map(x => racInst(x.trim())).filter(Boolean); if (!names.length) return fail(note('-instance "PAYDB1,PAYDB2" 처럼 인스턴스 이름을 주세요.'));
+    ex({ detail: true, inst: names.map(i => i.name).join(',') });
+    return ok(names.map(i => instOn(i) ? `Instance ${i.name} is running on node ${i.node}. Instance status: ${i.st === 'Mounted' ? 'Mounted (Closed)' : 'Open'}.` : `Instance ${i.name} is not running on node ${i.node}`).join('\n') + '\n' + racNote('srv-detail', '"Instance status:" 문구는 19c 문서 예시로 확인하지 못했습니다.'));
+  }
+  if (verb === 'config' && obj === 'database') {
+    if (!o.db) { ex({ list: true }); return ok('paydb\n' + racNote('srv-cfg-list', '-db 없이 실행하면 클러스터에 등록된 DB 이름만 나열합니다(RAC 19c: -db를 주지 않으면 모든 데이터베이스 자원의 구성을 보여 준다). 한 줄에 이름 하나씩인 모양은 문서 예시로 확인하지 못했습니다.')); }
+    const e = dbErr(); if (e) return e; ex({ all: !!o.all });
+    return ok(`Database unique name: paydb\nDatabase name: PAYDB\nOracle home: ${OH}\nOracle user: oracle\nSpfile: ${S.db.params.spfile[1]}\nPassword file: +DATA/PAYDB/PASSWORD/pwdpaydb.256.1180000005\nDomain: \nStart options: open\nStop options: immediate\nDatabase role: PRIMARY\nManagement policy: AUTOMATIC\nServer pools: \nDisk Groups: DATA\nMount point paths: \nServices: ${R.svcs.map(s => s.name).join(',')}\nType: RAC\nStart concurrency: \nStop concurrency: \nOSDBA group: dba\nOSOPER group: oper\nDatabase instances: PAYDB1,PAYDB2\nConfigured nodes: racnode1,racnode2\nCSS critical: no\nCPU count: 0\nMemory target: 0\nMaximum memory: 0\nCPU cap: 0\nDatabase is ${R.dbOn ? 'enabled' : 'disabled'}\nDatabase is administrator managed\n` + racNote('srv-cfgdb2', '줄 이름과 순서는 RAC 19c 문서의 srvctl config database 예시를 따랐습니다(Database unique name ~ Database is administrator managed). "Database is enabled/disabled" 줄은 문서 예시에 없어 확인하지 못했습니다. -all 은 "자세한 구성 정보를 출력"하라는 옵션이며 실제로는 줄이 더 늘어납니다. 파일 이름의 숫자는 예시입니다.'));
+  }
+  // DB 전체 시작·중지
+  if ((verb === 'stop' || verb === 'start') && obj === 'database') {
+    const e = dbErr(); if (e) return e;
+    if (verb === 'stop') {
+      const so = stOpt(o.stopoption, 'IMMEDIATE'); if (!so) return fail(note('-stopoption 값은 NORMAL, TRANSACTIONAL, IMMEDIATE, ABORT 가운데 하나입니다.'));
+      if (!R.insts.some(instOn)) return fail(note('PAYDB는 이미 모든 인스턴스가 내려가 있습니다. srvctl은 바꿀 것이 없으면 경고(종료 코드 2)를 돌려줄 수 있습니다(RAC 19c). 실제 문구는 확인하지 못해 보여 주지 않습니다.'), 2);
+      R.insts.forEach(i => { i.up = false; i.tgtOff = true; }); R.svcs.forEach(s => { s.on = []; }); R.sess2 = []; S.db.state = 'DOWN'; S.db.sessions = S.db.sessions.filter(s => s.me);
+      if (S.sql) { S.sql = null; }
+      ex({ stopoption: so }); return ok('');
+    }
+    if (!R.dbOn) return fail(note('PAYDB는 disable 되어 있어 Clusterware가 시작하지 않습니다. 먼저 srvctl enable database -db paydb 를 실행하세요. 실제 오류 번호와 문구는 확인하지 못해 보여 주지 않습니다.'), 1);
+    const so = String(o.startoption || 'OPEN').toUpperCase(); if (!['OPEN', 'MOUNT', 'NOMOUNT'].includes(so)) return fail(note('-startoption 값은 OPEN, MOUNT, NOMOUNT 등입니다(RAC 19c: 기본값은 OPEN).'));
+    if (R.insts.every(instOn)) return fail(note('PAYDB는 이미 모든 인스턴스가 실행 중입니다. 실제 문구는 확인하지 못해 보여 주지 않습니다.'), 2);
+    R.insts.forEach(i => { if (!instOn(i) && i.en && R.nodes.find(n => n.name === i.node).crs) { i.up = true; i.tgtOff = false; i.st = so === 'OPEN' ? 'Open' : 'Mounted'; i.start = new Date(); } });
+    R.dbTgt = true; S.db.state = so === 'OPEN' ? 'OPEN' : 'MOUNTED'; S.db.startTime = new Date();
+    if (so === 'OPEN') R.svcs.forEach(s => { if (s.en && s.tgt) s.on = s.pref.filter(x => instOn(racInst(x))); });
+    ex({ startoption: so });
+    return ok(so === 'OPEN' ? racNote('srv-startdb', '실습: DB가 열리면서 서비스도 각자의 preferred 인스턴스에서 다시 시작한 것으로 보여 줍니다(관리 정책 AUTOMATIC). 실제로 어떤 서비스가 함께 시작되는지는 서비스 설정에 따라 다릅니다.') : note('MOUNT로 시작했습니다. 데이터 파일을 열지 않은 상태라 서비스도 시작하지 않습니다. 이 레슨에서는 열린 DB가 필요하니, srvctl stop database 후 다시 start database 로 여는 것이 깔끔합니다.'));
+  }
+  if ((verb === 'stop' || verb === 'start') && obj === 'instance' && R.lid >= 4) {
+    const e = dbErr(); if (e) return e; const i = racInst(o.instance); if (!i) return fail(note('-instance PAYDB1 또는 -instance PAYDB2 처럼 인스턴스 이름을 주세요.'));
+    if (verb === 'stop') {
+      if (!instOn(i)) return fail(note(`${i.name}은(는) 이미 내려가 있습니다.`), 2);
+      const so = stOpt(o.stopoption, 'IMMEDIATE'); if (!so) return fail(note('-stopoption 값은 NORMAL, TRANSACTIONAL, IMMEDIATE, ABORT 가운데 하나입니다.'));
+      const moved = [], lost = [];
+      for (const s of R.svcs.filter(x => x.on.includes(i.name))) {
+        s.on = s.on.filter(x => x !== i.name);
+        if (!s.on.length) { const alt = o.failover ? s.pref.concat(s.avail).find(x => x !== i.name && instOn(racInst(x))) : null; if (alt) { s.on = [alt]; moved.push(`${s.name} → ${alt}`); } else lost.push(s.name); }
+      }
+      i.up = false; i.tgtOff = true; if (i.no === S.db.instNo) { S.db.state = 'DOWN'; S.db.sessions = S.db.sessions.filter(s => s.me); } else R.sess2 = [];
+      ex({ inst: i.name, stopoption: so, failover: !!o.failover });
+      return ok((moved.length ? note(`실습: -failover 로 ${moved.join(', ')} 로 서비스를 옮긴 뒤 인스턴스를 내렸습니다. High Availability Overview 19c(계획 작업 명령 예시): -force -failover 를 주면 "서비스가 각 서비스에 설정된 다른 available 인스턴스에서 시작된다."`) : '') + (lost.length ? note(`실습: ${lost.join(', ')} 서비스는 ${i.name}에서만 돌고 있었으므로 함께 멈췄습니다.`) : ''));
+    }
+    if (instOn(i)) return fail(note(`${i.name}은(는) 이미 실행 중입니다.`), 2);
+    if (!i.en || !R.dbOn) return fail(note('이 인스턴스(또는 DB)가 disable 되어 있어 시작할 수 없습니다. 먼저 srvctl enable 로 되돌립니다.'));
+    if (!R.nodes.find(n => n.name === i.node).crs) return fail(note(`${i.node}의 Clusterware 스택이 내려가 있어 시작할 수 없습니다.`));
+    i.up = true; i.tgtOff = false; i.st = 'Open'; i.start = new Date(); if (i.no === S.db.instNo) { S.db.state = 'OPEN'; S.db.startTime = i.start; }
+    R.svcs.forEach(s => { if (s.name === 'pay_oltp' && s.en && !s.on.includes(i.name)) s.on.push(i.name); });
+    ex({ inst: i.name });
+    return ok(racNote('srv-start', '실습: 인스턴스가 올라오면서 그 인스턴스가 preferred인 pay_oltp도 다시 시작한 것으로 보여 줍니다. pay_report처럼 다른 인스턴스로 옮겨 간 서비스는 저절로 돌아오지 않습니다(RAC 19c 서비스 문서).'));
+  }
+  // enable / disable
+  if ((verb === 'enable' || verb === 'disable') && ['database', 'instance', 'service'].includes(obj)) {
+    const e = dbErr(); if (e) return e; const on = verb === 'enable';
+    if (obj === 'database') { if (R.dbOn === on) return fail(note(`이미 ${verb} 상태입니다. 바꿀 것이 없을 때 srvctl은 경고(종료 코드 2)를 돌려줄 수 있습니다(RAC 19c).`), 2); R.dbOn = on; R.insts.forEach(i => { i.en = on; }); ex(); return ok(on ? '' : note('disable은 stop이 아닙니다. 지금 실행 중인 인스턴스는 그대로 두고, Clusterware가 이 DB를 시작·관리하지 않게 표시만 바꿉니다(RAC 19c: 클러스터 DB를 disable하면 인스턴스도 함께 disable된다). 이미 멈춰 있으니 이제 서버가 재부팅되어도 Clusterware가 PAYDB를 올리지 않습니다.')); }
+    if (obj === 'instance') { const i = racInst(o.instance); if (!i) return fail(note('-instance 이름을 주세요.')); i.en = on; ex({ inst: i.name }); return ok(''); }
+    const s = racSvc(o.service); if (!s) return fail(note('-service 서비스이름 을 주세요(pay_oltp, pay_batch, pay_report).'));
+    if (s.en === on) return fail(note(`${s.name}은(는) 이미 ${verb} 상태입니다.`), 2);
+    s.en = on; ex({ service: s.name });
+    return ok(on ? '' : (s.on.length ? note('disable은 stop이 아닙니다. 서비스는 지금도 돌고 있습니다. 멈추려면 srvctl stop service 를 따로 실행합니다.') : ''));
+  }
+  // 서비스 시작·중지(drain)
+  if ((verb === 'stop' || verb === 'start') && obj === 'service' && (R.lid >= 4 || o.drain_timeout)) {
+    const e = dbErr(); if (e) return e; const s = racSvc(o.service); if (!s) return fail(note('-service 서비스이름 을 주세요(pay_oltp, pay_batch, pay_report).'));
+    if (verb === 'stop') {
+      if (!s.on.length) return fail(note(`${s.name}은(는) 이미 멈춰 있습니다.`), 2);
+      const dt = o.drain_timeout && o.drain_timeout !== true ? +o.drain_timeout : null;
+      const n = S.db.sessions.filter(x => x.svc === s.name).length + R.sess2.filter(x => x.svc === s.name).length;
+      S.db.sessions = S.db.sessions.filter(x => x.svc !== s.name); R.sess2 = R.sess2.filter(x => x.svc !== s.name);
+      s.on = []; s.tgt = false; ex({ service: s.name, drain: dt, wait: String(o.wait || '').toUpperCase(), stopoption: o.stopoption ? String(o.stopoption).toUpperCase() : null });
+      return ok(dt ? note(`실습: 새 접속을 막고, 붙어 있던 ${n}개 세션이 일을 마치고 나가기를 최대 ${dt}초 기다린 뒤 서비스를 멈췄습니다(세션은 모두 제때 빠져나간 것으로 처리). -drain_timeout 과 -stopoption 을 함께 쓰는 형식은 High Availability Overview 19c의 계획 작업 예시에 있습니다. -wait 는 그 문서에 "스크립트에서는 wait = yes 를 넣으면 도움이 된다"는 한 줄만 있고 옵션 설명은 확인하지 못했습니다.`) : '');
+    }
+    if (!s.en) return fail(note(`${s.name}은(는) disable 되어 있어 시작할 수 없습니다. 먼저 srvctl enable service 로 되돌립니다. 실제 오류 문구는 확인하지 못해 보여 주지 않습니다.`));
+    if (s.on.length) return fail(note(`${s.name}은(는) 이미 돌고 있습니다.`), 2);
+    s.tgt = true; s.on = s.pref.filter(x => instOn(racInst(x))); if (!s.on.length) { const a = s.avail.find(x => instOn(racInst(x))); if (a) s.on = [a]; }
+    ex({ service: s.name }); return ok('');
+  }
+  if (verb === 'relocate' && obj === 'service' && (o.drain_timeout || o.wait)) {
+    const r = old(argv.filter((x, k, arr) => !/^-(drain_timeout|wait)$/i.test(x) && !/^-(drain_timeout|wait)$/i.test(arr[k - 1] || '')));
+    if (r.code === 0) { ev.srv = Object.assign(ev.srv || {}, { drain: +o.drain_timeout || null, wait: String(o.wait || '').toUpperCase() }); const s = racSvc(o.service); const from = racInst(String(o.oldinst).toUpperCase()); if (s && from) { if (from.no === 1) S.db.sessions = S.db.sessions.filter(x => x.svc !== s.name || x.me); else R.sess2 = R.sess2.filter(x => x.svc !== s.name); } return ok(note(`실습: 새 접속부터 ${String(o.newinst).toUpperCase()}로 받고, ${String(o.oldinst).toUpperCase()}에 붙어 있던 세션은 최대 ${o.drain_timeout || '?'}초 동안 일을 마치고 빠져나가게 한 뒤 옮겼습니다(제때 모두 빠져나간 것으로 처리). relocate service 에 -drain_timeout·-stopoption 을 붙이는 형식은 High Availability Overview 19c의 예시에 있습니다. -wait 의 옵션 설명은 확인하지 못했습니다.`)); }
+    return r;
+  }
+  // 리스너·SCAN·VIP·네트워크 구성
+  if (verb === 'config' && obj === 'scan') { ex(); return ok(`SCAN name: paycluster-scan.example.com, Network: 1\nSubnet IPv4: 10.0.3.0/255.255.255.0/eth0, static\nSubnet IPv6: \n` + [1, 2, 3].map(n => `SCAN ${n} IPv4 VIP: 10.0.3.3${n}\nSCAN VIP is enabled.`).join('\n') + '\n' + racNote('srv-cfgscan', 'srvctl config scan 의 줄 문구는 문서 예시로 확인하지 못했습니다. SCAN 이름 하나에 주소 3개가 DNS에 등록되어 있다는 점만 보면 됩니다. IP는 예시 값입니다.')); }
+  if (verb === 'config' && obj === 'scan_listener') { ex(); return ok([1, 2, 3].map(n => `SCAN Listener LISTENER_SCAN${n} exists. Port: TCP:1521\nRegistration invited nodes: \nRegistration invited subnets: \nSCAN Listener is enabled.`).join('\n') + '\n' + racNote('srv-cfgscanl', 'srvctl config scan_listener 의 줄 문구는 문서 예시로 확인하지 못했습니다.')); }
+  if (verb === 'config' && obj === 'vip') { const n = String(o.node || '').toLowerCase(); if (!R.nodes.some(x => x.name === n)) return fail(note('-node racnode1 또는 -node racnode2 를 주세요.')); ex({ node: n }); return ok(`VIP exists: network number 1, hosting node ${n}\nVIP Name: ${n}-vip.example.com\nVIP IPv4 Address: 10.0.3.2${n.slice(-1)}\nVIP IPv6 Address: \nVIP is enabled.\n` + racNote('srv-cfgvip', '19c Clusterware 문서의 예시는 "VIP exists: /node03-vip/192.168.2.20/255.255.255.0/eth0" 한 줄 모양입니다. 이 화면의 여러 줄 모양은 확인하지 못했습니다. IP는 예시 값입니다.')); }
+  if (verb === 'status' && obj === 'vip') { const n = String(o.node || '').toLowerCase(); if (!R.nodes.some(x => x.name === n)) return fail(note('-node racnode1 또는 -node racnode2 를 주세요.')); ex({ node: n }); return ok(`VIP ${n}-vip.example.com is enabled\nVIP ${n}-vip.example.com is running on node: ${R.vipOn[n]}\n` + racNote('srv-stvip', 'srvctl status vip 문구는 문서 예시로 확인하지 못했습니다. VIP가 원래 노드가 아닌 곳에서 돌고 있으면, 그 노드에 문제가 있어 VIP가 옮겨 간 것입니다(노드가 죽으면 VIP가 살아 있는 노드로 넘어가 접속하던 클라이언트가 빨리 오류를 받게 하려는 것).')); }
+  if (verb === 'config' && obj === 'network') { ex(); return ok('Network 1 exists\nSubnet IPv4: 10.0.3.0/255.255.255.0/eth0, static\nSubnet IPv6: \nPing Targets: \nNetwork is enabled\n' + racNote('srv-cfgnet', 'srvctl config network 의 줄 문구는 문서 예시로 확인하지 못했습니다.')); }
+  if (verb === 'config' && obj === 'nodeapps') { ex(); return ok('Network 1 exists\nSubnet IPv4: 10.0.3.0/255.255.255.0/eth0, static\n' + R.nodes.map(n => `VIP exists: network number 1, hosting node ${n.name}\nVIP Name: ${n.name}-vip.example.com\nVIP IPv4 Address: 10.0.3.2${n.no}`).join('\n') + '\nONS exists: Local port 6100, remote port 6200\n' + racNote('srv-cfgnodeapps', 'nodeapps는 노드마다 도는 네트워크·VIP·ONS(알림 서비스)를 묶어 부르는 말입니다. srvctl config nodeapps 의 줄 문구와 ONS 포트는 문서 예시로 확인하지 못했습니다.')); }
+  if (verb === 'config' && (obj === 'listener' || obj === 'lsnr')) { ex(); return ok(`Name: LISTENER\nType: Database Listener\nNetworks: 1\nOwner: grid\nHome: <CRS home>\nEnd points: TCP:1521\nListener is enabled.\n` + racNote('srv-cfglsnr', '이 리스너는 Grid 홈에서 grid 사용자로 돕니다(앞의 ps 결과와 같은 이유). srvctl config listener 의 줄 문구는 문서 예시로 확인하지 못했습니다.')); }
+  if ((verb === 'stop' || verb === 'start') && (obj === 'scan' || obj === 'scan_listener')) {
+    const n = +o.scannumber; if (!(n >= 1 && n <= 3)) return fail(note('-scannumber 1 처럼 SCAN 번호(1~3)를 주세요. 번호 없이 실행하면 SCAN 3개를 모두 멈춥니다. 이 실습에서는 하나씩만 다룹니다.'));
+    const st = R.scanSt[n - 1];
+    if (obj === 'scan') {
+      if (verb === 'stop') { if (st.l) return fail(note(`SCAN 리스너 ${n}번이 아직 SCAN VIP ${n}번 위에서 돌고 있습니다. 리스너가 VIP에 기대어 돌기 때문에 멈출 때는 리스너 먼저(stop scan_listener), VIP 나중(stop scan) 순서입니다(첨부 가이드의 의존 순서). 실제로 이때 어떤 오류가 나는지는 확인하지 못해 보여 주지 않습니다.`)); if (!st.vip) return fail(note('이미 멈춰 있습니다.'), 2); st.vip = false; }
+      else { if (st.vip) return fail(note('이미 실행 중입니다.'), 2); st.vip = true; }
+    } else {
+      if (verb === 'start') { if (!st.vip) return fail(note(`SCAN VIP ${n}번이 내려가 있어 그 위에서 도는 SCAN 리스너를 먼저 올릴 수 없습니다. 올릴 때는 VIP 먼저(start scan), 리스너 나중(start scan_listener) 순서입니다. 실제 오류 문구는 확인하지 못했습니다.`)); if (st.l) return fail(note('이미 실행 중입니다.'), 2); st.l = true; }
+      else { if (!st.l) return fail(note('이미 멈춰 있습니다.'), 2); st.l = false; }
+    }
+    ex({ scannumber: n }); return ok('');
+  }
+  if ((verb === 'stop' || verb === 'start') && (obj === 'listener' || obj === 'lsnr')) { const n = String(o.node || '').toLowerCase(); const nd = R.nodes.find(x => x.name === n); if (!nd) return fail(note('-node racnode1 처럼 노드를 주세요. 노드 없이 실행하면 모든 노드의 리스너를 멈춥니다.')); if (nd.lsnr === (verb === 'start')) return fail(note('이미 그 상태입니다.'), 2); nd.lsnr = verb === 'start'; ex({ node: n }); return ok(''); }
+  if (verb === 'status' && obj === 'scan') { ex(); return ok([1, 2, 3].map(n => `SCAN VIP scan${n} is enabled\n` + (R.scanSt[n - 1].vip ? `SCAN VIP scan${n} is running on node ${R.scanOn[n - 1]}` : `SCAN VIP scan${n} is not running`)).join('\n') + '\n' + racNote('srv-scan', 'srvctl status scan 의 문구는 문서 예시로 확인하지 못했습니다.')); }
+  if (verb === 'status' && obj === 'scan_listener') { ex(); return ok([1, 2, 3].map(n => `SCAN Listener LISTENER_SCAN${n} is enabled\n` + (R.scanSt[n - 1].l ? `SCAN listener LISTENER_SCAN${n} is running on node ${R.scanOn[n - 1]}` : `SCAN listener LISTENER_SCAN${n} is not running`)).join('\n') + '\n' + racNote('srv-scanl', 'srvctl status scan_listener 의 문구는 문서 예시로 확인하지 못했습니다.')); }
+  // ASM·디스크 그룹: Grid 홈 srvctl
+  if (['asm', 'diskgroup', 'filesystem'].includes(obj)) {
+    if (!grid) return fail(note(`ASM과 디스크 그룹은 Grid 홈의 srvctl로 다룹니다. 지금 실행된 srvctl은 ${via || 'DB 홈'} 입니다. ${GH}/bin/srvctl ${argv.slice(1).join(' ')} 처럼 전체 경로로 실행하세요(첨부 가이드의 실행 위치. Clusterware 19c 문서도 ASM 등 Oracle이 제공하는 자원을 SRVCTL로 관리하라고 합니다). DB 홈 srvctl로 실행했을 때 실제로 어떻게 되는지는 확인하지 못했습니다.`));
+    if (verb === 'config' && obj === 'asm') { ex({ grid: true }); return ok(`ASM home: <CRS home>\nPassword file: +DATA/orapwASM\nBackup of Password file: \nASM listener: LISTENER\nASM instance count: 3\nCluster ASM listener: ASMNET1LSNR_ASM\n` + racNote('srv-cfgasm', 'Clusterware 19c 문서의 srvctl config asm 예시에는 ASM Home, ASM Listener, ASM instance count, Password file 줄이 있습니다. 이 화면의 줄 순서·대소문자와 Cluster ASM listener 줄은 확인하지 못했습니다. ASM instance count 3은 Flex ASM 기본값으로 꾸민 것이며 노드가 2대라 실제로는 2개만 돕니다.')); }
+    if (verb === 'status' && obj === 'asm') { ex({ grid: true, detail: !!(o.detail || o.verbose) }); const on = R.nodes.filter(n => n.asm && n.crs).map(n => n.name); return ok(`ASM is running on ${on.join(',')}\n` + (o.detail || o.verbose ? on.map(n => `Detailed state on node ${n}: Started`).join('\n') + '\n' : '') + racNote('srv-stasm', '모양은 Clusterware 19c 문서의 srvctl status asm -verbose 예시("ASM is running on ...", "Detailed state on node ...: Started")를 따랐습니다. 노드 이름 사이 구분 방식은 문서 예시(쉼표+빈칸)와 조금 다를 수 있습니다.')); }
+    if (verb === 'status' && obj === 'diskgroup') { const dg = String(o.diskgroup || '').toUpperCase(); if (dg !== 'DATA') return fail(note('-diskgroup DATA 를 주세요(이 클러스터의 디스크 그룹은 DATA 하나).')); ex({ grid: true, dg }); const on = R.nodes.filter(n => n.asm && n.crs).map(n => n.name); return ok(`Disk Group DATA is running on ${on.join(',')}\n` + (o.detail ? on.map(n => `Disk Group DATA is enabled on node ${n}`).join('\n') + '\n' : '') + racNote('srv-stdg', 'srvctl status diskgroup 의 문구는 문서 예시로 확인하지 못했습니다.')); }
+    if (obj === 'filesystem') { ex({ grid: true }); return ok(note('이 클러스터에는 ACFS 파일 시스템이 없습니다. 있으면 srvctl status filesystem 이 마운트 위치와 노드를 보여 줍니다.')); }
+    if (verb === 'stop' && obj === 'diskgroup' && o.force) return fail(note('srvctl stop diskgroup ... -force 는 그 디스크 그룹을 쓰는 DB를 먼저 정상 종료해 주지 않습니다. 운영 중인 PAYDB의 데이터 파일이 +DATA에 있으니 실습에서도 실행하지 않습니다(첨부 가이드의 경고. 19c 문서 설명은 확인하지 못함).'), 1);
+    return fail(note('ASM 인스턴스나 디스크 그룹을 멈추면 그 위의 PAYDB가 멈춥니다. 이 실습에서는 조회(config, status)만 합니다. 정비가 필요하면 DB를 먼저 정상 종료한 뒤 Grid 홈 srvctl로 stop asm -node 노드 -stopoption IMMEDIATE 순서로 합니다(Clusterware 19c 예시: srvctl stop asm -node crmnode1 -stopoption IMMEDIATE).'), 1);
+  }
+  // 홈 단위 중지·시작(패치 때)
+  if ((verb === 'stop' || verb === 'start' || verb === 'status') && obj === 'home') {
+    const oh = String(o.oraclehome || '').replace(/\/$/, ''), sf = o.statefile, nd = String(o.node || '').toLowerCase();
+    if (!oh || !sf || sf === true || !nd) return fail(note('형식: srvctl ' + verb + ' home -oraclehome 홈경로 -statefile 상태파일 -node 노드'));
+    if (oh !== OH) return fail(note(`이 실습의 DB 홈은 ${OH} 입니다. echo $ORACLE_HOME 으로 확인하세요.`));
+    if (nd !== 'racnode2') return fail(note('이 레슨에서 다루는 노드는 racnode2 입니다.'));
+    const abs = normPath(String(sf), S.cwd), i = racInst('PAYDB2');
+    if (verb === 'stop') {
+      if (!instOn(i)) return fail(note('racnode2의 이 홈에서 도는 자원이 없습니다.'), 2);
+      const svcs = R.svcs.filter(s => s.on.includes('PAYDB2')).map(s => s.name);
+      mkfile(abs, `db-paydb\n${svcs.map(s => 'svc-' + s + '-PAYDB2').join('\n')}\n`); R.states[abs] = { inst: 'PAYDB2', svcs };
+      R.svcs.forEach(s => { s.on = s.on.filter(x => x !== 'PAYDB2'); }); i.up = false; R.sess2 = [];
+      ex({ statefile: abs, so: o.stopoption ? String(o.stopoption).toUpperCase() : null });
+      return ok(racNote('srv-stophome', `stop home 은 그 노드에서 이 홈으로 도는 자원(인스턴스, 그 위의 서비스)을 모두 멈추고, 멈추기 전에 돌던 것을 상태 파일에 적어 둡니다. 상태 파일 안의 모양은 문서로 확인하지 못해 꾸민 것입니다. cat ${abs} 로 보세요.`));
+    }
+    if (verb === 'status') { ex({ statefile: abs }); return ok(instOn(i) ? `Database paydb is running on node racnode2\n` + racNote('srv-sthome', '문구는 확인하지 못했습니다.') : note('racnode2에서 이 홈으로 도는 자원이 없습니다.')); }
+    const st = R.states[abs]; if (!st) return fail(note(`${abs} 상태 파일이 없거나 stop home 이 만든 파일이 아닙니다. stop home 때 준 경로를 그대로 주세요.`));
+    if (instOn(i)) return fail(note('이미 실행 중입니다.'), 2);
+    i.up = true; i.tgtOff = false; i.st = 'Open'; i.start = new Date(); for (const n of st.svcs) { const s = racSvc(n); if (s && !s.on.includes('PAYDB2')) s.on.push('PAYDB2'); }
+    ex({ statefile: abs }); return ok('');
+  }
+  return old(argv);
+}; }
 </script>
 <script>
 'use strict';
@@ -6160,6 +6528,7 @@ LESSONS.push(
 /* ---------- 11단계 RAC 기초 (내부 단계 키 11, 레슨 id 101~103) ---------- */
 const srvIs = (ev, verb, obj, x) => ev.srv && ev.srv.verb === verb && ev.srv.obj === obj && Object.keys(x || {}).every(k => ev.srv[k] === x[k]);
 const memo11 = (f) => () => !S.sql && !mode && /\S/.test((node('/home/oracle/' + f) || {}).txt || '');
+const R11 = () => S.rac;
 const gvSvc = (ev) => qsel(ev, 'GV$SESSION') && sqlRe(ev, /GROUP BY/) && sqlRe(ev, /SERVICE_NAME/);
 LESSONS.push(
   { id: 101, stage: 11, title: 'RAC 클러스터 상태 점검', short: '상태 점검', start: 'oracle',
@@ -6211,6 +6580,150 @@ LESSONS.push(
     ],
     field: 'RAC의 계획 작업은 "서비스 먼저, 인스턴스 나중"입니다. 서비스가 한 인스턴스에서만 도는데 그 인스턴스를 먼저 내리면, available 인스턴스로 넘어가는 동안 그 업무가 잠깐 끊기거나, 설정에 따라 넘어가지 않을 수도 있습니다. 또 SQL*Plus로 한 노드에 접속해 SHUTDOWN을 치는 습관은 RAC에서는 버려야 합니다. 어느 노드의 인스턴스를 내리는지 헷갈리기 쉽고, srvctl은 -db와 -instance로 대상을 이름으로 분명하게 정하기 때문입니다.',
     sources: ['srvctl', 'racsvc', 'gvviews', 'crsctl'] },
+
+  { id: 104, stage: 11, title: 'Clusterware 자세히 읽기', short: '상태 읽기', start: 'oracle',
+    who: 'DBA 팀장 (아침 점검)',
+    situation: '"오늘 아침 자원 표에 OFFLINE 줄이 하나 있었죠? 장애인지 아닌지 신입이 바로 판단할 수 있어야 합니다. 노드 안의 하위 자원, 필터로 골라 보기, 보팅 디스크, 패치 수준까지 한 번에 익혀 봅시다." 어젯밤 작업 기록이 ~/work_request.txt 에 있습니다.',
+    tasks: [
+      { text: '어젯밤 작업 기록 읽기', hint: 'cat ~/work_request.txt', done: ev => ev.read.has('/home/oracle/work_request.txt'),
+        why: '김선배가 어젯밤 리포트 서비스 pay_report를 일부러 멈추고 disable 해 두었습니다. 자원 표를 보기 전에 작업 기록부터 읽는 습관이 "장애인 줄 알고 다시 올리는" 실수를 막습니다.' },
+      { text: '이 노드의 Clusterware 스택 상태 보기', hint: 'crsctl check crs', done: ev => ev.crs === 'check-crs',
+        why: '네 줄이 나옵니다. 맨 위 <code>CRS-4638</code>은 OHASD(Oracle High Availability Services)로, 노드 안의 다른 데몬을 띄우고 지키는 가장 아래 층입니다. 그 위에 CRS(자원 관리), CSS(노드끼리 살아 있는지 확인), EVM(이벤트)이 돕니다. <code>check crs</code>는 이 노드만, <code>check cluster -all</code>은 모든 노드를 봅니다. 네 줄의 모양은 11.2 CRSCTL 문서 예시와 같고, 19c 문서 예시로는 확인하지 못했습니다.' },
+      { text: '노드 안의 하위 자원 보기 (-init)', hint: 'crsctl stat res -init -t', done: ev => ev.crs === 'stat-res-init',
+        why: '<code>-init</code>를 붙이면 OHASD가 노드 안에서 관리하는 하위 자원이 나옵니다. <code>ora.crsd</code>, <code>ora.cssd</code>, <code>ora.evmd</code>, <code>ora.gpnpd</code>, <code>ora.gipcd</code>, <code>ora.cluster_interconnect.haip</code>(사설망 주소) 등입니다. Clusterware 19c 문서도 <code>crsctl status resource ora.crsd -init</code> 같은 형식을 씁니다. 스택이 반쯤만 올라온 노드는 여기서 어느 하위 자원이 막혔는지 봅니다. 이 표의 전체 목록과 상세 문구는 확인하지 못해 ⓘ로 표시했습니다.' },
+      { text: '전체 자원 표에서 OFFLINE 줄 찾기', hint: 'crsctl stat res -t', done: ev => ev.crs === 'stat-res-t',
+        why: '<code>ora.paydb.pay_report.svc</code>가 Target OFFLINE, State OFFLINE입니다. Target은 "Clusterware가 지키려는 상태", State는 "지금 상태"입니다. 선생님이 주신 실무 가이드의 해석: ONLINE/ONLINE은 정상, OFFLINE/OFFLINE은 일부러 멈췄거나 비활성화한 상태일 수 있음, ONLINE/OFFLINE은 기동 실패나 의존 자원 장애일 수 있음, INTERMEDIATE는 일부만 올라왔거나 상태를 확정하지 못함, UNKNOWN은 Clusterware가 관리하지 못하는 상태라 직접 조사가 필요. 이 다섯 가지의 공식 정의는 19c 문서에서 찾지 못했습니다. 지금 줄은 작업 기록과 맞으니 장애가 아닙니다.' },
+      { text: '필터로 PAYDB 자원만 골라 보기', hint: 'crsctl stat res -w "NAME co paydb" -t', done: ev => ev.crs === 'stat-res-w',
+        why: 'DB 하나와 서비스 셋만 나옵니다. Clusterware 19c(Filters): 연산자는 <code>=</code>, <code>!=</code>, <code>co</code>(포함), <code>st</code>(시작), <code>en</code>(끝)이고, 묶을 때는 AND, OR를 쓰며 "연산자 앞뒤에 빈칸이 있어야 한다." 자원이 수십 개인 운영 클러스터에서 표 전체를 눈으로 훑는 것보다 빠르고 정확합니다.' },
+      { text: '조건 두 개로 "PAYDB 자원 중 OFFLINE인 것"만 보기', hint: 'crsctl stat res -w "(NAME co paydb) AND (STATE = OFFLINE)" -t', done: ev => ev.crs === 'stat-res-w' && /AND/i.test(ev.crsFilter || ''),
+        why: 'pay_report 한 줄만 남습니다. 아침 점검 스크립트에 <code>-w "STATE = OFFLINE"</code> 같은 필터를 넣어 두면 문제 후보만 바로 보입니다. 다만 일부러 멈춘 자원도 함께 나오므로 Target까지 같이 봅니다.' },
+      { text: 'srvctl로 pay_report 설정 확인하기', hint: 'srvctl config service -db paydb -service pay_report', done: ev => srvIs(ev, 'config', 'service', { service: 'pay_report' }),
+        why: '<code>Service is disabled.</code> 작업 기록대로입니다. 역할을 나누어 기억하세요. Clusterware 19c: "Oracle은 ora로 시작하는 Oracle 제공 자원을 CRSCTL로 직접 다루는 것을 강하게 말린다." 리스너, 인스턴스, 디스크 그룹 같은 Oracle 자원은 SRVCTL로, Clusterware 자체는 CRSCTL로 관리합니다. 그래서 crsctl은 "보는" 데 쓰고, 시작·중지·설정은 srvctl로 합니다.' },
+      { text: '보팅 디스크(투표 파일) 확인하기', hint: 'crsctl query css votedisk', done: ev => ev.crs === 'votedisk',
+        why: '보팅 파일은 노드끼리 서로 살아 있는지 확인할 때 쓰는 파일입니다. 네트워크가 끊겨 두 노드가 서로를 못 볼 때, 보팅 파일에 접근할 수 있는 쪽이 살아남고 다른 쪽은 클러스터에서 빠집니다(데이터가 두 갈래로 갈라지는 것을 막음). STATE가 ONLINE이고, 디스크 그룹 [DATA] 안에 있습니다. 열 모양은 Clusterware 19c 문서(OCR와 보팅 파일 관리)의 예시를 따랐습니다.' },
+      { text: '클러스터 버전과 패치 수준 확인하기', hint: 'crsctl query crs activeversion -f', done: ev => ev.crs === 'activeversion-f',
+        why: '19c 오류 메시지 문서의 사용법 설명(CRS-04172): <code>-f</code>는 "클러스터 상태와 활성 패치 수준"을 함께 보여 준다. 패치 작업(8단계)을 노드마다 하나씩 하는 동안에는 노드끼리 패치 수준이 달라질 수 있으니, 작업 전후에 이 값을 기록해 둡니다. 화면의 문구와 숫자는 예시이며 문서 예시로 확인하지 못했습니다.' },
+      { text: '점검 결과 남기기', hint: "echo 'Clusterware 점검: OHAS/CRS/CSS/EVM online, init 자원 정상, pay_report OFFLINE/OFFLINE(어젯밤 계획 중지·disable, 정상), 보팅 1개 ONLINE(+DATA), 패치 수준 기록' > ~/crs_check.txt", done: memo11('crs_check.txt'),
+        why: '이 레슨을 마쳤습니다. OFFLINE 줄을 보면 바로 다시 올리지 말고 Target, 작업 기록, srvctl config 순서로 "일부러 멈춘 것인지"부터 확인하세요.' },
+    ],
+    field: '현장에서 자주 하는 실수는 crsctl start resource ora.xxx 처럼 Oracle 자원을 crsctl로 직접 올리는 것입니다. Clusterware 문서는 ora. 자원을 crsctl로 직접 다루지 말라고 하고, 선생님이 주신 실무 가이드도 같은 원칙을 맨 앞에 둡니다. "crsctl로 보고, srvctl로 다룬다"를 기억하세요. 매일 점검은 crsctl check cluster -all → crsctl stat res -t → srvctl status database -db paydb -detail → srvctl status service -db paydb 순서가 무난합니다(실무 가이드의 권장 순서).',
+    sources: ['crsctl', 'crs112', 'cwocr', 'crs4172', 'cwsrv', 'srvctl'] },
+
+  { id: 105, stage: 11, title: 'SCAN·VIP·ASM 점검과 SCAN 하나 재시작', short: '네트워크·ASM', start: 'oracle',
+    who: '네트워크팀 (작업 요청)',
+    situation: '"오늘 14시에 스위치 포트 점검을 합니다. SCAN 1번 주소가 걸린 포트예요. 잠깐 내려 주셨다가 끝나면 올려 주세요." 요청서는 ~/work_request.txt 에 있습니다. 작업 전후로 ASM 상태도 확인해 두세요.',
+    tasks: [
+      { text: '작업 요청서 읽기', hint: 'cat ~/work_request.txt', done: ev => ev.read.has('/home/oracle/work_request.txt'),
+        why: 'SCAN(Single Client Access Name)은 클라이언트가 쓰는 접속 이름 하나에 주소 3개를 묶은 것입니다. 주소마다 SCAN VIP와 그 위의 SCAN 리스너가 한 쌍으로 돕니다. 오늘은 1번 쌍만 내립니다.' },
+      { text: 'SCAN 구성 보기', hint: 'srvctl config scan', done: ev => srvIs(ev, 'config', 'scan'),
+        why: '이름 paycluster-scan.example.com에 주소 3개(10.0.3.31~33)가 있습니다. 앱은 이 이름으로 접속하므로 하나를 내려도 나머지 두 주소로 접속이 됩니다. 출력 문구는 확인하지 못해 ⓘ로 표시했습니다.' },
+      { text: 'SCAN 리스너가 어느 노드에서 도는지 보기', hint: 'srvctl status scan_listener', done: ev => srvIs(ev, 'status', 'scan_listener'),
+        why: 'SCAN 리스너는 노드에 고정되지 않고 Clusterware가 살아 있는 노드 중 한 곳에 띄웁니다. 1, 2번은 racnode2, 3번은 racnode1에 있습니다.' },
+      { text: '노드 VIP와 nodeapps 구성 보기', hint: 'srvctl status vip -node racnode1\nsrvctl config nodeapps', done: ev => srvIs(ev, 'status', 'vip') || srvIs(ev, 'config', 'nodeapps'),
+        why: '노드 VIP(racnode1-vip)는 노드마다 하나씩 있는 가상 주소입니다. 노드가 죽으면 VIP가 살아 있는 노드로 넘어가, 그 주소로 접속하던 클라이언트가 응답 없는 서버를 오래 기다리지 않고 바로 오류를 받고 다른 주소로 갑니다. nodeapps는 노드마다 도는 네트워크·VIP·ONS(알림)를 묶어 부르는 말입니다.' },
+      { text: 'SCAN 1번을 순서대로 내리기 (리스너 → VIP)', hint: 'srvctl stop scan_listener -scannumber 1\nsrvctl stop scan -scannumber 1', done: () => !S.rac.scanSt[0].l && !S.rac.scanSt[0].vip,
+        why: 'SCAN 리스너는 SCAN VIP 주소 위에서 듣고 있으므로, 멈출 때는 리스너 먼저, VIP 나중입니다. 올릴 때는 반대입니다(실무 가이드의 의존 순서). <code>-scannumber</code>는 "SCAN의 IP 주소 순번"입니다(RAC 19c SRVCTL 옵션 표). 번호를 빼면 SCAN 3개가 모두 멈추니 꼭 번호를 붙입니다.' },
+      { text: '1번만 내려갔는지 확인하기', hint: 'srvctl status scan\nsrvctl status scan_listener', done: ev => (srvIs(ev, 'status', 'scan') || srvIs(ev, 'status', 'scan_listener')) && !S.rac.scanSt[0].vip,
+        why: '1번만 not running이고 2, 3번은 그대로입니다. 이제 네트워크팀에 "진행하셔도 됩니다"라고 알립니다.' },
+      { text: '작업이 끝났다고 가정하고 순서대로 다시 올리기 (VIP → 리스너)', hint: 'srvctl start scan -scannumber 1\nsrvctl start scan_listener -scannumber 1', done: () => S.rac.scanSt[0].l && S.rac.scanSt[0].vip,
+        why: '출력이 없으면 성공입니다(SRVCTL은 성공하면 0, 실패하면 1, 경고면 2를 돌려준다: RAC 19c). 리스너를 VIP보다 먼저 올리려고 하면 이 실습은 순서를 알려 줍니다.' },
+      { text: 'Grid 홈의 srvctl로 ASM 상태 보기', hint: '$GRID_HOME/bin/srvctl status asm -detail', done: ev => srvIs(ev, 'status', 'asm', { grid: true }),
+        why: 'ASM은 DB 홈이 아니라 Grid 홈의 srvctl로 다룹니다(실무 가이드의 실행 위치). PATH에는 DB 홈이 앞에 있어서 그냥 <code>srvctl</code>이라고 치면 DB 홈의 것이 실행되므로, <code>$GRID_HOME/bin/srvctl</code>처럼 경로를 붙였습니다. 모양은 Clusterware 19c 문서의 srvctl status asm -verbose 예시를 따랐습니다.' },
+      { text: '디스크 그룹 DATA 상태 보기', hint: '$GRID_HOME/bin/srvctl status diskgroup -diskgroup DATA -detail', done: ev => srvIs(ev, 'status', 'diskgroup', { grid: true }),
+        why: 'PAYDB의 데이터 파일이 있는 +DATA가 두 노드 모두에서 마운트되어 있습니다. 실무 가이드 경고: <code>srvctl stop diskgroup ... -force</code>는 그 디스크 그룹을 쓰는 DB를 먼저 멈춰 주지 않아 운영 DB를 장애로 만들 수 있다. 이 문장은 19c 문서에서 확인하지 못했지만, 디스크 그룹이 내려가면 그 위의 DB가 데이터 파일을 잃는다는 점은 분명하니 운영 중에는 손대지 않습니다.' },
+      { text: '작업 기록 남기기', hint: "echo '14:00 네트워크 작업: SCAN1 리스너→VIP 순서로 중지, 작업 후 VIP→리스너 순서로 기동, SCAN2·3 영향 없음. ASM·DATA 두 노드 정상' > ~/scan_maint.txt", done: memo11('scan_maint.txt'),
+        why: '이 레슨을 마쳤습니다. "의존하는 쪽을 먼저 내리고 나중에 올린다"는 원칙은 SCAN뿐 아니라 리스너·ASM·DB 사이에도 똑같이 적용됩니다.' },
+    ],
+    field: 'RAC에는 리스너가 두 종류입니다. 노드마다 도는 로컬 리스너(LISTENER, 노드 VIP에서 들음)와 클러스터에 3개 도는 SCAN 리스너(LISTENER_SCAN1~3, SCAN VIP에서 들음)입니다. 클라이언트는 SCAN으로 접속하고, SCAN 리스너가 서비스가 도는 인스턴스의 로컬 리스너로 넘겨 줍니다. 그래서 SCAN 하나가 내려가도 접속은 계속되지만, 셋 다 내리면 새 접속이 모두 막힙니다. 이 레슨의 config·status 출력 문구는 19c 문서 예시가 없어 ⓘ로 알렸습니다.',
+    sources: ['srvctl', 'cwsrv', 'pcarac'] },
+
+  { id: 106, stage: 11, title: '노드 정비: 인스턴스 비우고 Clusterware 내렸다 올리기', short: '노드 정비', start: 'oracle',
+    who: '인프라팀 (작업 요청)',
+    situation: '"racnode1 펌웨어를 올려야 해서 재부팅이 필요합니다. 오라클 쪽을 정리해 주세요." 팀장: "이번엔 지금 접속한 racnode1이 대상입니다. 서비스를 살리면서 인스턴스를 내리고, root로 클러스터 스택까지 내렸다가, 끝나면 거꾸로 올리세요."',
+    tasks: [
+      { text: '작업 요청서 읽기', hint: 'cat ~/work_request.txt', done: ev => ev.read.has('/home/oracle/work_request.txt'),
+        why: 'crsctl stop crs는 "명령을 실행한 노드"만 멈춥니다. 그래서 정비할 노드(racnode1)에 접속해서 실행합니다. 실습용 root 암호도 적혀 있습니다.' },
+      { text: '서비스가 어디서 도는지 보기', hint: 'srvctl status service -db paydb', done: ev => srvIs(ev, 'status', 'service'),
+        why: 'pay_report가 PAYDB1에서만 돌고 있습니다. PAYDB1을 그냥 내리면 리포트 서비스가 멈춥니다.' },
+      { text: 'pay_report가 옮겨 갈 수 있는 곳 확인하기', hint: 'srvctl config service -db paydb -service pay_report', done: ev => srvIs(ev, 'config', 'service', { service: 'pay_report' }),
+        why: '<code>Available instances: PAYDB2</code>. 옮길 곳이 있습니다.' },
+      { text: 'stop instance 문법 확인하기 (-help)', hint: 'srvctl stop instance -help', done: ev => ev.srv && ev.srv.help && ev.srv.verb === 'stop',
+        why: 'SRVCTL은 <code>srvctl 동작 대상 -help</code>로 문법을 보여 줍니다(RAC 19c). 설치된 RU마다 옵션이 조금씩 다를 수 있으니, 처음 쓰는 옵션은 그 서버에서 -help로 확인하는 습관을 들이세요(실무 가이드). <code>-help -compatible</code>을 붙이면 예전 짧은 옵션과의 대응도 보여 줍니다.' },
+      { text: '서비스를 넘기면서 PAYDB1 내리기 (-failover)', hint: 'srvctl stop instance -db paydb -instance PAYDB1 -stopoption immediate -failover', done: () => !racInst('PAYDB1').up && racSvc('pay_report').on.length > 0,
+        why: 'High Availability Overview 19c의 계획 작업 예시: <code>-force -failover</code>를 주면 "서비스가 각 서비스에 설정된 다른 available 인스턴스에서 시작된다." pay_report가 PAYDB2로 넘어갔습니다. -failover를 빼고 내렸다면 <code>srvctl start service -db paydb -service pay_report</code>로 available 인스턴스에서 다시 시작할 수 있습니다.' },
+      { text: '서비스가 모두 PAYDB2에서 도는지 확인하기', hint: 'srvctl status service -db paydb', done: ev => srvIs(ev, 'status', 'service') && !racInst('PAYDB1').up,
+        why: 'pay_oltp, pay_batch, pay_report 모두 PAYDB2에서 돕니다. 이제 racnode1의 DB 쪽은 비었습니다.' },
+      { text: 'root가 되어 racnode1의 Clusterware 스택 내리기', hint: `su -\nroot123\n${GH}/bin/crsctl stop crs`, done: ev => ev.crs === 'stop-crs',
+        why: 'root의 PATH에는 Grid 홈이 없어서 <code>' + GH + '/bin/crsctl</code>처럼 전체 경로로 실행했습니다. Clusterware 19c 문서의 절차도 crsctl stop crs를 root로 실행합니다. 11.2 CRSCTL 문서 설명: stop crs는 이 서버의 Oracle High Availability Services를 멈추며, Clusterware가 관리하는 자원이 남아 있으면 실패하고, <code>-f</code>는 모든 자원을 무조건 멈춘다. 실무 가이드는 -f를 정상 중지가 실패하고 영향을 확인했을 때만 쓰라고 합니다. 인스턴스를 미리 srvctl로 정상 종료해 두었기 때문에 깔끔하게 내려갔습니다.' },
+      { text: '스택이 내려갔는지 확인하기', hint: `${GH}/bin/crsctl check crs`, done: ev => ev.crs === 'down',
+        why: '<code>CRS-4639: Could not contact Oracle High Availability Services</code>. 19c 오류 메시지 문서와 같은 문구입니다. OHASD까지 내려가서 대답할 데몬이 없습니다. 여러 노드를 한꺼번에 내릴 때는 <code>crsctl stop cluster -all</code>(또는 -n 노드)을 씁니다. 11.2 문서 설명으로는 곧 멈출 서버로 자원이 옮겨 가는 일을 막아 주기 때문입니다. stop cluster는 OHASD를 남겨 두는 명령이라 OHASD까지 내리려면 노드마다 stop crs를 따로 합니다(실무 가이드). 이제 인프라팀에 "재부팅하셔도 됩니다"라고 알립니다.' },
+      { text: '펌웨어 작업이 끝났다고 가정하고 스택 올리기 (-wait)', hint: `${GH}/bin/crsctl start crs -wait`, done: ev => /^start-crs/.test(ev.crs || ''),
+        why: '<code>-wait</code>를 주면 자원이 다 올라올 때까지 기다리며 진행 줄을 보여 줍니다(실무 가이드의 권장 형식). 19c 문서에서 -wait 설명과 출력 예시는 확인하지 못해 ⓘ로 표시했습니다. 서버를 재부팅했다면 자동 기동 설정(<code>crsctl config crs</code>, CRS-4622 autostart is enabled)에 따라 스택이 저절로 올라왔을 것입니다.' },
+      { text: '모든 노드의 클러스터 데몬 확인하기', hint: `${GH}/bin/crsctl check cluster -all`, done: ev => ev.crs === 'check-all' && racLocal().crs,
+        why: '두 노드 모두 CRS·CSS·EVM online입니다.' },
+      { text: 'oracle로 돌아와 PAYDB1 직접 올리기', hint: 'exit\nsrvctl start instance -db paydb -instance PAYDB1', done: () => racInst('PAYDB1').up,
+        why: '스택이 올라와도 PAYDB1은 저절로 열리지 않았습니다. srvctl로 일부러 멈춘 인스턴스는 Target이 OFFLINE으로 기록되어 Clusterware가 다시 띄우지 않기 때문입니다. 그래서 실무 가이드도 "명시적으로 중지했던 인스턴스는 명시적으로 시작"하라고 합니다.' },
+      { text: '상태를 자세히 보고 pay_report 되돌리기', hint: 'srvctl status database -db paydb -detail\nsrvctl relocate service -db paydb -service pay_report -oldinst PAYDB2 -newinst PAYDB1', done: () => racSvc('pay_report').on.includes('PAYDB1') && racInst('PAYDB1').up,
+        why: '<code>-detail</code>을 붙이면 인스턴스가 Open인지 Mounted인지도 함께 보여 줍니다(이 문구는 19c 예시로 확인 못 함). 넘어갔던 pay_report는 PAYDB1이 돌아와도 자동으로 돌아오지 않으므로(RAC 19c 서비스 문서) relocate로 되돌렸습니다.' },
+      { text: '정비 기록 남기기', hint: "echo 'racnode1 정비: PAYDB1 stop -failover(pay_report→PAYDB2), root crsctl stop crs, 작업 후 start crs -wait, check cluster -all 정상, PAYDB1 srvctl start, pay_report PAYDB1 원복' > ~/racnode1_maint.txt", done: memo11('racnode1_maint.txt'),
+        why: '이 레슨을 마쳤습니다. 순서를 정리하면: 서비스 위치 확인 → stop instance -failover → (root) crsctl stop crs → 작업 → crsctl start crs -wait → check cluster -all → start instance → 서비스 원복과 확인.' },
+    ],
+    field: '실무 가이드가 정리한 차이를 기억해 두세요. crsctl stop crs는 이 노드 하나의 스택을 OHASD까지 모두 내립니다(노드 정비, Grid 홈 패치). crsctl stop cluster -n 노드 / -all은 지정한 노드들의 스택을 내리되 OHASD는 남깁니다(여러 노드 계획 중지). 둘 다 DB가 열린 채로 실행하면 Clusterware가 인스턴스를 함께 멈추는데, 가이드는 이때 shutdown abort가 쓰일 수 있다고 적었습니다. 이 부분은 공식 문서에서 확인하지 못했지만, 어떤 방식이든 계획 작업에서는 srvctl로 먼저 정상 종료하는 것이 안전합니다. 자동 기동을 잠시 막아야 하면 root로 crsctl disable crs(CRS-4621 autostart is disabled), 끝나면 enable crs로 되돌립니다. 이 설정은 명령을 실행한 노드에만 적용됩니다.',
+    sources: ['crsctl', 'crs112', 'crs4639', 'haovw', 'srvctl', 'racsvc'] },
+
+  { id: 107, stage: 11, title: 'DB 전체 내리기와 enable·disable', short: 'DB 전체 중지', start: 'oracle',
+    who: '스토리지팀 (공지)',
+    situation: '"오늘 22시부터 30분 동안 스토리지 컨트롤러 작업이 있습니다. PAYDB 전체를 내려 주시고, 작업 중에 DB가 저절로 올라오는 일이 없게 해 주세요." 공지는 ~/work_request.txt 에 있습니다.',
+    tasks: [
+      { text: '공지 읽기', hint: 'cat ~/work_request.txt', done: ev => ev.read.has('/home/oracle/work_request.txt'),
+        why: '요구가 둘입니다. ① 지금 DB를 내린다(stop). ② 작업 중에 올라오지 않게 한다(disable). 둘은 다른 명령입니다.' },
+      { text: '지금 상태를 자세히 기록하기', hint: 'srvctl status database -db paydb -detail', done: ev => srvIs(ev, 'status', 'database', { detail: true }),
+        why: '두 인스턴스 모두 Open입니다. 작업 전 상태를 남겨 두어야 작업 뒤에 "원래대로 돌아왔는지" 비교할 수 있습니다(실무 가이드: 작업 전후 같은 명령으로 재검증).' },
+      { text: '리포트 서비스부터 세션을 비우며 내리기 (drain)', hint: 'srvctl stop service -db paydb -service pay_report -drain_timeout 60 -stopoption transactional -wait yes', done: ev => srvIs(ev, 'stop', 'service', { service: 'pay_report' }) && !racSvc('pay_report').on.length,
+        why: '<code>-drain_timeout 60</code>은 새 접속은 막고, 붙어 있던 세션이 일을 마치고 나갈 시간을 최대 60초 준다는 뜻입니다. High Availability Overview 19c의 계획 작업 예시가 이처럼 <code>-drain_timeout</code>과 <code>-stopoption</code>을 함께 씁니다. 시간이 지나도 남은 세션은 -stopoption 방식으로 정리됩니다. <code>-wait</code>는 그 문서에 "스크립트에서는 wait = yes를 넣으면 도움이 된다"는 한 줄만 있고 옵션 설명은 확인하지 못했습니다.' },
+      { text: 'PAYDB 전체를 정상 종료하기', hint: 'srvctl stop database -db paydb -stopoption immediate', done: () => R11().insts.every(i => !i.up),
+        why: '한 명령으로 두 인스턴스가 함께 내려갑니다. -stopoption 값은 NORMAL, TRANSACTIONAL, IMMEDIATE, ABORT입니다(RAC 19c 옵션 표). 노드마다 SQL*Plus로 SHUTDOWN을 치는 것보다 빠뜨릴 위험이 적고, Clusterware도 "일부러 내린 것"으로 기록합니다.' },
+      { text: '내려갔는지 확인하기', hint: 'srvctl status database -db paydb', done: ev => srvIs(ev, 'status', 'database') && R11().insts.every(i => !i.up),
+        why: '두 인스턴스 모두 not running입니다(이 문구는 19c 예시로 확인 못 함).' },
+      { text: '작업 중에 올라오지 않게 disable 하기', hint: 'srvctl disable database -db paydb', done: () => !R11().dbOn,
+        why: 'RAC 19c: srvctl disable database는 DB를 비활성화하며 "클러스터 DB라면 인스턴스도 함께 비활성화된다." disable은 stop이 아닙니다. 실행 중인 것을 끄지 않고, Clusterware가 이 자원을 시작·관리하지 않게 표시만 바꿉니다. 그래서 순서는 stop 다음 disable입니다. 이제 서버가 재부팅되어도 PAYDB는 올라오지 않습니다.' },
+      { text: 'Clusterware 쪽에서도 확인하기', hint: 'crsctl stat res -w "NAME co paydb" -t\nsrvctl config database -db paydb', done: ev => (ev.crs === 'stat-res-w' || srvIs(ev, 'config', 'database')) && !R11().dbOn,
+        why: '<code>ora.paydb.db</code>의 Target이 OFFLINE이고, config에는 <code>Database is disabled</code>가 보입니다. config 줄 이름과 순서는 RAC 19c 문서의 srvctl config database 예시를 따랐고, enabled/disabled 줄은 문서 예시에 없어 확인하지 못했습니다.' },
+      { text: '작업이 끝났다고 가정하고 enable 후 DB 올리기', hint: 'srvctl enable database -db paydb\nsrvctl start database -db paydb', done: () => R11().dbOn && R11().insts.every(i => i.up),
+        why: 'enable을 빼고 start를 하면 이 실습은 disable 상태라 시작할 수 없다고 알려 줍니다. -startoption을 주지 않으면 기본값 OPEN으로 엽니다(RAC 19c: "기본값은 OPEN"). 점검이 필요하면 <code>-startoption MOUNT</code>로 마운트까지만 올릴 수도 있습니다.' },
+      { text: '서비스 상태 보고 리포트 서비스 다시 시작하기', hint: 'srvctl status service -db paydb\nsrvctl start service -db paydb -service pay_report', done: () => racSvc('pay_report').on.length > 0 && R11().insts.every(i => i.up),
+        why: 'pay_oltp, pay_batch는 DB와 함께 올라왔지만 pay_report는 not running입니다. 우리가 srvctl stop service로 따로 멈춘 서비스이기 때문입니다. 일부러 멈춘 것은 일부러 다시 시작해야 합니다.' },
+      { text: '작업 기록 남기기', hint: "echo '22:00 스토리지 작업: pay_report drain 중지 → stop database immediate → disable database. 작업 후 enable → start database → pay_report start. status -detail 작업 전과 동일' > ~/storage_maint.txt", done: memo11('storage_maint.txt'),
+        why: '이 레슨을 마쳤습니다. Start/Stop은 "지금 실행 상태"를, Enable/Disable은 "Clusterware가 시작·관리해도 되는지"를 바꿉니다(실무 가이드의 구분). 둘을 짝지어 쓰는 것이 핵심입니다.' },
+    ],
+    field: 'srvctl은 같은 DB나 서비스에 여러 명령을 동시에 실행하는 것을 지원하지 않습니다(RAC 19c: "SRVCTL does not support concurrent executions of commands on the same object"). 두 사람이 서로 다른 터미널에서 같은 DB를 다루지 않도록 작업자를 한 명으로 정하세요. 또 실제로 실행하기 전에 무엇이 바뀌는지 보고 싶으면 -eval 옵션으로 "바꾸지 않고 흉내만" 내 볼 수 있습니다(RAC 19c: start/stop database, start/stop/relocate service 등에서 지원).',
+    sources: ['srvctl', 'haovw', 'crsctl'] },
+
+  { id: 108, stage: 11, title: '패치 리허설: 세션 비우고 홈 단위로 내렸다 올리기', short: '홈 단위 중지', start: 'oracle',
+    who: 'DBA 팀장 (패치 준비)',
+    situation: '"다음 주에 racnode2 DB 홈에 RU를 적용합니다. 오늘은 리허설입니다. 정산 배치를 먼저 PAYDB1로 비우고, racnode2에서 그 홈으로 도는 것만 멈췄다가, 멈추기 전 상태 그대로 되살려 보세요." 계획은 ~/work_request.txt 에 있습니다.',
+    tasks: [
+      { text: '계획 읽기', hint: 'cat ~/work_request.txt', done: ev => ev.read.has('/home/oracle/work_request.txt'),
+        why: '패치는 홈 단위로 합니다(8단계). racnode2의 DB 홈을 고치는 동안 racnode1의 PAYDB1은 계속 일합니다. RAC의 가장 큰 장점인 "순차 패치(rolling)"의 기본 모양입니다.' },
+      { text: '서비스 위치 확인하기', hint: 'srvctl status service -db paydb', done: ev => srvIs(ev, 'status', 'service'),
+        why: 'pay_batch가 PAYDB2에서만 돕니다. 이것부터 비웁니다.' },
+      { text: '세션에 2분 여유를 주고 pay_batch 옮기기', hint: 'srvctl relocate service -db paydb -service pay_batch -oldinst PAYDB2 -newinst PAYDB1 -drain_timeout 120 -stopoption immediate -wait yes', done: () => racSvc('pay_batch').on.includes('PAYDB1'),
+        why: 'High Availability Overview 19c에는 relocate service에 <code>-drain_timeout</code>, <code>-stopoption</code>을 붙인 형식이 있습니다. -force로 세션을 바로 끊는 방식과 달리, 일하던 세션이 끝낼 시간을 주고 옮깁니다. 실무 가이드도 relocate는 "지금 실행 위치만 임시로" 바꾸며, preferred·available 설정을 영구히 바꾸려면 srvctl modify service를 쓰라고 합니다.' },
+      { text: 'racnode2의 DB 홈에서 도는 자원을 상태 파일과 함께 멈추기', hint: 'echo $ORACLE_HOME\nsrvctl stop home -oraclehome $ORACLE_HOME -statefile /tmp/dbhome_racnode2.state -node racnode2 -stopoption immediate', done: ev => !racInst('PAYDB2').up && srvIs(ev, 'stop', 'home'),
+        why: '<code>stop home</code>은 그 노드에서 이 홈으로 도는 자원(PAYDB2 인스턴스와 그 위의 서비스)을 한꺼번에 멈추고, 멈추기 전에 무엇이 돌고 있었는지 상태 파일에 적어 둡니다. RAC 19c 옵션 표: -statefile은 "이전에 실행한 srvctl stop home이 만든 state_file의 경로"입니다. stop home·start home의 문법 전체는 19c 문서에서 확인하지 못했고 실무 가이드를 따랐습니다.' },
+      { text: '상태 파일 들여다보기', hint: 'cat /tmp/dbhome_racnode2.state', done: ev => ev.read.has('/tmp/dbhome_racnode2.state'),
+        why: '멈추기 전 PAYDB2에서 돌던 DB와 서비스가 적혀 있습니다. 파일 안의 모양은 이 실습이 꾸민 것입니다. 중요한 점은 이 파일이 있어야 start home이 "원래 돌던 것만" 정확히 되살린다는 것입니다. 그래서 /tmp에 둔다면 재부팅으로 지워지기 전에 써야 하고, 현장에서는 지워지지 않는 위치에 두기도 합니다.' },
+      { text: 'PAYDB1만 일하는지 확인하기', hint: 'srvctl status database -db paydb\nsrvctl status service -db paydb', done: ev => (srvIs(ev, 'status', 'service') || srvIs(ev, 'status', 'database')) && !racInst('PAYDB2').up,
+        why: 'PAYDB2는 not running, 서비스는 모두 PAYDB1에서 돕니다. 여기서 실제로는 OPatch로 racnode2의 DB 홈을 패치합니다(8단계에서 연습한 부분).' },
+      { text: '패치가 끝났다고 가정하고 같은 상태 파일로 되살리기', hint: 'srvctl start home -oraclehome $ORACLE_HOME -statefile /tmp/dbhome_racnode2.state -node racnode2', done: () => racInst('PAYDB2').up,
+        why: '실무 가이드: stop home이 기록한 상태 파일을 start home에 쓰면 작업 전에 그 홈에서 돌던 자원을 되살릴 수 있다. PAYDB2와, 멈추기 전 PAYDB2에서 돌던 pay_oltp가 돌아왔습니다.' },
+      { text: '서비스 확인하고 pay_batch 되돌리기', hint: 'srvctl status service -db paydb\nsrvctl relocate service -db paydb -service pay_batch -oldinst PAYDB1 -newinst PAYDB2 -drain_timeout 120 -stopoption immediate -wait yes', done: () => racSvc('pay_batch').on.includes('PAYDB2') && racInst('PAYDB2').up,
+        why: 'pay_batch는 stop home보다 먼저 우리가 직접 옮긴 것이라 상태 파일에 없었습니다. 그래서 start home으로는 돌아오지 않고, 손으로 되돌려야 합니다. "누가, 언제, 무엇을 옮겼는지" 기록이 필요한 이유입니다.' },
+      { text: '리허설 기록 남기기', hint: "echo 'racnode2 홈 패치 리허설: pay_batch drain 120초로 PAYDB1 이동, stop home(statefile /tmp/dbhome_racnode2.state), start home으로 PAYDB2·pay_oltp 복원, pay_batch 수동 원복. 본 작업 때 OPatch는 stop home 뒤에' > ~/patch_rehearsal.txt", done: memo11('patch_rehearsal.txt'),
+        why: '이 레슨을 마쳤습니다. 다음은 11단계 졸업 미션입니다.' },
+    ],
+    field: '세션 drain은 "끊지 않고 비우는" 기술입니다. 서비스를 옮기거나 멈출 때 -drain_timeout을 주면, 커넥션 풀을 쓰는 앱(UCP 등)은 FAN 알림을 받고 쉬는 커넥션부터 닫고 새 커넥션을 다른 인스턴스로 엽니다. High Availability Overview 19c는 계획 작업 때 이렇게 서비스를 비운 뒤 인스턴스를 멈추는 예시를 보여 줍니다. 앱이 알림을 받지 못하는 구조라면 drain 시간이 지나 -stopoption 방식으로 끊기므로, 시간 값은 앱 담당자와 정하세요.',
+    sources: ['haovw', 'srvctl', 'racsvc'] },
 
   { id: 103, stage: 11, title: '졸업 미션: 노드 장애 뒤 서비스 되돌리기', short: '졸업 미션', start: 'oracle',
     who: '정산팀 (메신저)',
