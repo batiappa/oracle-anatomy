@@ -19,6 +19,7 @@
     { st: 9, part: 'dba', group: 'DBA', name: 'Data Guard 기초', ids: range(81, 83) },
     { st: 11, part: 'dba', group: 'DBA', name: 'RAC 기초', ids: [101, 102, 104, 105, 106, 107, 108, 103] },
     { st: 12, part: 'dba', group: 'DBA', name: 'OS 원인 장애', ids: range(111, 113) },
+    { st: 13, part: 'dba', group: 'DBA', name: '현장 업무 흐름', ids: range(121, 123) },
   ];
   STAGES.forEach((s, i) => { s.no = i + 1; });
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };

@@ -241,6 +241,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
   <p><b>4단계 SQL 기초</b>: 공식 문서로 확인한 것은 ORA-00001·ORA-01400 오류 문구의 형식(Database Concepts 19c 예시), "Table created."와 SET FEEDBACK의 "n rows selected." 동작, SQL*Plus 종료 때 EXITCOMMIT 기본값 ON(커밋), 길이 0인 문자열이 NULL이라는 점과 = NULL이 참이 아니라는 점, COUNT(*)를 뺀 집계 함수가 NULL을 무시한다는 점, 왼쪽 외부 조인이 짝 없는 행을 NULL로 채운다는 점, DDL이 앞뒤로 암묵 커밋한다는 점(SQL Language Reference 19c)입니다. <b>확인하지 못한 것</b>: "1 row created./updated./deleted." 같은 DML 피드백 문구, ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, 01427의 화면 문구 전체, NULL이 정렬에서 놓이는 위치의 화면 표시, 열 폭. 이런 줄에는 터미널에 ⓘ 표시가 붙습니다. STUDY 스키마의 사원·부서 행과 제약 조건 이름(SYS_C...)은 설명용 예시입니다.</p>
   <p><b>11단계 RAC 기초</b>: 공식 문서로 확인한 것은 crsctl check cluster -all의 노드별 CRS-4537·4529·4533 줄 형식(Clusterware 19c 문서 예시), olsnodes의 -n·-s·-c·-l·-t 옵션과 -n 출력 예시, crsctl stat res -t 표의 구조와 "Instance ... is running on node ..." 문구(21c Private Cloud Appliance 문서 예시), CRSCTL이 Grid 홈 bin에 있고 SRVCTL은 데이터베이스 홈에서 실행한다는 점, SRVCTL이 성공하면 아무것도 출력하지 않는다는 점, stop instance의 -stopoption 값, relocate service의 -oldinst·-newinst 문법, preferred·available 인스턴스의 뜻과 원래 인스턴스로 자동으로 돌아가지 않는다는 점, GV$ 뷰의 INST_ID, gc cr block 2-way·gc current block 2-way 대기 이벤트와 Cluster 대기 클래스(Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c)입니다. <b>확인하지 못한 것</b>: srvctl status·config service와 config database 줄의 정확한 문구, "is not running" 문구, crsctl stat res -t의 열 간격과 서비스 자원 이름(ora.paydb.*.svc), check crs와 query crs activeversion의 화면 문구, olsnodes -s의 대소문자, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 클러스터·노드·DB·서비스 이름, IP, 세션 수와 시각은 설명용 예시입니다. <b>레슨 104~108(RAC 19c CRSCTL·SRVCTL 실무 가이드 반영)</b>: 공식 문서로 확인한 것은 crsctl stat res -w 필터의 연산자(=, !=, co, st, en, AND, OR)와 ora. 자원을 CRSCTL로 직접 다루지 말라는 권고, 클러스터 명령이 OHASD에 기대어 동작한다는 점(Clusterware 19c), crsctl query css votedisk의 열 모양(19c OCR·보팅 파일 장 예시), CRS-4639 문구(19c 오류 메시지), query crs activeversion -f의 뜻(CRS-04172 사용법), srvctl config database의 줄 이름과 순서·-all 옵션, -startoption 기본값 OPEN, disable database가 인스턴스까지 비활성화한다는 점, 같은 대상에 SRVCTL을 동시에 실행하지 말라는 점, 종료 코드 0·1·2, -eval, -statefile·-scannumber 옵션의 뜻(RAC 19c), stop instance·relocate service의 -drain_timeout·-stopoption·-failover 사용 예(High Availability Overview 19c), srvctl config asm·status asm -verbose 모양(Clusterware 19c)입니다. 19c 문서 일부가 읽히지 않아 11.2 CRSCTL 문서로만 확인한 것: check crs의 CRS-4638 줄, config crs의 CRS-4622·CRS-4621, stop crs가 남은 자원이 있으면 실패하고 -f가 무조건 멈춘다는 설명, 여러 노드는 stop cluster가 자원 재배치를 막는다는 설명, "Located n voting disk(s)." 줄, -t 없는 NAME=·TYPE=·TARGET=·STATE= 모양. <b>확인하지 못한 것</b>: crsctl stop crs·start crs의 진행 줄(CRS-2791, 2673, 2677, 2793, 4133, 4123, 2672, 2676, 6016, 6017, 6023, 6024), -init 표의 전체 목록과 상세 문구, Target·State 값(INTERMEDIATE, UNKNOWN 등)의 공식 정의, srvctl status -detail의 "Instance status:" 문구, config scan, scan_listener, vip, network, nodeapps, listener, service의 줄 문구, status diskgroup·vip 문구, stop home·start home 문법 전체와 상태 파일 안의 모양, -wait 옵션 설명, 권한이 없을 때의 오류 번호. 선생님이 주신 실무 가이드의 설명 가운데 "DB가 열린 채 crsctl stop crs를 하면 shutdown abort가 쓰일 수 있다", "stop diskgroup -force는 DB를 먼저 멈춰 주지 않는다"는 공식 문서에서 확인하지 못해 레슨에 그렇게 밝혀 두었습니다.</p>
   <p><b>12단계 OS 원인 장애</b>: 공식 자료로 확인한 것은 ORA-09925 문구와 조치(Oracle 오류 도움말), "Linux-x86_64 Error: 28: No space left on device" 줄 형식(My Oracle Support 문서 제목), 리눅스 오류 28이 ENOSPC라는 점(커널 소스), OOM killer의 badness와 oom_score_adj 범위(커널 문서), 커널 메시지 "invoked oom-killer", "Out of memory: Killed process"의 형식(현재 커널 소스 mm/oom_kill.c), HugePages가 스왑되지 않는다는 점과 THP 끄기·AMM과 함께 못 쓴다는 점(Linux 관리 문서 19c), CRS-2409·CRS-4700 문구, NTP가 있으면 CTSS가 observer 모드라는 점과 CTSS deprecated(Grid 설치 가이드 19c), Clusterware alert log 위치(Clusterware 19c 문제 해결 부록), chronyc tracking 항목과 makestep 경고, maxslewrate 기본값(chrony 4.5 문서)입니다. Oracle Linux 8 커널의 정확한 OOM 문구, OOM으로 죽었을 때 alert log에 남는 문구, systemctl status 화면 모양, crsctl check ctss 출력 전체, alert log의 [OCTSSD(...)] 표시는 확인하지 못했거나 실습용으로 만든 것입니다.</p>
+  <p><b>13단계 현장 업무 흐름</b>: 데이터 파일 추가 문법과 DROP DATAFILE의 조건(DB가 열려 있어야 하고, 비어 있는 파일만, 첫 번째 파일은 안 됨, 실제 파일도 삭제됨)은 Administrator's Guide 19c로 확인했습니다. 접수 기록, 1차 보고, 작업계획서, 장애보고서 양식과 장애 등급 기준은 특정 표준을 옮긴 것이 아닌 실습용 예시입니다. 회사의 양식과 절차를 따르세요.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, 외부 조인, 하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수), 실습용 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -6999,6 +7000,182 @@ LESSONS.push(
 );
 
 /* =====================================================================
+   13단계. 현장 업무 흐름: 장애 접수 → 작업계획서 → 장애보고서 (레슨 121~123)
+   ===================================================================== */
+const INC = '/home/oracle/incident';
+const INTAKE = INC + '/INC-1127-01.txt', FIRST = INC + '/INC-1127-01_1st.txt', PLAN = INC + '/CHG-1127-01.txt', REPORT = INC + '/INC-1127-01_report.txt';
+const APPROVAL = '/home/oracle/inbox/approval_CHG-1127-01.txt';
+function ftxt(p) { const r = lookup(p); return r && r.node && r.node.t === 'f' ? (r.node.gen ? r.node.gen() : r.node.txt || '') : ''; }
+function fv(p, label) { const m = new RegExp('^\\s*' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[:：]\\s*(.*\\S)', 'm').exec(ftxt(p)); return m ? m[1] : ''; }
+const hasF = (p, ...ls) => ls.every(l => fv(p, l));
+const FORMS13 = {
+  'severity_guide.txt': `[장애 등급 기준 - 실습용 예시, 회사마다 다름]
+1등급: 핵심 서비스 전체 중단 (예: 주문·결제 전부 불가)        → 즉시 팀장·당직 임원 보고, 30분마다 경과 보고
+2등급: 핵심 업무 일부 실패 또는 심한 지연 (우회 어려움)       → 즉시 팀장 보고, 1시간마다 경과 보고
+3등급: 일부 기능 오류, 우회 방법 있음                        → 당일 처리, 처리 후 보고
+4등급: 문의, 단순 요청                                       → 일정 협의
+`,
+  'intake_form.txt': `[장애 접수 기록 양식]
+접수 번호:
+접수 시각:
+신고자:
+증상:
+영향 범위:
+등급:
+`,
+  'first_report_form.txt': `[1차 보고 양식] 짧게, 사실과 추정을 나눠서
+현재 상황:
+원인 추정:
+다음 조치:
+다음 보고:
+`,
+  'change_plan_form.txt': `[작업계획서 양식]
+작업 번호:
+작업 목적:
+작업 대상:
+사전 점검:
+작업 절차:
+확인 방법:
+원복 방법:
+영향:
+`,
+  'incident_report_form.txt': `[장애보고서 양식]
+발생 시각:
+인지 시각:
+복구 시각:
+영향:
+원인:
+조치:
+재발 방지:
+`,
+};
+function makeWorld13(lid) {
+  makeWorld3(1);
+  const O = 'oracle', OI = 'oinstall';
+  const base = ago(0, 9, 30) > NOW ? 1 : 0;
+  const at = (h, m, s) => { const d = ago(base, h, m); d.setSeconds(s || 0); return d; };
+  S.wf = { base, at };
+  const home = lookup('/home/oracle').node.c;
+  home.forms = D(O, OI, 0o755, Object.fromEntries(Object.entries(FORMS13).map(([k, v]) => [k, F(O, OI, 0o644, v, { mt: ago(60, 10, 0) })])), { mt: ago(60, 10, 0) });
+  home.inbox = D(O, OI, 0o755, { 'INC-1127-01.txt': F(O, OI, 0o644, `[장애 신고] INC-1127-01
+받은 시각: ${p2(at(9, 14).getHours())}:14 (서비스데스크 전화)
+신고자: 주문팀 김과장 (내선 2231)
+내용: "9시쯤부터 일부 주문이 저장되지 않습니다. 화면에는 '시스템 오류, 잠시 후 다시 시도'만 나옵니다.
+       조회는 됩니다. 다시 눌러도 같은 오류가 나는 주문이 있고, 되는 주문도 있습니다."
+`, { mt: at(9, 14) }) }, { mt: at(9, 14) });
+  home.incident = D(O, OI, 0o755, {}, { mt: at(9, 15) });
+  // 09:02부터 주문 이력 적재가 USERS 공간 부족으로 실패
+  const an = lookup(ALERT).node; const L = [];
+  for (const [m, s] of [[2, 11], [2, 40], [4, 3], [5, 52], [7, 18], [8, 9], [9, 47], [11, 30], [12, 5], [13, 41]]) L.push(ts(at(9, m, s), 100000 + m * 7919 % 800000), 'ORA-1653: unable to extend table APP.ORDER_HIST by 1024 in tablespace USERS');
+  an.txt += L.join('\n') + '\n'; an.mt = at(9, 13, 41);
+  const put = (p, txt, d) => putFile(p, F(O, OI, 0o644, txt, { mt: d }));
+  if (lid >= 2) {
+    put(INTAKE, `접수 번호: INC-1127-01\n접수 시각: 09:14\n신고자: 주문팀 김과장 (내선 2231)\n증상: 주문 저장 일부 실패. alert log에 09:02부터 ORA-1653 (APP.ORDER_HIST, USERS) 10회\n영향 범위: 주문 저장(신규 주문 이력 적재). 조회는 정상\n등급: 2\n`, at(9, 21));
+    put(FIRST, `현재 상황: 09:02부터 주문 저장 일부 실패 (2등급)\n원인 추정: USERS 테이블스페이스 공간 부족 (ORA-1653, users01.dbf 자동 확장 꺼짐)\n다음 조치: 데이터 파일 추가 작업계획서 작성 후 승인 받아 작업\n다음 보고: 10:20\n`, at(9, 24));
+  }
+  if (lid >= 3) {
+    put(PLAN, `작업 번호: CHG-1127-01\n작업 목적: INC-1127-01 복구, USERS 공간 확보\n작업 대상: ORCL, 테이블스페이스 USERS\n사전 점검: ~/incident/precheck.txt (users01.dbf 4096MB 자동 확장 NO, /u02 여유 충분, users02.dbf 없음)\n작업 절차: alter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;\n확인 방법: dba_data_files에 users02.dbf, alert log에 Completed, 앱팀 주문 저장 재시도\n원복 방법: alter tablespace users drop datafile '/u02/app/oracle/oradata/ORCL/users02.dbf'; (파일이 비어 있을 때만)\n영향: 온라인 작업, 서비스 중단 없음, 1분 이내\n`, at(9, 41));
+    putFile('/home/oracle/incident/precheck.txt', F(O, OI, 0o644, 'FILE_NAME                                          MB AUT\n-------------------------------------------------- ---------- ---\n/u02/app/oracle/oradata/ORCL/users01.dbf                 4096 NO\n', { mt: at(9, 33) }));
+    put(APPROVAL, APPROVAL_TXT(at(9, 48)), at(9, 48));
+  }
+}
+const APPROVAL_TXT = (d) => `From: 박팀장\nDate: ${dayName(d)}\nSubject: RE: [작업계획서] CHG-1127-01 USERS 데이터 파일 추가\n\n승인합니다. 바로 진행하세요.\n작업 끝나면 주문팀 김과장에게 재시도 요청하고, 장애보고서는 오늘 안에 올려 주세요.\n`;
+function planOk() { return hasF(PLAN, '작업 목적', '작업 대상', '작업 절차', '확인 방법', '원복 방법', '영향') && /add\s+datafile/i.test(fv(PLAN, '작업 절차')) && /drop\s+datafile/i.test(fv(PLAN, '원복 방법')); }
+function deliverApproval() {
+  if (!S.wf || S.wf.approved) return; S.wf.approved = true;
+  const d = new Date(); putFile(APPROVAL, F('oracle', 'oinstall', 0o644, APPROVAL_TXT(d), { mt: d }));
+  print(note('박팀장에게 작업계획서를 보냈습니다. ~/inbox/ 에 답장(approval_CHG-1127-01.txt)이 왔습니다(실습에서는 바로 옵니다).'));
+}
+function hm(d) { return p2(d.getHours()) + ':' + p2(d.getMinutes()); }
+function recoveredAt() { const t = ftxt(ALERT); const m = /^(\d{4}-\d\d-\d\dT(\d\d):(\d\d)[^\n]*)\n(?:alter tablespace users add datafile[^\n]*\n)?Completed: alter tablespace users add datafile/m.exec(t); return m ? m[2] + ':' + m[3] : null; }
+function reportOk() {
+  if (!hasF(REPORT, '발생 시각', '인지 시각', '복구 시각', '영향', '원인', '조치', '재발 방지')) return false;
+  const rec = recoveredAt(); const r = fv(REPORT, '복구 시각');
+  const near = rec && (r.includes(rec) || (() => { const [h, m] = rec.split(':').map(Number); const t = h * 60 + m; return [-1, 1].some(x => r.includes(p2(Math.floor((t + x + 1440) % 1440 / 60)) + ':' + p2((t + x + 1440) % 60))); })());
+  return /09:02/.test(fv(REPORT, '발생 시각')) && /09:14/.test(fv(REPORT, '인지 시각')) && near && /1653|USERS|공간/i.test(fv(REPORT, '원인'));
+}
+Object.assign(SRC, {
+  dropdf:  ['Administrator\'s Guide 19c · Managing Data Files and Temp Files 14.6 Dropping Data Files (빈 파일만, 첫 파일은 못 지움, 물리 파일도 삭제)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-data-files-and-temp-files.html'],
+});
+LESSONS.push(
+  { id: 121, stage: 13, title: '장애 접수: 사실을 확인하고 1차 보고하기', short: '장애 접수', start: 'oracle',
+    who: '서비스데스크 (장애 신고 전달)',
+    situation: '09:14 주문팀 김과장의 전화가 장애 신고 INC-1127-01로 들어왔습니다. 신고 내용은 ~/inbox/ 에 있습니다. 바로 고치기 전에, 사실을 확인해 접수 기록을 남기고 팀장에게 1차 보고를 하는 것이 오늘의 일입니다. 양식은 ~/forms/ 에 있습니다.',
+    tasks: [
+      { text: '신고 내용 읽기', hint: 'cat ~/inbox/INC-1127-01.txt', done: ev => ev.read.has('/home/oracle/inbox/INC-1127-01.txt'),
+        why: '신고자의 말은 "일부 주문이 저장되지 않는다, 조회는 된다"입니다. 신고 내용은 사실 확인 전의 증상입니다. 원인을 짐작하기 전에 DB 쪽 기록으로 확인합니다.' },
+      { text: 'alert log에서 같은 시각의 오류 찾기', hint: 'grep -n ORA- /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT),
+        why: '09:02부터 <code>ORA-1653: unable to extend table APP.ORDER_HIST by 1024 in tablespace USERS</code>가 반복됩니다. 신고 시각(09시쯤)과 맞습니다. 바로 위 줄의 시각이 그 오류가 난 시각입니다.' },
+      { text: '오류가 몇 번 났는지 세기', hint: 'grep -c ORA-1653 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && argOf(ev, 'grep').includes('-c'),
+        why: '숫자는 보고의 뼈대입니다. "자주 난다"보다 "09:02부터 10회"가 정확합니다. grep -c 는 맞는 줄의 수를 셉니다.' },
+      { text: '데이터 파일 상태로 원인 확인하기', hint: "sqlplus / as sysdba\nset linesize 200\ncol file_name format a50\nselect file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES'),
+        why: 'users01.dbf 하나가 4096MB이고 자동 확장이 NO입니다. 오류 문구와 데이터 파일 상태가 서로 맞으니, 원인은 "USERS 공간 부족"으로 판단할 수 있습니다. 확인한 것과 추정한 것을 나눠 적는 것이 접수 기록의 핵심입니다.' },
+      { text: '등급 기준 보기', hint: 'exit\ncat ~/forms/severity_guide.txt', done: ev => ev.read.has('/home/oracle/forms/severity_guide.txt'),
+        why: '이 기준은 실습용 예시입니다. 실제 등급 기준과 보고 주기는 회사마다 정해져 있으니 입사하면 가장 먼저 찾아 읽으세요. 이번 건은 핵심 업무(주문 저장)가 일부 실패하고, 사용자가 우회할 방법이 없습니다.' },
+      { text: '접수 기록에 사실 적기 (양식: ~/forms/intake_form.txt)', hint: "echo '접수 번호: INC-1127-01' > ~/incident/INC-1127-01.txt\necho '접수 시각: 09:14' >> ~/incident/INC-1127-01.txt\necho '신고자: 주문팀 김과장 (내선 2231)' >> ~/incident/INC-1127-01.txt\necho '증상: 주문 저장 일부 실패. alert log에 09:02부터 ORA-1653 (APP.ORDER_HIST, USERS) 10회' >> ~/incident/INC-1127-01.txt\necho '영향 범위: 주문 저장. 조회는 정상' >> ~/incident/INC-1127-01.txt", done: () => hasF(INTAKE, '접수 번호', '접수 시각', '신고자', '증상', '영향 범위') && /1653/.test(fv(INTAKE, '증상')),
+        why: '> 는 파일을 새로 쓰고, >> 는 끝에 덧붙입니다. 첫 줄만 > 를 쓰세요. 증상 칸에는 신고자의 말과 DB에서 확인한 사실(오류 번호, 시각, 횟수)을 함께 적습니다. 나중에 장애보고서의 발생 시각과 인지 시각이 이 기록에서 나옵니다.' },
+      { text: '등급 적기', hint: "echo '등급: 2' >> ~/incident/INC-1127-01.txt", done: () => /^\s*[1-4]/.test(fv(INTAKE, '등급')),
+        why: '등급 기준(예시)으로 보면 핵심 업무(주문 저장)가 일부 실패하고 우회가 어려우므로 2등급입니다. 등급에 따라 보고 대상과 경과 보고 주기가 정해집니다.' },
+      { text: '팀장에게 보낼 1차 보고 쓰기 (양식: ~/forms/first_report_form.txt)', hint: "echo '현재 상황: 09:02부터 주문 저장 일부 실패 (2등급)' > ~/incident/INC-1127-01_1st.txt\necho '원인 추정: USERS 테이블스페이스 공간 부족 (ORA-1653, 자동 확장 꺼짐)' >> ~/incident/INC-1127-01_1st.txt\necho '다음 조치: 데이터 파일 추가 작업계획서 작성 후 승인 받아 작업' >> ~/incident/INC-1127-01_1st.txt\necho '다음 보고: 10:20' >> ~/incident/INC-1127-01_1st.txt", done: () => hasF(FIRST, '현재 상황', '원인 추정', '다음 조치', '다음 보고'),
+        why: '1차 보고는 빨리, 짧게 합니다. 원인은 아직 "추정"으로 적고, 무엇을 할지와 다음 보고 시각을 약속합니다. 등급 기준(예시)의 2등급은 1시간마다 경과 보고이므로 다음 보고를 1시간 안으로 잡았습니다.' },
+      { text: '쓴 기록 다시 읽어 보기', hint: 'cat ~/incident/INC-1127-01.txt ~/incident/INC-1127-01_1st.txt', done: ev => ev.read.has(INTAKE) && ev.read.has(FIRST),
+        why: '보내기 전에 한 번 읽습니다. 시각, 오류 번호, 등급이 서로 맞는지 봅니다. 수고했습니다. 다음 레슨에서 작업계획서를 씁니다.' },
+    ],
+    field: '장애 대응은 "고치기"보다 "알리기"가 먼저 시작됩니다. 접수 기록은 신고자, 시각, 증상, 영향 범위를 사실대로 남기고, 원인은 확인된 것과 추정을 구분합니다. 이 레슨의 양식과 등급 기준은 실습용 예시이며 특정 표준을 옮긴 것이 아닙니다. 회사의 양식, 보고 대상, 보고 주기를 따르세요.',
+    sources: ['errmg2'] },
+
+  { id: 122, stage: 13, title: '작업계획서 쓰고 사전 점검 남기기', short: '작업계획서', start: 'oracle',
+    who: '박팀장 (메신저)',
+    situation: '"1차 보고 받았어요. 운영 시간 중 변경이니 작업계획서부터 써서 보내요. 사전 점검 결과는 파일로 남기고, 원복 방법도 꼭 적어요. 승인 나면 그때 작업해요." 접수 기록과 1차 보고는 ~/incident/ 에 있습니다.',
+    tasks: [
+      { text: '작업계획서 양식 보기', hint: 'cat ~/forms/change_plan_form.txt', done: ev => ev.read.has('/home/oracle/forms/change_plan_form.txt'),
+        why: '목적, 대상, 사전 점검, 절차, 확인 방법, 원복 방법, 영향. 승인하는 사람이 "무엇을, 왜, 어떻게, 잘못되면 어떻게"를 한눈에 보게 하는 것이 작업계획서입니다.' },
+      { text: '사전 점검을 파일로 남기기 시작 (SPOOL)', hint: 'sqlplus / as sysdba\nspool ~/incident/precheck.txt', done: ev => !!ev.spool,
+        why: 'SPOOL을 켜면 그 뒤의 화면 출력이 파일에도 저장됩니다. 사전 점검 결과는 작업 전 상태의 증거이고, 원복할 때 되돌아갈 기준이 됩니다.' },
+      { text: 'USERS 데이터 파일 상태 점검', hint: "set linesize 200\ncol file_name format a50\nselect file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES') && S.sql && S.sql.spool,
+        why: 'users01.dbf 4096MB, 자동 확장 NO. 계획서의 "작업 대상"과 "사전 점검" 칸에 들어갈 사실입니다.' },
+      { text: '새 파일을 만들 디스크와 같은 이름의 파일이 없는지 점검', hint: 'host df -h /u02\nhost ls /u02/app/oracle/oradata/ORCL', done: ev => ev.host && (has(ev, 'ls') || has(ev, 'df')) && S.sql && S.sql.spool,
+        why: '/u02에 여유가 충분하고 users02.dbf는 아직 없습니다. 이미 있는 이름으로 ADD DATAFILE을 하면 실패합니다(이름 규칙은 기존 파일을 따릅니다).' },
+      { text: 'SPOOL 끄고 SQL*Plus에서 나오기', hint: 'spool off\nexit', done: ev => ev.type === 'sql-exit' && /users01\.dbf/i.test(ftxt('/home/oracle/incident/precheck.txt')),
+        why: 'SPOOL OFF를 해야 파일이 닫힙니다. ~/incident/precheck.txt에 점검 결과가 남았습니다.' },
+      { text: '작업계획서 쓰기 (목적, 대상, 사전 점검)', hint: "echo '작업 번호: CHG-1127-01' > ~/incident/CHG-1127-01.txt\necho '작업 목적: INC-1127-01 복구, USERS 공간 확보' >> ~/incident/CHG-1127-01.txt\necho '작업 대상: ORCL, 테이블스페이스 USERS' >> ~/incident/CHG-1127-01.txt\necho '사전 점검: ~/incident/precheck.txt (users01.dbf 4096MB 자동 확장 NO, /u02 여유 충분, users02.dbf 없음)' >> ~/incident/CHG-1127-01.txt", done: () => hasF(PLAN, '작업 번호', '작업 목적', '작업 대상', '사전 점검'),
+        why: '작업 목적에 장애 번호를 적어 두면 나중에 장애와 변경 기록을 서로 찾아갈 수 있습니다.' },
+      { text: '작업 절차와 확인 방법 쓰기', hint: "echo \"작업 절차: alter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;\" >> ~/incident/CHG-1127-01.txt\necho '확인 방법: dba_data_files에 users02.dbf, alert log에 Completed, 주문팀 재시도' >> ~/incident/CHG-1127-01.txt", done: () => /add\s+datafile/i.test(fv(PLAN, '작업 절차')) && !!fv(PLAN, '확인 방법'),
+        why: '절차에는 실제로 실행할 문장을 그대로 적습니다. 작업 중에는 계획서의 문장을 복사해서 실행하고, 즉석에서 고쳐 치지 않습니다. 확인 방법은 DB 쪽(뷰, alert log)과 업무 쪽(사용자 재시도)을 함께 적습니다.' },
+      { text: '원복 방법과 영향 쓰기', hint: "echo \"원복 방법: alter tablespace users drop datafile '/u02/app/oracle/oradata/ORCL/users02.dbf'; (파일이 비어 있을 때만)\" >> ~/incident/CHG-1127-01.txt\necho '영향: 온라인 작업, 서비스 중단 없음, 1분 이내' >> ~/incident/CHG-1127-01.txt", done: () => { const okk = planOk(); if (okk) deliverApproval(); return okk; },
+        why: 'Administrator\'s Guide 19c(데이터 파일 삭제): ALTER TABLESPACE의 DROP DATAFILE로 데이터 파일 하나를 지울 수 있지만, DB가 열려 있어야 하고, 비어 있지 않은 파일과 테이블스페이스의 첫 번째(또는 유일한) 파일은 지울 수 없습니다. 지우면 딕셔너리와 컨트롤 파일에서 빠지고 실제 파일도 삭제됩니다. 그래서 "비어 있을 때만"이라는 조건을 함께 적었습니다. 데이터가 들어간 뒤에는 이 원복이 불가능하다는 것도 승인자가 알아야 합니다.' },
+      { text: '팀장의 답장 읽기', hint: 'cat ~/inbox/approval_CHG-1127-01.txt', done: ev => ev.read.has(APPROVAL),
+        why: '승인이 났습니다. 승인 기록(누가, 언제)은 작업계획서와 함께 보관합니다. 다음 레슨에서 계획서대로 작업하고 장애보고서를 씁니다.' },
+    ],
+    field: '작업계획서는 "내가 무엇을 할지"보다 "승인자가 판단할 수 있게" 쓰는 문서입니다. 특히 원복 방법은 실제로 가능한지 문서로 확인해서 씁니다(이번처럼 조건이 있으면 조건까지). 급한 장애라도 운영 중 변경은 승인을 받고 하는 것이 원칙이며, 긴급 변경 절차가 따로 있는 회사도 많습니다. 양식은 실습용 예시입니다.',
+    sources: ['addf', 'dropdf'] },
+
+  { id: 123, stage: 13, title: '계획대로 작업하고 장애보고서 쓰기', short: '장애보고서', start: 'oracle',
+    who: '박팀장 (승인 메일)',
+    situation: '작업계획서 CHG-1127-01이 승인되었습니다(~/inbox/approval_CHG-1127-01.txt). 계획서(~/incident/CHG-1127-01.txt)의 절차대로 작업하고, 확인한 뒤, 장애보고서를 씁니다. 보고서 양식은 ~/forms/incident_report_form.txt입니다.',
+    tasks: [
+      { text: '작업 전에 계획서를 다시 읽기', hint: 'cat ~/incident/CHG-1127-01.txt', done: ev => ev.read.has(PLAN),
+        why: '작업 직전에 계획서를 다시 읽고, 실행할 문장을 그대로 복사해 씁니다. 승인된 것과 다른 일을 하지 않기 위해서입니다.' },
+      { text: '계획서의 작업 절차 실행하기', hint: "sqlplus / as sysdba\nalter tablespace users add datafile '/u02/app/oracle/oradata/ORCL/users02.dbf' size 1g autoextend on next 128m maxsize 10g;", done: ev => ev.ddl && ev.ddl.kind === 'add-datafile' && ev.ddl.ts === 'USERS',
+        why: '<code>Tablespace altered.</code> 실행한 시각을 기억해 두세요. 보고서의 복구 시각이 됩니다(alert log에도 남습니다).' },
+      { text: '계획서의 확인 방법대로 확인하기', hint: "select file_name, bytes/1024/1024 mb, autoextensible from dba_data_files where tablespace_name = 'USERS';", done: ev => qsel(ev, 'DBA_DATA_FILES') && S.db.files.filter(f => f.ts === 'USERS').length >= 2,
+        why: 'users02.dbf 1024MB, 자동 확장 YES가 보입니다. 주문팀 김과장에게 재시도를 요청하고, 정상 저장되는지 답을 받습니다(실습에서는 정상이라고 가정합니다).' },
+      { text: 'alert log에서 시각 모으기 (발생과 복구)', hint: 'exit\ngrep -n -E "ORA-1653|Completed: alter tablespace" -B2 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => has(ev, 'grep') && ev.read.has(ALERT) && !!recoveredAt(),
+        why: '19c alert log는 시각 줄 아래에 내용을 적습니다. 첫 ORA-1653 위의 시각 줄이 발생 시각(09:02)이고, <code>Completed: alter tablespace users add datafile</code> 위의 시각 줄(실행한 문장 바로 위)이 복구 시각입니다. -B2 는 맞는 줄 앞 두 줄을 함께 보여 줍니다. 보고서의 시각은 기억이 아니라 기록에서 가져옵니다. 인지 시각(09:14)은 접수 기록에 있습니다.' },
+      { text: '접수 기록에서 인지 시각 확인하기', hint: 'cat ~/incident/INC-1127-01.txt', done: ev => ev.read.has(INTAKE),
+        why: '발생(09:02)과 인지(09:14) 사이 12분은 "감시가 먼저 알아채지 못했다"는 뜻입니다. 재발 방지에 들어갈 내용입니다.' },
+      { text: '장애보고서: 시각 세 가지와 영향 쓰기', hint: () => { const r = recoveredAt() || 'HH:MM'; return `echo '발생 시각: 09:02 (alert log 첫 ORA-1653)' > ~/incident/INC-1127-01_report.txt\necho '인지 시각: 09:14 (주문팀 신고)' >> ~/incident/INC-1127-01_report.txt\necho '복구 시각: ${r} (데이터 파일 추가 완료)' >> ~/incident/INC-1127-01_report.txt\necho '영향: 주문 저장 일부 실패 (ORA-1653 10회), 조회는 정상' >> ~/incident/INC-1127-01_report.txt`; }, done: () => hasF(REPORT, '발생 시각', '인지 시각', '복구 시각', '영향'),
+        why: '복구 시각에는 alert log의 Completed 줄 시각을 적습니다(힌트에 이 실습의 실제 시각이 들어 있습니다).' },
+      { text: '장애보고서: 원인, 조치, 재발 방지 쓰기', hint: "echo '원인: USERS 테이블스페이스 공간 부족. users01.dbf(4096MB) 자동 확장 꺼짐 상태에서 다 참 (ORA-1653)' >> ~/incident/INC-1127-01_report.txt\necho '조치: CHG-1127-01 승인 후 users02.dbf 1GB 추가 (자동 확장, 최대 10GB)' >> ~/incident/INC-1127-01_report.txt\necho '재발 방지: 테이블스페이스 사용률 85% 경보 추가, 매일 점검 목록에 USERS 포함, alert log ORA- 감시' >> ~/incident/INC-1127-01_report.txt", done: () => reportOk(),
+        why: '원인은 "무엇이 일어났고 왜 그 상태였나"까지 적습니다(공간이 찼다 + 자동 확장이 꺼져 있었다). 재발 방지는 사람의 주의가 아니라 장치(경보, 점검 목록)로 적습니다. 발생과 인지 사이 12분을 줄이는 감시가 핵심입니다.' },
+      { text: '보고서 다시 읽어 보기', hint: 'cat ~/incident/INC-1127-01_report.txt', done: ev => ev.read.has(REPORT) && reportOk(),
+        why: '수고했습니다. 13단계를 마쳤습니다. 접수(사실 확인, 등급, 1차 보고) → 작업계획서(사전 점검, 절차, 원복, 승인) → 작업과 장애보고서(기록에서 시각 모으기, 원인, 재발 방지)까지 한 건의 장애를 처음부터 끝까지 다뤘습니다.' },
+    ],
+    field: '장애보고서는 누군가를 탓하는 문서가 아니라 같은 일이 다시 일어나지 않게 하는 문서입니다. 시각은 기록(alert log, 접수 기록, 승인 메일)에서 가져오고, 원인은 확인한 사실로, 재발 방지는 담당자와 기한이 있는 일로 적습니다. 양식은 실습용 예시입니다.',
+    sources: ['addf', 'dropdf'] },
+);
+
+/* =====================================================================
    9. 레슨 진행
    ===================================================================== */
 let cur = null, prog = {};
@@ -7012,7 +7189,9 @@ function startLesson(id) {
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
   S.osfail = null; S.chrony = null;
-  if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  S.wf = null;
+  if (S.stage === 13) { makeWorld13(L.id - 120); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -7062,7 +7241,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '5단계 · 장애 대응', sub: '5단계 · 장애 대응과 복구' }, 5: { name: '6단계 · 고급 복구', sub: '6단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '7단계 · 성능 점검', sub: '7단계 · 대기 이벤트와 AWR' }, 7: { name: '8단계 · 패치', sub: '8단계 · OPatch와 분기별 RU' }, 8: { name: '9단계 · SQL 튜닝 입문', sub: '9단계 · 실행 계획과 인덱스' }, 9: { name: '10단계 · Data Guard 기초', sub: '10단계 · 주 DB와 물리 대기 DB' }, 10: { name: '4단계 · SQL 기초', sub: '4단계 · SELECT, 조인, DML, DDL' }, 11: { name: '11단계 · RAC 기초', sub: '11단계 · Clusterware와 2노드 RAC' }, 12: { name: '12단계 · OS 원인 장애', sub: '12단계 · 디스크, 메모리, 시계' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '5단계 · 장애 대응', sub: '5단계 · 장애 대응과 복구' }, 5: { name: '6단계 · 고급 복구', sub: '6단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '7단계 · 성능 점검', sub: '7단계 · 대기 이벤트와 AWR' }, 7: { name: '8단계 · 패치', sub: '8단계 · OPatch와 분기별 RU' }, 8: { name: '9단계 · SQL 튜닝 입문', sub: '9단계 · 실행 계획과 인덱스' }, 9: { name: '10단계 · Data Guard 기초', sub: '10단계 · 주 DB와 물리 대기 DB' }, 10: { name: '4단계 · SQL 기초', sub: '4단계 · SELECT, 조인, DML, DDL' }, 11: { name: '11단계 · RAC 기초', sub: '11단계 · Clusterware와 2노드 RAC' }, 12: { name: '12단계 · OS 원인 장애', sub: '12단계 · 디스크, 메모리, 시계' }, 13: { name: '13단계 · 현장 업무 흐름', sub: '13단계 · 접수, 작업계획서, 장애보고서' } };
 const stageOf = (l) => l.stage || 3;
 /* 화면에 보이는 단계 번호. 내부 단계 키(stage)는 그대로 두고 course.js의 순서로 번호를 붙인다(4단계 SQL 기초를 3단계 뒤에 넣었다). */
 const dno = (st) => { const i = Course.STAGES.findIndex(x => x.st === st); return i >= 0 ? i + 1 : st; };

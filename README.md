@@ -17,7 +17,7 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 1. **리눅스 해부도** (`linux/`) · https://batiappa.github.io/oracle-anatomy/linux/
 2. **리눅스 실습** (`lab/`, 실습 1·2단계)
 3. **Oracle 해부도** (루트 `index.html`)
-4. **DBA 실습** (`dba/`, 실습 3~12단계)
+4. **DBA 실습** (`dba/`, 실습 3~13단계)
 
 해부도의 장면마다 아래쪽에 **이 내용 실습하기** 버튼이 있어 같은 내용을 다루는 실습 레슨으로 바로 갑니다. 반대로 실습 레슨 제목 아래의 **원리 먼저 보기**는 관련 해부도 장면으로 갑니다. 두 방향의 링크는 모두 `course.js`의 연결표 `THEORY` 한 곳에서 만들어집니다(장면 이름과 레슨 제목이 실제 화면 값과 같은지는 자동 점검으로 비교합니다).
 
@@ -88,7 +88,7 @@ SGA를 8G에서 12G로 늘렸더니 인스턴스가 뜨지 않은 사례로 시�
 
 **주소:** https://batiappa.github.io/oracle-anatomy/lab/
 
-실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 익히는 실습 과정입니다. 리눅스 실습실(1·2단계)과 DBA 실습(3~12단계)은 하나의 "실습 과정"으로 이어집니다. 두 화면 위쪽에 같은 단계 메뉴가 있어 1~12단계의 진행률(완료한 레슨 수)을 한눈에 보고 어느 단계로든 바로 갈 수 있습니다. 단계 메뉴는 두 화면이 함께 쓰는 `course.js`가 그리고, 진행률은 각 화면이 브라우저에 저장한 값(`ohb:lab:done`, `ohb:dba:done`)을 함께 읽어 계산합니다.
+실무 경험이 없는 신입 DBA가 Oracle Linux 8 서버를 흉내 낸 브라우저 터미널에 직접 명령을 입력하며 익히는 실습 과정입니다. 리눅스 실습실(1·2단계)과 DBA 실습(3~13단계)은 하나의 "실습 과정"으로 이어집니다. 두 화면 위쪽에 같은 단계 메뉴가 있어 1~13단계의 진행률(완료한 레슨 수)을 한눈에 보고 어느 단계로든 바로 갈 수 있습니다. 단계 메뉴는 두 화면이 함께 쓰는 `course.js`가 그리고, 진행률은 각 화면이 브라우저에 저장한 값(`ohb:lab:done`, `ohb:dba:done`)을 함께 읽어 계산합니다.
 
 ### 1단계 · 리눅스 기초 (Oracle 19c가 이미 돌아가는 dbserver01, oracle 계정)
 
@@ -129,7 +129,7 @@ SGA를 8G에서 12G로 늘렸더니 인스턴스가 뜨지 않은 사례로 시�
 
 **주소:** https://batiappa.github.io/oracle-anatomy/dba/
 
-리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd, dgmgrl, 그리고 RAC의 crsctl·srvctl·olsnodes를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-91`부터 `#lesson-96`, 5단계가 `#lesson-31`부터 `#lesson-36`, 6단계가 `#lesson-41`부터 `#lesson-43`, 7단계가 `#lesson-51`부터 `#lesson-53`, 8단계가 `#lesson-61`부터 `#lesson-63`, 9단계가 `#lesson-71`부터 `#lesson-73`, 10단계가 `#lesson-81`부터 `#lesson-83`, 11단계가 `#lesson-101`부터 `#lesson-108`, 12단계가 `#lesson-111`부터 `#lesson-113`입니다. 단계 번호는 배우는 순서이고 레슨 번호는 만든 순서라서 둘이 어긋납니다.
+리눅스 실습실 다음 단계입니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c를 설치하고 ORCL 데이터베이스를 만든 상황에서, 가상 터미널로 SQL*Plus, lsnrctl, RMAN, orapwd, dgmgrl, 그리고 RAC의 crsctl·srvctl·olsnodes를 직접 다룹니다. 주소의 레슨 번호는 3단계가 `#lesson-21`부터 `#lesson-29`, 4단계가 `#lesson-91`부터 `#lesson-96`, 5단계가 `#lesson-31`부터 `#lesson-36`, 6단계가 `#lesson-41`부터 `#lesson-43`, 7단계가 `#lesson-51`부터 `#lesson-53`, 8단계가 `#lesson-61`부터 `#lesson-63`, 9단계가 `#lesson-71`부터 `#lesson-73`, 10단계가 `#lesson-81`부터 `#lesson-83`, 11단계가 `#lesson-101`부터 `#lesson-108`, 12단계가 `#lesson-111`부터 `#lesson-113`, 13단계가 `#lesson-121`부터 `#lesson-123`입니다. 단계 번호는 배우는 순서이고 레슨 번호는 만든 순서라서 둘이 어긋납니다.
 
 ### 3단계 · 오라클 19c 기본 운영 (dbserver02, oracle 계정)
 
@@ -252,6 +252,19 @@ DB는 멀쩡한데 리눅스 쪽 문제로 오라클이 멈추는 세 가지 상
 
 - 근거: Oracle 오류 도움말(ORA-09925, CRS-2409, CRS-4700), Administrator's Reference 19c for Linux and UNIX(HugePages는 스왑되지 않음, THP 끄기, AMM과 HugePages는 함께 못 씀), Grid Infrastructure Installation Guide 19c(chrony가 있으면 CTSS observer 모드, CTSS deprecated, `cluvfy comp clocksync`), Clusterware Administration and Deployment Guide 19c(Clusterware alert log 위치), 리눅스 커널 소스와 문서(ENOSPC 28, OOM 메시지 형식, oom_score_adj), chrony 4.5 문서(tracking 항목, makestep 경고, maxslewrate 기본값), My Oracle Support 문서 제목(Linux-x86_64 Error: 28 줄 형식).
 - 확인하지 못한 것: Oracle Linux 8 커널의 정확한 OOM 문구(현재 커널 소스 형식을 썼습니다), OOM으로 인스턴스가 죽을 때 alert log 문구(넣지 않았습니다), systemctl status 화면 모양, crsctl check ctss 출력 전체, alert log의 [OCTSSD(...)] 표시. 터미널에 ⓘ 줄과 레슨 끝 설명으로 알립니다.
+
+### 13단계 · 현장 업무 흐름 (접수, 작업계획서, 장애보고서)
+
+주문 저장 일부 실패(USERS 공간 부족, ORA-1653) 한 건을 처음부터 끝까지 다룹니다. 명령보다 기록이 중심이며, 파일은 `~/incident/`에 `echo ... >>`로 씁니다. 양식은 `~/forms/`에 있습니다.
+
+| 레슨 | 내용 | 주요 명령 |
+|---|---|---|
+| 1 | 장애 접수: 사실을 확인하고 1차 보고하기 | 신고 읽기, alert log에서 시각과 횟수(`grep -c`), `dba_data_files`, 등급 기준, 접수 기록과 1차 보고 쓰기 |
+| 2 | 작업계획서 쓰고 사전 점검 남기기 | `spool`로 사전 점검 저장, `host df`·`host ls`, 목적·대상·절차·확인·원복·영향, 승인 메일 |
+| 3 | 계획대로 작업하고 장애보고서 쓰기 | 계획서의 `alter tablespace ... add datafile` 실행과 확인, alert log에서 발생·복구 시각 모으기(`grep -B2`), 장애보고서 |
+
+- 근거: Administrator's Guide 19c(ADD DATAFILE, DROP DATAFILE의 조건: DB가 열려 있어야 하고 비어 있는 파일만, 첫 파일 불가, 물리 파일 삭제).
+- 양식과 등급 기준은 실습용 예시이며 특정 표준이 아닙니다. 기록 내용은 칸 이름(예: `원인:`)과 핵심 사실(발생 09:02, 인지 09:14, 복구 시각)로 판정합니다.
 
 - SQL*Plus 안에는 실습에 필요한 만큼의 작은 SQL 엔진(SELECT의 조인·외부 조인·하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수, 4단계 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL)과 SQL*Plus 형식의 출력(LINESIZE, PAGESIZE, FEEDBACK, COLUMN FORMAT)이 들어 있습니다.
 - 절차와 해설은 Oracle Database 19c 공식 문서를 기준으로 했고, 레슨마다 근거 링크를 붙였습니다. 공식 문서 예시로 확인한 출력과 확인하지 못한 출력은 페이지 아래쪽에 나누어 적었고, 확인하지 못한 출력은 터미널에도 ⓘ 줄로 알려 줍니다.
