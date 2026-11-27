@@ -17,7 +17,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:site_name" content="Oracle 해부도">
+<meta property="og:site_name" content="미스터오라클">
 <meta property="og:title" content="명령 한 줄의 여정 · 리눅스 해부도">
 <meta property="og:description" content="명령 한 줄이 리눅스 서버 안에서 계정, 셸과 PATH, 권한, 프로세스, 공유 메모리, 커널 파라미터와 limits, HugePages, 파일 시스템을 거치는 과정을 12단계 애니메이션으로 따라가는 리눅스 해부도. 오라클 19c 설치 준비와 연결됩니다.">
 <meta name="twitter:card" content="summary_large_image">
@@ -34,14 +34,8 @@
 <body>
 <header class="top">
   <div class="top-in">
+    <a class="logo" href="../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
     <div class="brand">
-      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 3 29 10.5 16 18 3 10.5Z" fill="var(--c-redo)"/>
-        <path d="M3 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 70%, #000)"/>
-        <path d="M29 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 50%, #000)"/>
-        <path d="M3 17.5 16 25l13-7.5v4L16 29 3 21.5Z" fill="var(--c-data)"/>
-        <path d="M16 25v4l13-7.5v-4Z" fill="color-mix(in srgb, var(--c-data) 60%, #000)"/>
-      </svg>
       <span class="brand-name">리눅스 해부도</span>
       <span class="brand-sub">오라클이 기대는 리눅스의 속</span>
     </div>
@@ -120,13 +114,13 @@
     <div>
       <h2>이 프로젝트에 대해</h2>
       <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, 리눅스 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
-      <p class="credit">만든 사람: 김영조 · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
     </div>
     <div class="legal">
       <h2>참고 사항</h2>
       <p>설명은 Oracle Linux 8과 Oracle Database 19c 설치 가이드 기준입니다. 서버 이름(dbserver01), 경로, UID, 메모리 크기는 리눅스 실습의 가상 서버와 같은 값이고, PID와 /u01 사용률 같은 수치는 설명을 위한 예시 값입니다.</p>
       <p>근거 문서: <a href="https://man7.org/linux/man-pages/man7/hier.7.html" target="_blank" rel="noopener">hier(7) · 리눅스 디렉터리 구조</a>, <a href="https://man7.org/linux/man-pages/man5/passwd.5.html" target="_blank" rel="noopener">passwd(5) · /etc/passwd 형식</a>, <a href="https://www.gnu.org/software/bash/manual/html_node/Command-Search-and-Execution.html" target="_blank" rel="noopener">Bash 매뉴얼 · Command Search and Execution (PATH, 127)</a>, <a href="https://man7.org/linux/man-pages/man2/umask.2.html" target="_blank" rel="noopener">umask(2)</a>, <a href="https://man7.org/linux/man-pages/man2/fork.2.html" target="_blank" rel="noopener">fork(2)</a>, <a href="https://man7.org/linux/man-pages/man2/execve.2.html" target="_blank" rel="noopener">execve(2)</a>, <a href="https://man7.org/linux/man-pages/man2/shmget.2.html" target="_blank" rel="noopener">shmget(2) · System V 공유 메모리, SHMMAX·SHMALL</a>, <a href="https://man7.org/linux/man-pages/man5/proc_meminfo.5.html" target="_blank" rel="noopener">proc_meminfo(5)</a>, <a href="https://man7.org/linux/man-pages/man8/sysctl.8.html" target="_blank" rel="noopener">sysctl(8)</a>, <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/hugetlbpage.html" target="_blank" rel="noopener">Linux 커널 문서 · HugeTLB Pages</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/optimal-flexible-architecture/optimal-flexible-architecture-file-path-examples.html" target="_blank" rel="noopener">Oracle 19c 설치 가이드 · OFA 경로 예시</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/configuring-the-software-owner-user-environments.html" target="_blank" rel="noopener">Oracle 19c 설치 가이드 · 사용자 환경 설정(시작 파일, umask 022)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html" target="_blank" rel="noopener">Oracle 19c Administrator's Guide · 1장 (OS 인증, OSDBA 그룹)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/server-configuration-checklist-for-oracle-database-installation.html" target="_blank" rel="noopener">Oracle 19c 설치 가이드 · Server Configuration Checklist (스왑 기준)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/minimum-parameter-settings-for-installation.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c 설치 가이드 · Minimum Parameter Settings (커널 파라미터)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/checking-resource-limits-for-oracle-software-installation-users.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c 설치 가이드 · Checking Resource Limits (limits)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html" target="_blank" rel="noopener">Oracle 19c Administrator's Reference for Linux and UNIX · 부록 A (HugePages, AMM과 함께 못 씀)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/setting-thp-uek.html" target="_blank" rel="noopener">Oracle 19c 설치 가이드 · THP on UEK Kernels</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/setting-the-disk-io-scheduler-on-linux-8.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c 설치 가이드 · Disk I/O Scheduler on Linux 8</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-00257/" target="_blank" rel="noopener">Oracle Error Help · ORA-00257</a>.</p>
-      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
     </div>
   </div>
 </footer>

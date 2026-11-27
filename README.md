@@ -1,5 +1,7 @@
 # Oracle 해부도
 
+<img src="favicon.svg" width="28" height="28" alt=""> **미스터오라클**의 리눅스·오라클 DBA 학습 사이트
+
 Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는 인터랙티브 학습 사이트입니다.
 
 **사이트:** https://batiappa.github.io/oracle-anatomy/
@@ -251,9 +253,9 @@ python3 tools/i18n/i18n.py build en   # en/ 다시 만들기
 
 ## 만든 사람
 
-김영조 · [ambrokim@gmail.com](mailto:ambrokim@gmail.com)
+미스터오라클(김영조, 현업 때 쓰던 필명) · [ambrokim@gmail.com](mailto:ambrokim@gmail.com)
 
 ## 참고
 
 - 설명은 Oracle Database 19c 기준입니다. 현재 화면의 SCN, 블록 번호, 시간 수치는 설명용 예시 값입니다.
-- 이 프로젝트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다.
+- 이 프로젝트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다.
