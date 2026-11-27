@@ -1,7 +1,6 @@
 {
 "COMMIT의 여정 · Oracle 해부도": "The Journey of a COMMIT · Oracle Anatomy",
 "Oracle Database 19c에서 UPDATE와 COMMIT 한 번이 Buffer Cache, Undo, Redo, LGWR, DBWn을 거치는 과정을 10단계 애니메이션으로 따라가는 인터랙티브 레슨.": "An interactive lesson that follows, in a 10-step animation, how a single UPDATE and COMMIT in Oracle Database 19c pass through the Buffer Cache, Undo, Redo, LGWR, and DBWn.",
-"Oracle 해부도": "Oracle Anatomy",
 "Oracle Database 19c에서 UPDATE와 COMMIT이 Buffer Cache, Undo, Redo, LGWR, DBWn을 거치는 과정을 10단계 애니메이션으로 따라갑니다.": "Follow, in a 10-step animation, how an UPDATE and COMMIT in Oracle Database 19c pass through the Buffer Cache, Undo, Redo, LGWR, and DBWn.",
 "<span class=\"brand-name\">Oracle 해부도</span>\n      <span class=\"brand-sub\">한 단계씩 따라가는 DB 내부 강좌</span>": "<span class=\"brand-name\">Oracle Anatomy</span>\n      <span class=\"brand-sub\">A step-by-step course on database internals</span>",
 "학습 순서: 해부도로 원리를 본 뒤 실습": "Learning order: see the principles in the anatomy, then practice",
@@ -24,11 +23,9 @@
 "강좌 로드맵": "Course roadmap",
 "이 프로젝트에 대해": "About this project",
 "Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하도록 만든 인터랙티브 학습 사이트입니다. 다이어그램은 외부 그래픽 라이브러리 없이 SVG와 JavaScript로 그리며, 레슨은 데이터만 추가하면 늘어나는 구조입니다.": "An interactive learning site for understanding the internals of Oracle Database 19c one step at a time. The diagrams are drawn with SVG and JavaScript without any external graphics library, and lessons grow simply by adding data.",
-"만든 사람: 김영조 · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: Kim Youngjo · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
 "참고 사항": "Notes",
 "설명은 Oracle Database 19c 기준입니다. 화면의 SCN, 블록 번호, 시간 같은 수치는 설명을 위한 예시 값입니다.": "Explanations are based on Oracle Database 19c. Numbers on screen such as SCNs, block numbers, and times are example values for illustration.",
 "근거 문서: <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Process Architecture (LGWR, DBW)</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Transactions</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Memory Architecture</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html\" target=\"_blank\" rel=\"noopener\">SQL Language Reference 19c · COMMIT</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/lnpls/transaction-processing-and-control.html\" target=\"_blank\" rel=\"noopener\">PL/SQL Language Reference 19c · COMMIT Statement</a>.": "Reference documents: <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/process-architecture.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Process Architecture (LGWR, DBW)</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/transactions.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Transactions</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/memory-architecture.html\" target=\"_blank\" rel=\"noopener\">Concepts 19c · Memory Architecture</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html\" target=\"_blank\" rel=\"noopener\">SQL Language Reference 19c · COMMIT</a>, <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/19/lnpls/transaction-processing-and-control.html\" target=\"_blank\" rel=\"noopener\">PL/SQL Language Reference 19c · COMMIT Statement</a>.",
-"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.",
 "Dirty 블록": "Dirty blocks",
 "Redo 버퍼": "Redo buffer",
 "Redo 로그 파일": "Redo log file",
@@ -156,5 +153,10 @@
 "데이터파일은 DBWn이 나중에 모아서 씁니다. 그 사이에 장애가 나도 Redo로 복구합니다.": "DBWn writes the data files later, in batches. Even if a failure happens in between, Redo recovers it.",
 "다음 레슨 ‘Undo와 읽기 일관성’에서는 다른 세션이 어떻게 커밋 전 값을 보는지 따라갑니다.": "In the next lesson, ‘Undo and read consistency’, we follow how other sessions see the value from before the commit.",
 "커밋 경로 · 순차 쓰기": "Commit path · sequential write",
-"나중에 · 랜덤 쓰기": "Later · random write"
+"나중에 · 랜덤 쓰기": "Later · random write",
+"미스터오라클": "미스터오라클",
+"미스터오라클 처음 화면": "미스터오라클 home",
+"<span class=\"logo-word\">미스터<b>오라클</b></span></a>": "<span class=\"logo-word\">미스터<b>오라클</b></span></a>",
+"만든 사람: 미스터오라클(김영조) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub 저장소</a>": "Created by: 미스터오라클 (Kim Youngjo) · <a href=\"mailto:ambrokim@gmail.com\">ambrokim@gmail.com</a> · <a href=\"https://github.com/batiappa/oracle-anatomy\" target=\"_blank\" rel=\"noopener\">GitHub repository</a>",
+"이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.": "This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners."
 }

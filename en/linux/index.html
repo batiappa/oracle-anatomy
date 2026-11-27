@@ -17,7 +17,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="en_US">
-<meta property="og:site_name" content="Oracle Anatomy">
+<meta property="og:site_name" content="미스터오라클">
 <meta property="og:title" content="The Journey of One Command Line · Linux Anatomy">
 <meta property="og:description" content="The Linux Anatomy follows, in a 12-step animation, how one command line passes through accounts, the shell and PATH, permissions, processes, shared memory, kernel parameters and limits, HugePages, and the file system inside a Linux server. It connects to preparing for an Oracle 19c installation.">
 <meta name="twitter:card" content="summary_large_image">
@@ -34,14 +34,8 @@
 <body>
 <header class="top">
   <div class="top-in">
+    <a class="logo" href="../" aria-label="미스터오라클 home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
     <div class="brand">
-      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 3 29 10.5 16 18 3 10.5Z" fill="var(--c-redo)"/>
-        <path d="M3 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 70%, #000)"/>
-        <path d="M29 10.5v4L16 22v-4Z" fill="color-mix(in srgb, var(--c-redo) 50%, #000)"/>
-        <path d="M3 17.5 16 25l13-7.5v4L16 29 3 21.5Z" fill="var(--c-data)"/>
-        <path d="M16 25v4l13-7.5v-4Z" fill="color-mix(in srgb, var(--c-data) 60%, #000)"/>
-      </svg>
       <span class="brand-name">Linux Anatomy</span>
       <span class="brand-sub">The inner workings of Linux that Oracle relies on</span>
     </div>
@@ -120,13 +114,13 @@
     <div>
       <h2>About this project</h2>
       <p>A learning site for new DBAs working with Oracle 19c on Linux: learn the principles from pictures first, then try the same things yourself as commands in the Linux Lab. From each scene, "Practice this" takes you straight to the matching lab lesson.</p>
-      <p class="credit">Created by: Kim Youngjo · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: 미스터오라클 (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
     </div>
     <div class="legal">
       <h2>Notes</h2>
       <p>Explanations are based on Oracle Linux 8 and the Oracle Database 19c installation guide. The server name (dbserver01), paths, UIDs, and memory sizes are the same values as the virtual server in the Linux Lab, and figures such as PIDs and /u01 usage are example values for illustration.</p>
       <p>Reference documents: <a href="https://man7.org/linux/man-pages/man7/hier.7.html" target="_blank" rel="noopener">hier(7) · Linux directory hierarchy</a>, <a href="https://man7.org/linux/man-pages/man5/passwd.5.html" target="_blank" rel="noopener">passwd(5) · /etc/passwd format</a>, <a href="https://www.gnu.org/software/bash/manual/html_node/Command-Search-and-Execution.html" target="_blank" rel="noopener">Bash manual · Command Search and Execution (PATH, 127)</a>, <a href="https://man7.org/linux/man-pages/man2/umask.2.html" target="_blank" rel="noopener">umask(2)</a>, <a href="https://man7.org/linux/man-pages/man2/fork.2.html" target="_blank" rel="noopener">fork(2)</a>, <a href="https://man7.org/linux/man-pages/man2/execve.2.html" target="_blank" rel="noopener">execve(2)</a>, <a href="https://man7.org/linux/man-pages/man2/shmget.2.html" target="_blank" rel="noopener">shmget(2) · System V shared memory, SHMMAX and SHMALL</a>, <a href="https://man7.org/linux/man-pages/man5/proc_meminfo.5.html" target="_blank" rel="noopener">proc_meminfo(5)</a>, <a href="https://man7.org/linux/man-pages/man8/sysctl.8.html" target="_blank" rel="noopener">sysctl(8)</a>, <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/hugetlbpage.html" target="_blank" rel="noopener">Linux kernel documentation · HugeTLB Pages</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/optimal-flexible-architecture/optimal-flexible-architecture-file-path-examples.html" target="_blank" rel="noopener">Oracle 19c Installation Guide · OFA path examples</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/configuring-users-groups-and-environments-for-oracle-grid-infrastructure-and-oracle-database/configuring-the-software-owner-user-environments.html" target="_blank" rel="noopener">Oracle 19c Installation Guide · Configuring user environments (startup files, umask 022)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html" target="_blank" rel="noopener">Oracle 19c Administrator's Guide · Chapter 1 (OS authentication, OSDBA group)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/server-configuration-checklist-for-oracle-database-installation.html" target="_blank" rel="noopener">Oracle 19c Installation Guide · Server Configuration Checklist (swap guideline)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/minimum-parameter-settings-for-installation.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c Installation Guide · Minimum Parameter Settings (kernel parameters)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/checking-resource-limits-for-oracle-software-installation-users.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c Installation Guide · Checking Resource Limits (limits)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html" target="_blank" rel="noopener">Oracle 19c Administrator's Reference for Linux and UNIX · Appendix A (HugePages, not usable with AMM)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/setting-thp-uek.html" target="_blank" rel="noopener">Oracle 19c Installation Guide · THP on UEK Kernels</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/setting-the-disk-io-scheduler-on-linux-8.html" target="_blank" rel="noopener">Oracle Grid Infrastructure 19c Installation Guide · Disk I/O Scheduler on Linux 8</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-00257/" target="_blank" rel="noopener">Oracle Error Help · ORA-00257</a>.</p>
-      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
     </div>
   </div>
 </footer>

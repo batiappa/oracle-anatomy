@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/lab/">
 <meta property="og:locale" content="en_US">
-<meta property="og:site_name" content="Oracle Anatomy">
+<meta property="og:site_name" content="미스터오라클">
 <meta property="og:title" content="Linux Lab · Oracle Anatomy">
 <meta property="og:description" content="A browser terminal imitates an Oracle Linux 8 server for Oracle 19c, so new DBAs learn Linux basics and pre-installation preparation by typing commands themselves.">
 <script>
@@ -64,6 +64,13 @@ p code, li code, .md code { background: var(--panel-2); border: 1px solid var(--
 .brand-name { font-weight: 700; font-size: 17px; white-space: nowrap; }
 .brand-sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top-spacer { flex: 1; }
+/* 사이트 로고: 미스터오라클(만든 사람의 현업 필명). DB 원통 + 터미널 프롬프트. Oracle 공식 로고·색과 겹치지 않게 사이트 강조색(파랑)만 쓴다. */
+.logo { display: inline-flex; align-items: center; gap: 8px; flex: none; color: var(--ink); text-decoration: none; }
+.logo-mark { width: 28px; height: 28px; flex: none; display: block; }
+.logo-mark.sm { width: 18px; height: 18px; display: inline-block; vertical-align: -4px; margin-right: 4px; }
+.logo-word { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
+.logo-word b { color: var(--accent); font-weight: 700; }
+.logo + .brand { padding-left: 12px; border-left: 1px solid var(--line); }
 /* 사이트 전환 탭: Oracle 해부도 ↔ 리눅스 실습실 */
 .site-tabs { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 11px; flex: none; }
 .site-tab { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; }
@@ -189,6 +196,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 <body>
 <header class="top">
   <div class="top-in">
+    <a class="logo" href="../" aria-label="미스터오라클 home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
     <a class="brand" href="./"><span class="brand-name">Linux Lab</span><span class="brand-sub" id="brandSub">Stage 1 · Oracle Linux 8 basics</span></a>
     <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" aria-current="page" href="./"><span class="n">2</span>Linux Lab</a><a class="site-tab" href="../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../dba/"><span class="n">4</span>DBA Lab</a></nav>
     <span class="top-spacer"></span>
@@ -226,10 +234,10 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 </main>
 
 <footer class="foot">
-  <p class="credit">Created by: Kim Youngjo · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+  <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: 미스터오라클 (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
   <p>Package versions in stage 2 were checked against the package lists of the official Oracle Linux 8 repository (yum.oracle.com), and the kernel parameters, resource limits, users, groups, and boot options that the preinstall RPM changes were checked by extracting the oracle-database-preinstall-19c-1.0-4.el8 package and reading the configuration files and scripts inside it. Kernel defaults before installation, default resource limits, the disk layout, and some lines of dnf output are illustrative examples or shortened.</p>
   <p>Screen output tries to match the formats of the Oracle Linux 8.10 packages (bash 4.4, coreutils 8.30, procps-ng 3.3.15, vim-minimal 8.0). Error messages are sentences actually checked in GNU coreutils and bash. Values such as column spacing, dates, sizes, PIDs, and IPs, and the server name dbserver01, are illustrative examples, and some configuration files are shown shortened.</p>
-  <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. Linux is a registered trademark of Linus Torvalds.</p>
+  <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. '미스터오라클' (Mr. Oracle) is the creator's pen name, not the name of an Oracle product or service. Linux is a registered trademark of Linus Torvalds.</p>
 </footer>
 
 <script>
