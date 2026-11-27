@@ -162,6 +162,8 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 
 .foot { max-width: 1400px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); color: var(--muted); font-size: 13px; }
 .foot p { margin: 0 0 6px; }
+.foot .credit { color: var(--ink); font-weight: 600; padding-top: 14px; border-top: 1px solid var(--line); }
+.foot .credit a { color: inherit; }
 
 @media (max-width: 960px) {
   .wrap { grid-template-columns: minmax(0, 1fr); }
@@ -213,6 +215,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 </main>
 
 <footer class="foot">
+  <p class="credit">만든 사람: 김영조 · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
   <p>2단계의 패키지 버전은 Oracle Linux 8 공식 저장소(yum.oracle.com) 목록에서, preinstall RPM이 바꾸는 커널 파라미터·자원 제한·사용자·그룹·부팅 옵션은 oracle-database-preinstall-19c-1.0-4.el8 패키지를 풀어 그 안의 설정 파일과 스크립트에서 확인했습니다. 설치 전 커널 기본값, 기본 자원 제한, 디스크 구성, dnf 출력의 일부 줄은 설명용 예시이거나 줄인 것입니다.</p>
   <p>화면 출력은 Oracle Linux 8.10의 패키지(bash 4.4, coreutils 8.30, procps-ng 3.3.15, vim-minimal 8.0) 형식에 맞추려 했습니다. 오류 문구는 GNU coreutils와 bash에서 실제로 확인한 문장을 썼습니다. 열 간격, 날짜, 크기, PID, IP 같은 값과 서버 이름 dbserver01은 설명용 예시이고, 설정 파일 일부는 줄여서 보여 줍니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. Linux는 Linus Torvalds의 등록상표입니다.</p>

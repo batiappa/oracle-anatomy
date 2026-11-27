@@ -219,6 +219,10 @@ python3 -m http.server 8000
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 
+## 만든 사람
+
+김영조 · [ambrokim@gmail.com](mailto:ambrokim@gmail.com)
+
 ## 참고
 
 - 설명은 Oracle Database 19c 기준입니다. 현재 화면의 SCN, 블록 번호, 시간 수치는 설명용 예시 값입니다.
