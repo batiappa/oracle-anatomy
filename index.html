@@ -26,6 +26,7 @@
   try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <script src="lang.js"></script>
+<script src="stats.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -155,7 +156,7 @@ const LESSON = {
   ],
   outline: [
     { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: 'linux/', note: '리눅스 기초' }] },
-    { part: '파트 1 · 아키텍처', items: ['인스턴스와 데이터베이스', 'SGA와 PGA', '백그라운드 프로세스'] },
+    { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: 'oracle/instance/', note: '완성' }, 'SGA와 PGA', '백그라운드 프로세스'] },
     { part: '파트 2 · 트랜잭션', items: ['COMMIT의 여정', 'Undo와 읽기 일관성', '잠금과 대기', '체크포인트'], current: 0 },
     { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
     { part: '파트 4 · 가용성', items: ['Archivelog와 RMAN', 'Data Guard', 'RAC와 Cache Fusion'] },

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instance and Database · Oracle Anatomy</title>
+<meta name="description" content="A 10-step animated lesson that follows how STARTUP in Oracle Database 19c goes through NOMOUNT, MOUNT and OPEN, opening the parameter file, SGA, background processes, control files, data files and online redo logs in turn. It also shows at which stage startup failures such as ORA-00205 and ORA-01157 occur.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Mr.Oracle">
+<meta property="og:title" content="Instance and Database · Oracle Anatomy">
+<meta property="og:description" content="Follow in 10 steps what a single STARTUP opens as it goes through NOMOUNT, MOUNT and OPEN, and see at which stage startup failures occur.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="Mr.Oracle home"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">Mr.<b>Oracle</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle Anatomy</span>
+      <span class="brand-sub">A step-by-step course on database internals</span>
+    </div>
+    <nav class="site-tabs" aria-label="Learning order: see the principles in the anatomy, then practice"><a class="site-tab" href="../../linux/"><span class="n">1</span>Linux Anatomy</a><a class="site-tab" href="../../lab/"><span class="n">2</span>Linux Lab</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle Anatomy</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA Lab</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>Part 1 · Architecture</b> / lesson 1 of 3</div>
+      <div class="head-row">
+        <h1>Instance and database</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12 min</span><span class="badge">Beginner</span><span class="badge" id="stepBadge">10 steps</span></div>
+      </div>
+      <p class="summary">Follow what a single <code>STARTUP</code> opens and in what order, and learn what "it stopped at MOUNT" really means.</p>
+    </section>
+
+    <section class="card stage" aria-label="Scene">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="Diagram of the parameter file, the instance (SGA and background processes) and the database files (control files, data files, online redo logs) and the order in which they start"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>Commands · processes</li>
+            <li><i style="background:var(--c-redo)"></i>Memory · redo</li>
+            <li><i style="background:var(--c-undo)"></i>Control files</li>
+            <li><i style="background:var(--c-data)"></i>Parameter · data files</li>
+            <li><i style="background:var(--c-signal)"></i>Logs · errors</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="Replay the animation from the start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause the animation">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="Step list">
+      <div class="stepper-head"><b>Steps in this lesson</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>What you will learn</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>Course roadmap</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>About this project</h2>
+      <p>A learning site for new DBAs who run Oracle 19c on Linux: first see the principles as pictures, then do the same things yourself with commands in the DBA labs. Each scene has a "Practice this" link that takes you straight to the matching lab lesson.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Created by: Mr.Oracle (Kim Youngjo) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub repository</a></p>
+    </div>
+    <div class="legal">
+      <h2>Notes</h2>
+      <p>The explanations follow the official Oracle Database 19c documentation. The server name (dbserver02), SID (ORCL), file paths and SGA size match the virtual server in the DBA labs; byte counts and times in the output are example values. The statement that SMON performs instance recovery could not be read in full in the Concepts guide.</p>
+      <p>Sources: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · 14 Oracle Database Instance (definitions of instance and database, startup and shutdown stages, instance recovery)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html" target="_blank" rel="noopener">Oracle Database 19c Administrator's Guide · 3 Starting Up and Shutting Down (parameter file search order, NOMOUNT·MOUNT·OPEN, SHUTDOWN modes)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html" target="_blank" rel="noopener">SQL*Plus 19c User's Guide and Reference · STARTUP</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-start-oracle/index.html" target="_blank" rel="noopener">Oracle tutorial · Start up and Shut down the Oracle Database Instance (STARTUP·SHUTDOWN output)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html" target="_blank" rel="noopener">Oracle 19c Reference · V$INSTANCE</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATABASE.html" target="_blank" rel="noopener">Oracle 19c Reference · V$DATABASE</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-control-files.html" target="_blank" rel="noopener">Oracle 19c Administrator's Guide · Managing Control Files</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-00205/" target="_blank" rel="noopener">Oracle Error Help · ORA-00205</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-01157/" target="_blank" rel="noopener">Oracle Error Help · ORA-01157</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/errmg/ORA-00910.html" target="_blank" rel="noopener">Oracle 19c Error Messages (ORA-01219)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/errmg/ORA-01500.html" target="_blank" rel="noopener">Oracle 19c Error Messages (ORA-01507)</a>.</p>
+      <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Other names may be trademarks of their respective owners.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 1 레슨 1 "인스턴스와 데이터베이스". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=명령·프로세스, redo=SGA·리두, undo=컨트롤 파일, data=파라미터·데이터 파일, signal=alert log·오류
+   서버 이름, SID, 경로, SGA 크기는 DBA 실습(dba/) 3단계의 가상 서버 dbserver02와 같은 값이다.
+   SGA 줄의 바이트 수도 dba/index.html의 sgaLines()와 같다(합계 8438939312).
+   ===================================================================== */
+const SGA = [
+  'Total System Global Area 8438939312 bytes',
+  'Fixed Size                  9137840 bytes',
+  'Variable Size            1694498816 bytes',
+  'Database Buffers         6727663616 bytes',
+  'Redo Buffers                7639040 bytes',
+];
+const LESSON = {
+  page: 'instance', base: '../../', storeKey: 'instance:maxSeen', consoleTitle: 'SQL*Plus', multiHost: true,
+  metrics: [
+    { key: 'state', label: 'Instance' },
+    { key: 'sga', label: 'SGA' },
+    { key: 'ctl', label: 'Control file' },
+    { key: 'files', label: 'Data files' },
+    { key: 'who', label: 'Access' },
+  ],
+  goals: [
+    { text: 'The difference between the instance (memory, processes) and the database (files)', step: 2 },
+    { text: 'The order in which the parameter file is searched', step: 3 },
+    { text: 'What NOMOUNT, MOUNT and OPEN each open', step: 4 },
+    { text: 'Automatic instance recovery after an abnormal shutdown', step: 7 },
+    { text: 'The stages where ORA-00205 and ORA-01157 occur', step: 8 },
+    { text: 'Shutdown modes and shutdown stages', step: 10 },
+  ],
+  outline: [
+    { part: 'See first · Linux Anatomy', items: [{ text: 'The journey of one command line', href: '../../linux/', note: 'Linux basics' }] },
+    { part: 'Part 1 · Architecture', items: ['Instance and database', 'SGA and PGA', 'Background processes'], current: 0 },
+    { part: 'Part 2 · Transactions', items: [{ text: 'The Journey of a COMMIT', href: '../../', note: 'Ready' }, 'Undo and read consistency', 'Locks and waits', 'Checkpoints'] },
+    { part: 'Part 3 · SQL execution', items: ['Parsing and the Shared Pool', 'The optimizer and execution plans', 'B-tree indexes'] },
+    { part: 'Part 4 · Availability', items: ['Archivelog and RMAN', 'Data Guard', 'RAC and Cache Fusion'] },
+  ],
+  zones: [
+    { id: 'cfg', from: [1.4, -1.3], to: [4.8, 7.6], label: 'Parameter · diagnostic files', members: ['pfile', 'alert'] },
+    { id: 'inst', from: [5.6, -1.4], to: [11.4, 7.6], label: 'Instance (memory + processes)', members: ['sga', 'bg'] },
+    { id: 'db', from: [12.2, -1.6], to: [19.6, 7.9], label: 'Database (files on disk)', members: ['ctl', 'dbf', 'redo'] },
+  ],
+  entities: {
+    term:  { type: 'box', at: [-1.2, 3], size: [2, 2, 0.5], label: 'sqlplus / as sysdba', tone: 'sql' },
+    pfile: { type: 'box', at: [2.2, -0.5], size: [1.8, 1.6, 0.6], label: 'spfileORCL.ora', tone: 'data' },
+    alert: { type: 'box', at: [2.2, 5.2], size: [1.8, 1.6, 0.6], label: 'alert log', tone: 'signal', labelPos: 'left' },
+    sga:   { type: 'box', at: [6.2, -0.8], size: [4.2, 2.6, 0.5], label: 'SGA', tone: 'redo', cells: [6, 3] },
+    bg:    { type: 'box', at: [7.6, 4.0], size: [1.7, 1.7, 1.2], label: 'Background processes', tone: 'sql', led: true },
+    ctl:   { type: 'cyl', at: [13.6, 0.6], r: 0.9, h: 1.3, label: 'Control files ×2', tone: 'undo' },
+    dbf:   { type: 'cyl', at: [18.0, 1.2], r: 1.1, h: 1.8, label: 'Data files', tone: 'data' },
+    redo:  { type: 'cyl', at: [15.4, 5.2], r: 0.95, h: 1.2, label: 'Online redo logs', tone: 'redo', labelPos: 'right', tagDir: 'down' },
+  },
+  // onDemand 링크는 그 링크를 쓰는 흐름이 있을 때만 보인다.
+  links: {
+    conn:   { from: 'term', to: 'bg', via: [[5.2, 4.85]] },
+    param:  { from: 'pfile', to: 'sga' },
+    attach: { from: 'bg', to: 'sga' },
+    log:    { from: 'bg', to: 'alert', onDemand: true },
+    mount:  { from: 'bg', to: 'ctl', onDemand: true },
+    where1: { from: 'ctl', to: 'dbf', onDemand: true },
+    where2: { from: 'ctl', to: 'redo', onDemand: true },
+    open1:  { from: 'bg', to: 'dbf', via: [[12.0, 4.4], [18.0, 4.4]], onDemand: true },
+    open2:  { from: 'bg', to: 'redo', onDemand: true },
+  },
+  baseCells: {},
+  steps: [
+    {
+      short: 'Problem', chapter: 'problem',
+      title: 'What does "the DB stopped at MOUNT" mean?',
+      body: [
+        'During the morning check a senior colleague says, "Last night\'s restart only got as far as MOUNT and stopped." The first time you hear it, a database being half up sounds odd.',
+        'In Oracle, <code>STARTUP</code> is not a single switch but a process that goes through three stages in turn (NOMOUNT, MOUNT, OPEN). Each stage opens something different, and a failure stops at that stage. To see the difference, first separate the "instance" from the "database".',
+      ],
+      callout: { kind: 'insight', text: 'Just knowing the stage where it stopped narrows the possible causes a lot. Stuck at NOMOUNT: look at the control files first. Stuck at MOUNT: look at the data files or redo logs first.' },
+      changes: ['+ sqlplus connection', '+ DB files on disk (still closed)'],
+      metrics: { state: 'Down', sga: null, ctl: 'Closed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'ctl', 'dbf', 'redo'], focus: ['term'], dim: ['ctl', 'dbf', 'redo'],
+      tags: { term: [{ text: 'idle instance', tone: 'muted' }] },
+      flows: [],
+      console: { title: 'SQL*Plus', lines: ['$ sqlplus / as sysdba', '', 'SQL> startup'] },
+    },
+    {
+      short: 'Two things', chapter: 'technique',
+      title: 'The instance is memory, the database is files',
+      body: [
+        'The Concepts guide defines an <span class="term">instance</span> as "a set of memory structures that manage database files". When an instance starts, it allocates shared memory called the <span class="term">SGA</span> and starts background processes.',
+        'In the narrowest sense, a <span class="term">database</span> is "a set of files on disk": control files, data files and online redo logs. The guide notes that an instance can exist without a database, and a database without an instance.',
+      ],
+      callout: { kind: 'tip', text: 'An instance is associated with only one database at a time. In RAC it is the other way round: several instances open one database together. That is the shape of RAC in stage 11 of the DBA labs.' },
+      changes: ['+ Instance = SGA + background processes', '+ Database = control files · data files · redo logs'],
+      metrics: { state: 'Down', sga: null, ctl: 'Closed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['sga', 'bg'], dim: ['ctl', 'dbf', 'redo'],
+      tags: { sga: [{ text: 'Memory (gone when power is lost)', tone: 'redo' }], dbf: [{ text: 'Files (they stay)', tone: 'data' }] },
+      flows: [],
+      console: { title: 'bash', lines: ['-- instance: memory (SGA) + processes', '-- database: files on disk', '$ ls /u02/app/oracle/oradata/ORCL', 'control01.ctl  redo01.log  redo02.log  redo03.log  sysaux01.dbf  system01.dbf  temp01.dbf  undotbs01.dbf  users01.dbf'] },
+    },
+    {
+      short: 'Parameter file', chapter: 'technique',
+      title: 'First, find the parameter file',
+      body: [
+        'The instance reads its size and settings from the <span class="term">initialization parameter file</span>. According to the Administrator\'s Guide, when <code>STARTUP</code> is given no PFILE it looks for <code>spfileORCL.ora</code> → <code>spfile.ora</code> → <code>initORCL.ora</code>, in that order. The first two are binary SPFILEs; the last is a text PFILE.',
+        'On Linux these files live in the <code>dbs</code> directory of the Oracle home. The file names contain the SID (ORCL), so a wrong SID makes it look for the wrong file.',
+      ],
+      callout: { kind: 'warn', text: 'If none of the three exists, the instance cannot start. The same happens when the <code>ORACLE_SID</code> environment variable is empty or has the wrong case. This connects to the "Shell and PATH" scene of the Linux anatomy.' },
+      changes: ['+ spfileORCL.ora (dbs directory)', '~ search order: spfileSID → spfile → initSID'],
+      metrics: { state: 'Down', sga: null, ctl: 'Closed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'pfile', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['pfile'], dim: ['sga', 'bg', 'ctl', 'dbf', 'redo'],
+      tags: { pfile: [{ text: '$ORACLE_HOME/dbs', tone: 'data' }] },
+      flows: [],
+      console: { title: 'bash', lines: ['$ echo $ORACLE_SID', 'ORCL', '$ ls $ORACLE_HOME/dbs', 'hc_ORCL.dat  init.ora  lkORCL  orapwORCL  spfileORCL.ora|ok'] },
+    },
+    {
+      short: 'NOMOUNT', chapter: 'technique',
+      title: 'NOMOUNT: allocate memory and start processes',
+      body: [
+        'The Concepts guide lists the instance startup steps: find and read the parameter file, allocate the <span class="term">SGA</span> from its values, start the background processes, then open the <span class="term">alert log</span> and trace files and write the explicit parameter settings to the alert log.',
+        'That is <code>NOMOUNT</code>. No database file is open yet, so the instance does not even know the database name. <code>V$INSTANCE</code> shows <code>STARTED</code>, and querying <code>V$DATABASE</code>, which comes from the control file, gives <code>ORA-01507</code> (database not mounted).',
+      ],
+      callout: { kind: 'tip', text: 'According to the guide, you normally stop at NOMOUNT only to create a database or re-create control files. If an ordinary restart stays at NOMOUNT, the next stage failed.' },
+      changes: ['+ SGA allocated (sga_target 8G)', '+ background processes started', '+ startup written to the alert log'],
+      metrics: { state: 'STARTED', sga: '7.9 GB', ctl: 'Closed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['sga', 'bg'], dim: ['ctl', 'dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { bg: [{ text: 'ora_pmon_ORCL …', tone: 'sql' }], alert: [{ text: 'Starting ORACLE instance', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 1 }, { link: 'param', kind: 'data', n: 2 }, { link: 'attach', kind: 'redo', n: 2 }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup nomount', 'ORACLE instance started.', '', ...SGA, '', 'SQL> select status from v$instance;', 'STATUS', '------------', 'STARTED', 'SQL> select name from v$database;', 'ORA-01507: database not mounted|warn'] },
+    },
+    {
+      short: 'MOUNT', chapter: 'technique',
+      title: 'MOUNT: open the control files',
+      body: [
+        'At MOUNT the instance opens the <span class="term">control files</span> named in the <code>CONTROL_FILES</code> parameter. The control file is the map of the database: according to the guide, the instance reads it to find the names of the data files and online redo logs.',
+        'ORCL on dbserver02 keeps two control file copies on different disks. A mounted database is still closed and only DBAs can use it. Querying a business table gives <code>ORA-01219</code>; only V$ views that come from memory and the control file work.',
+      ],
+      callout: { kind: 'insight', text: 'Work such as switching to archive mode or recovering data files is done at this stage. That is why you often hear "bring it up to MOUNT and then work on it".' },
+      changes: ['+ 2 control files open', '~ knows where the data files and redo logs are'],
+      metrics: { state: 'MOUNTED', sga: '7.9 GB', ctl: '2/2 open', files: 'Closed', who: 'DBA' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['ctl'], dim: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { ctl: [{ text: 'control01.ctl · control02.ctl', tone: 'undo' }], dbf: [{ text: 'Location known only', tone: 'muted' }] },
+      flows: [{ link: 'mount', kind: 'undo', n: 2 }, { link: 'where1', kind: 'undo', n: 1, rate: 0.7 }, { link: 'where2', kind: 'undo', n: 1, rate: 0.7 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> show parameter control_files', 'NAME           TYPE    VALUE', '-------------- ------- ------------------------------------------------', 'control_files  string  /u02/app/oracle/oradata/ORCL/control01.ctl,', '                       /u01/app/oracle/fast_recovery_area/ORCL/control02.ctl', 'SQL> alter database mount;', 'Database altered.|ok', 'SQL> select name, open_mode from v$database;', 'NAME      OPEN_MODE', '--------- --------------------', 'ORCL      MOUNTED'] },
+    },
+    {
+      short: 'OPEN', chapter: 'technique',
+      title: 'OPEN: open the data files and redo logs',
+      body: [
+        'The guide lists three things at OPEN: open the online <span class="term">data files</span> of tablespaces other than undo, acquire an undo tablespace, and open the <span class="term">online redo logs</span>. Authorized users can now reach the data.',
+        'Normally you do not type the three stages separately. A plain <code>startup</code> goes through NOMOUNT, MOUNT and OPEN and prints one line per stage.',
+      ],
+      callout: { kind: 'tip', text: 'Typing <code>startup</code> on a database that is already up gives <code>ORA-01081: cannot start already-running ORACLE - shut it down first</code>. Make a habit of checking the current stage first with <code>select status from v$instance;</code>.' },
+      changes: ['+ data files open', '+ online redo logs open', '~ users can connect'],
+      metrics: { state: 'OPEN', sga: '7.9 GB', ctl: '2/2 open', files: 'Open', who: 'All' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { dbf: [{ text: 'system01.dbf …', tone: 'data' }], redo: [{ text: 'redo01~03.log', tone: 'redo' }] },
+      flows: [{ link: 'open1', kind: 'data', n: 2 }, { link: 'open2', kind: 'redo', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'Database mounted.', 'Database opened.|ok', 'SQL> select open_mode from v$database;', 'OPEN_MODE', '--------------------', 'READ WRITE'] },
+    },
+    {
+      short: 'Instance recovery', chapter: 'technique',
+      title: 'If the power went out, it recovers automatically on open',
+      body: [
+        'A normal shutdown writes the SGA contents to the data files and redo logs and closes the files. A power failure or <code>SHUTDOWN ABORT</code> skips this. Changes that were only in memory are lost, and the data files are left inconsistent.',
+        'According to the Concepts guide, <span class="term">instance recovery</span> happens automatically when a database that went down this way is opened again. Changes in the online redo log are reapplied to the data files (rolling forward), and uncommitted changes are rolled back. The SMON background process does this.',
+      ],
+      callout: { kind: 'insight', text: 'Recovery uses only the online redo logs and the current data files; no backup is needed. That is why you must never lose the redo logs. Scene 8, "Power cut", of ‘The Journey of a COMMIT’ tells the same story from the commit side.' },
+      changes: ['~ roll forward during OPEN (online redo → data files)', '~ roll back uncommitted changes'],
+      metrics: { state: 'OPEN', sga: '7.9 GB', ctl: '2/2 open', files: 'Recovered', who: 'All' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['redo', 'dbf', 'bg'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { bg: [{ text: 'SMON: instance recovery', tone: 'sql' }], redo: [{ text: 'Reapply changes', tone: 'redo' }] },
+      flows: [{ link: 'open2', kind: 'redo', n: 2, bounce: true }, { link: 'open1', kind: 'redo', n: 2 }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'alert.log', lines: ['Beginning crash recovery of 1 threads', 'Started redo scan', 'Completed redo scan', 'Started redo application at', 'Completed redo application of 0.01MB', 'Completed crash recovery at|ok'] },
+    },
+    {
+      short: 'Control file', chapter: 'case',
+      title: 'Case: one control file is gone',
+      body: [
+        'During a disk cleanup someone deleted <code>control02.ctl</code>. On restart, <code>ORACLE instance started.</code> and the SGA lines appear, then error <code>ORA-00205</code>: the control file could not be identified, so check the alert log.',
+        'The instance started, so NOMOUNT succeeded; MOUNT failed to open a control file. Missing even one copy makes MOUNT fail. The alert log says which file could not be opened.',
+      ],
+      callout: { kind: 'warn', text: 'If the remaining copy is intact, shut down, copy it over the missing one and start again (Managing Control Files). If all copies are lost, restore with RMAN. You try both in the DBA labs, stage 5 (one copy) and stage 6 (all copies lost).' },
+      changes: ['× control02.ctl missing', '× ORA-00205 → stays at NOMOUNT'],
+      metrics: { state: 'STARTED', sga: '7.9 GB', ctl: 'Failed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['ctl', 'alert'], dim: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { ctl: [{ text: 'control02.ctl missing', tone: 'signal' }], alert: [{ text: 'ORA-00205', tone: 'signal' }] },
+      flows: [{ link: 'mount', kind: 'signal', n: 2, bounce: true }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'ORA-00205: error in identifying control file, check alert log for more info|warn', 'SQL> select status from v$instance;', 'STATUS', '------------', 'STARTED'] },
+    },
+    {
+      short: 'Data files', chapter: 'case',
+      title: 'Case: one data file is gone',
+      body: [
+        'This time you get as far as <code>Database mounted.</code>, then <code>ORA-01157</code> (cannot identify/lock data file 1) and <code>ORA-01110</code>. The control files were read, so MOUNT succeeded; OPEN could not open data file 1.',
+        'This is what the senior colleague meant by "it stopped at MOUNT". The file is not where the control file says it is, and the <code>ORA-01110</code> line names exactly which file.',
+      ],
+      callout: { kind: 'warn', text: 'A data file deleted with Linux <code>rm</code> has no recycle bin. RESTORE just that file from backup, RECOVER it, then open. In stage 5 of the DBA labs you bring back an ordinary data file and a SYSTEM data file.' },
+      changes: ['× system01.dbf missing', '× ORA-01157 → stays MOUNTED'],
+      metrics: { state: 'MOUNTED', sga: '7.9 GB', ctl: '2/2 open', files: 'Failed', who: 'DBA' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['dbf'], dim: ['redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { dbf: [{ text: 'data file 1 missing', tone: 'signal' }], ctl: [{ text: 'Location known', tone: 'undo' }] },
+      flows: [{ link: 'open1', kind: 'signal', n: 2, bounce: true }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'Database mounted.', 'ORA-01157: cannot identify/lock data file 1 - see DBWR trace file|warn', "ORA-01110: data file 1: '/u02/app/oracle/oradata/ORCL/system01.dbf'|warn"] },
+    },
+    {
+      short: 'Summary', chapter: 'recap',
+      title: 'Recap: shutting down closes in reverse',
+      body: [
+        'Starting up went parameter file → instance (NOMOUNT) → control files (MOUNT) → data files and redo logs (OPEN). Shutting down goes in reverse, as in the guide\'s table: close the database (Database closed), release the control files (Database dismounted), and shut down the instance (ORACLE instance shut down).',
+        'There are four shutdown modes. NORMAL (the default) waits for all users to disconnect, TRANSACTIONAL waits for running transactions to finish, and IMMEDIATE rolls back transactions and shuts down. Only ABORT stops at once without a checkpoint, so the next startup needs instance recovery.',
+      ],
+      callout: { kind: 'tip', text: 'When you get an incident call, first check "how far did it come up". <code>STARTED</code> points to control files, <code>MOUNTED</code> to data files and redo logs, and the alert log says why.' },
+      changes: ['~ close → dismount → shut down instance'],
+      metrics: { state: 'Down', sga: null, ctl: 'Closed', files: 'Closed', who: 'Nobody' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: [],
+      tags: { pfile: [{ text: '① settings', tone: 'data' }], sga: [{ text: '② NOMOUNT', tone: 'redo' }], ctl: [{ text: '③ MOUNT', tone: 'undo' }], dbf: [{ text: '④ OPEN', tone: 'data' }] },
+      flows: [
+        { link: 'param', kind: 'data', n: 1 },
+        { link: 'attach', kind: 'redo', n: 1 },
+        { link: 'mount', kind: 'undo', n: 1 },
+        { link: 'open1', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'open2', kind: 'redo', n: 1, rate: 0.6 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> shutdown immediate', 'Database closed.', 'Database dismounted.', 'ORACLE instance shut down.|ok'] },
+    },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>

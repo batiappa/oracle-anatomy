@@ -8,6 +8,8 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 ![COMMIT의 여정 레슨 화면](og.jpg)
 
+> **English:** Learn Oracle DBA work in your browser, no install. Animated "anatomy" lessons show how Oracle Database 19c and Linux work inside (STARTUP stages, COMMIT and redo, processes and memory), and a simulated Linux terminal lets you practice real DBA tasks: SQL*Plus, RMAN backup and recovery, patching, Data Guard and RAC basics. English site: https://batiappa.github.io/oracle-anatomy/en/
+
 ## 학습 순서: 해부도로 원리를 보고, 실습으로 해 보기
 
 사이트 위쪽 탭이 학습 순서대로 놓여 있습니다.
@@ -22,6 +24,10 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 ### 리눅스 해부도 · 명령 한 줄의 여정 (12장면)
 
 `ssh oracle@dbserver01`로 들어가 `sqlplus / as sysdba`를 칠 때 리눅스 안에서 일어나는 일을 따라갑니다. 디렉터리 트리와 OFA, 계정(UID·그룹), 셸과 PATH, 권한과 umask, 프로세스(fork·exec), 공유 메모리와 스왑, 커널 파라미터와 limits, HugePages, 디스크와 파일 시스템, 사례(/u01 가득 참, ORA-00257), 정리 순서입니다. 근거는 Oracle 19c 설치 가이드·Administrator's Reference와 리눅스 매뉴얼 페이지(man7.org), Bash 매뉴얼, 커널 문서이며 화면 아래쪽에 링크를 모아 두었습니다.
+
+### Oracle 해부도 · 인스턴스와 데이터베이스 (10장면, `oracle/instance/`)
+
+`STARTUP` 한 번이 NOMOUNT(파라미터 파일 → SGA·백그라운드 프로세스 → alert log), MOUNT(컨트롤 파일), OPEN(데이터 파일·온라인 리두 로그)을 거치며 무엇을 여는지 따라갑니다. 비정상 종료 뒤 인스턴스 복구, 사례 두 가지(컨트롤 파일 하나 없음 `ORA-00205`, 데이터 파일 하나 없음 `ORA-01157`), 종료 방식 네 가지를 다룹니다. 서버 이름·SID·파일 경로·SGA 크기는 DBA 실습의 dbserver02와 같습니다. 근거는 19c Concepts의 Oracle Database Instance 장, Administrator's Guide의 Starting Up and Shutting Down 장입니다.
 
 ## 무엇을 보여 주나
 
@@ -222,6 +228,12 @@ dbserver02의 주 DB(DB_UNIQUE_NAME orcl)와 dbserver03의 물리 대기 DB(orcl
 - **레슨은 데이터입니다.** `LESSON` 객체에 영역, 구성 요소, 연결선, 단계별 상태(보일 요소, 흐름, 태그, 지표, 콘솔)를 적으면 엔진이 그립니다. 새 레슨은 엔진을 고치지 않고 데이터만 추가합니다.
 - 단계별 주소(`#step-6`), 키보드 조작(←/→, Space, R), 다크 모드, 모바일 화면, 움직임 줄이기 설정을 지원합니다.
 
+## 방문 측정과 검색 노출
+
+- `stats.js`는 [GoatCounter](https://www.goatcounter.com/)(쿠키를 쓰지 않는 방문 통계)를 붙이는 파일입니다. 파일 안 `CODE`가 비어 있으면 아무것도 하지 않고, `batiappa.github.io`에서 열 때만 셉니다. 계정의 사이트 코드를 `CODE`에 넣으면 켜집니다.
+- `sitemap.xml`은 한국어·영어 페이지와 서로의 언어 대체 주소(`hreflang`)를 적은 목록입니다. 이 사이트는 도메인 하위 경로(`/oracle-anatomy/`)라 `robots.txt`로 알릴 수 없으므로, Google Search Console에 URL 접두어 속성을 만들고 이 주소를 직접 제출합니다.
+- 저장소 단위 조회 수는 GitHub의 Insights → Traffic에서 봅니다(최근 14일만 보관).
+
 ## 로컬에서 보기
 
 `index.html`을 브라우저로 열면 됩니다. 또는:
@@ -232,7 +244,7 @@ python3 -m http.server 8000
 
 ## 로드맵
 
-- 레슨 추가: 인스턴스와 데이터베이스(STARTUP 단계), SQL 처리와 메모리 구조
+- 해부도 다음 레슨: Archivelog와 RMAN, SQL 처리와 메모리 구조
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 

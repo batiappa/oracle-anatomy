@@ -89,7 +89,7 @@
   /* ---------- 해부도 ↔ 실습 연결표 ----------
      해부도(원리)의 장면 하나와 그 내용을 직접 해 보는 실습 레슨을 잇는다. 한 곳에서만 관리하고,
      해부도 쪽 "이 내용 실습하기"와 실습 쪽 "원리 먼저 보기"가 모두 이 표에서 만들어진다.
-     page: 'linux'(linux/ 리눅스 해부도) | 'oracle'(루트 Oracle 해부도), step: 장면 번호(#step-N), t: 장면 이름(그 페이지 steps[].short와 같아야 한다)
+     page: 'linux'(linux/ 리눅스 해부도) | 'oracle'(루트 Oracle 해부도 · COMMIT의 여정) | 'instance'(oracle/instance/ 인스턴스와 데이터베이스), step: 장면 번호(#step-N), t: 장면 이름(그 페이지 steps[].short와 같아야 한다)
      lessons: 실습 레슨 id. 제목은 아래 TITLES에서 가져온다(실습 페이지 LESSONS의 title과 같아야 한다. 자동 점검이 비교한다). */
   const THEORY = [
     { page: 'linux', step: 1, t: '문제', lessons: [1] },
@@ -114,6 +114,16 @@
     { page: 'oracle', step: 8, t: '정전', lessons: [22] },
     { page: 'oracle', step: 9, t: '잦은 커밋', lessons: [52] },
     { page: 'oracle', step: 10, t: '정리', lessons: [21, 95] },
+    { page: 'instance', step: 1, t: '문제', lessons: [22] },
+    { page: 'instance', step: 2, t: '두 가지', lessons: [21] },
+    { page: 'instance', step: 3, t: '파라미터 파일', lessons: [22, 26] },
+    { page: 'instance', step: 4, t: 'NOMOUNT', lessons: [22] },
+    { page: 'instance', step: 5, t: 'MOUNT', lessons: [22, 28] },
+    { page: 'instance', step: 6, t: 'OPEN', lessons: [22] },
+    { page: 'instance', step: 7, t: '인스턴스 복구', lessons: [22] },
+    { page: 'instance', step: 8, t: '컨트롤 파일', lessons: [33, 42] },
+    { page: 'instance', step: 9, t: '데이터 파일', lessons: [31, 32] },
+    { page: 'instance', step: 10, t: '정리', lessons: [22, 29] },
   ];
   const TITLES = {
     1: 'DB 서버에 처음 접속하기', 2: '오라클이 사는 디렉터리 둘러보기', 3: 'alert log에서 오류 찾기', 4: 'vi로 작업 일지 쓰기',
@@ -122,11 +132,12 @@
     11: 'preinstall RPM으로 설치 준비 한 번에 하기', 12: '커널 파라미터 확인하기', 13: '자원 제한(limits) 확인하기',
     14: 'HugePages 설정하고 THP 확인하기', 15: '디스크 I/O 스케줄러와 시계 확인하기', 16: '직무 분리 그룹과 grid 사용자 만들기',
     17: '설치 디렉터리 만들기와 경로 규칙', 18: '졸업 미션: 남이 준비한 서버 점검하고 고치기',
-    21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기',
+    21: 'SQL*Plus로 DB에 처음 접속하기', 22: 'DB 내리고 단계별로 올리기', 26: '지워진 암호 파일 다시 만들기', 28: '아카이브 모드로 바꾸고 첫 RMAN 백업 받기',
+    29: '졸업 미션: 재부팅 뒤 아침 점검', 31: '지워진 데이터 파일 하나 되살리기', 32: 'SYSTEM 데이터 파일을 잃은 DB 살리기', 33: '컨트롤 파일 사본 하나를 잃었을 때', 42: '컨트롤 파일을 모두 잃었을 때',
     34: '빠른 복구 영역이 가득 차 DB가 멈췄을 때', 51: '지금 무엇을 기다리는지 보기 (대기 이벤트)',
     52: 'AWR 보고서로 어젯밤 배치 들여다보기', 91: 'SELECT로 테이블 읽기', 95: 'INSERT·UPDATE·DELETE와 COMMIT·ROLLBACK',
   };
-  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' } };
+  const PAGES = { linux: { name: '리눅스 해부도', dir: 'linux/' }, oracle: { name: 'Oracle 해부도', dir: '' }, instance: { name: '인스턴스와 데이터베이스', dir: 'oracle/instance/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `${s.no}단계 레슨 ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */
@@ -139,8 +150,17 @@
     return out;
   }
   /* 실습 레슨 → 원리 장면 목록. 실습 페이지(lab/, dba/)에서 부르므로 해부도는 ../ 아래에 있다. */
+  /* 한 해부도의 장면 세 개 이상이 같은 레슨에 이어지면 버튼이 너무 많아지므로, 첫 장면 하나로 묶어 장면 수를 적는다. */
   function theoryFor(id) {
-    return THEORY.filter(x => x.lessons.includes(id)).map(x => ({ page: x.page, step: x.step, href: `../${PAGES[x.page].dir}#step-${x.step}`, label: `${PAGES[x.page].name} ${x.step}장면 · ${x.t}` }));
+    const hits = THEORY.filter(x => x.lessons.includes(id)), out = [];
+    for (const x of hits) {
+      const same = hits.filter(y => y.page === x.page);
+      if (same.length >= 3) {
+        if (same[0] !== x) continue;
+        out.push({ page: x.page, step: x.step, href: `../${PAGES[x.page].dir}#step-${x.step}`, label: `${PAGES[x.page].name} ${x.step}장면부터 · 관련 장면 ${same.length}개` });
+      } else out.push({ page: x.page, step: x.step, href: `../${PAGES[x.page].dir}#step-${x.step}`, label: `${PAGES[x.page].name} ${x.step}장면 · ${x.t}` });
+    }
+    return out;
   }
   /* 실습 레슨 카드에 넣을 "원리 먼저 보기" 줄(HTML). 연결된 장면이 없으면 빈 문자열. */
   let tStyled = false;

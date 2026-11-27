@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>인스턴스와 데이터베이스 · Oracle 해부도</title>
+<meta name="description" content="Oracle Database 19c의 STARTUP이 NOMOUNT, MOUNT, OPEN을 거치며 파라미터 파일, SGA, 백그라운드 프로세스, 컨트롤 파일, 데이터 파일, 온라인 리두 로그를 차례로 여는 과정을 10단계 애니메이션으로 따라가는 레슨. ORA-00205, ORA-01157 같은 시작 장애가 어느 단계에서 나는지 함께 봅니다.">
+<meta name="theme-color" content="#e5e9ee">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- 링크 미리보기 -->
+<link rel="canonical" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/">
+<link rel="alternate" hreflang="ko" href="https://batiappa.github.io/oracle-anatomy/oracle/instance/">
+<link rel="alternate" hreflang="en" href="https://batiappa.github.io/oracle-anatomy/en/oracle/instance/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://batiappa.github.io/oracle-anatomy/oracle/instance/">
+<meta property="og:image" content="https://batiappa.github.io/oracle-anatomy/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="미스터오라클">
+<meta property="og:title" content="인스턴스와 데이터베이스 · Oracle 해부도">
+<meta property="og:description" content="STARTUP 한 번이 NOMOUNT, MOUNT, OPEN을 거치며 무엇을 여는지 10단계로 따라가고, 시작 장애가 어느 단계에서 나는지 봅니다.">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // 저장된 테마를 첫 화면 그리기 전에 적용해 깜빡임을 막는다.
+  try { var t = JSON.parse(localStorage.getItem('ohb:theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script src="../../lang.js"></script>
+<script src="../../stats.js" async></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../anatomy.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="logo" href="../../" aria-label="미스터오라클 처음 화면"><svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">미스터<b>오라클</b></span></a>
+    <div class="brand">
+      <span class="brand-name">Oracle 해부도</span>
+      <span class="brand-sub">한 단계씩 따라가는 DB 내부 강좌</span>
+    </div>
+    <nav class="site-tabs" aria-label="학습 순서: 해부도로 원리를 본 뒤 실습"><a class="site-tab" href="../../linux/"><span class="n">1</span>리눅스 해부도</a><a class="site-tab" href="../../lab/"><span class="n">2</span>리눅스 실습</a><a class="site-tab" aria-current="page" href="../../"><span class="n">3</span>Oracle 해부도</a><a class="site-tab" href="../../dba/"><span class="n">4</span>DBA 실습</a></nav>
+    <div class="top-spacer"></div>
+    <a class="top-link" id="githubLink" href="#" target="_blank" rel="noopener" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <span>GitHub</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="밝은 테마와 어두운 테마 전환">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col-main">
+    <section class="lesson-head">
+      <div class="eyebrow"><b>파트 1 · 아키텍처</b> / 3개 중 1번째 레슨</div>
+      <div class="head-row">
+        <h1>인스턴스와 데이터베이스</h1>
+        <div class="badges"><span class="badge ver">Oracle Database 19c</span><span class="badge">12분</span><span class="badge">입문</span><span class="badge" id="stepBadge">10단계</span></div>
+      </div>
+      <p class="summary"><code>STARTUP</code> 한 번이 무엇을 어떤 순서로 여는지 따라가며, "MOUNT에서 멈췄다"는 말이 무슨 뜻인지 알아봅니다.</p>
+    </section>
+
+    <section class="card stage" aria-label="장면">
+      <div class="metrics" id="metrics"></div>
+      <div class="scene-wrap"><svg id="scene" role="img" aria-label="파라미터 파일, 인스턴스(SGA와 백그라운드 프로세스), 데이터베이스 파일(컨트롤 파일, 데이터 파일, 온라인 리두 로그)의 구조와 시작 순서 다이어그램"></svg></div>
+      <div class="stage-foot">
+        <div class="console" aria-live="polite">
+          <div class="console-title"><i></i><span id="consoleTitle">SQL*Plus</span></div>
+          <pre id="consoleBody"></pre>
+        </div>
+        <div class="foot-side">
+          <ul class="legend">
+            <li><i style="background:var(--c-sql)"></i>명령 · 프로세스</li>
+            <li><i style="background:var(--c-redo)"></i>메모리 · 리두</li>
+            <li><i style="background:var(--c-undo)"></i>컨트롤 파일</li>
+            <li><i style="background:var(--c-data)"></i>파라미터 · 데이터 파일</li>
+            <li><i style="background:var(--c-signal)"></i>기록 · 오류</li>
+          </ul>
+          <div class="ctrls">
+            <button class="icon-btn" id="replayBtn" type="button" aria-label="애니메이션 처음부터 다시 보기">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <button class="icon-btn" id="pauseBtn" type="button" aria-label="애니메이션 일시정지">
+              <svg id="pauseIc" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stepper" aria-label="단계 목록">
+      <div class="stepper-head"><b>이 레슨의 단계</b><span id="stepperCount"></span></div>
+      <ol class="steps" id="steps"></ol>
+    </section>
+  </div>
+
+  <aside class="col-side">
+    <section class="card step-card" id="stepCard" aria-live="polite"></section>
+    <section class="card side-card">
+      <h2>배울 내용</h2>
+      <ul class="goals" id="goals"></ul>
+    </section>
+    <section class="card side-card">
+      <h2>강좌 로드맵</h2>
+      <div class="outline" id="outline"></div>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div>
+      <h2>이 프로젝트에 대해</h2>
+      <p>리눅스 위에서 오라클 19c를 다루는 신입 DBA가 원리를 그림으로 먼저 익히고, DBA 실습에서 같은 내용을 직접 명령으로 해 보도록 만든 학습 사이트입니다. 장면마다 "이 내용 실습하기"로 해당 실습 레슨에 바로 갈 수 있습니다.</p>
+      <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
+    </div>
+    <div class="legal">
+      <h2>참고 사항</h2>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02), SID(ORCL), 파일 경로, SGA 크기는 DBA 실습의 가상 서버와 같은 값이고, 출력의 바이트 수와 시각은 설명을 위한 예시 값입니다. SMON이 인스턴스 복구를 맡는다는 문장은 Concepts 문서에서 끝까지 읽어 확인하지 못했습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/oracle-database-instance.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · 14 Oracle Database Instance (인스턴스와 DB의 정의, 시작 단계, 종료 단계, 인스턴스 복구)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/starting-up-and-shutting-down.html" target="_blank" rel="noopener">Oracle Database 19c Administrator's Guide · 3 Starting Up and Shutting Down (파라미터 파일 찾는 순서, NOMOUNT·MOUNT·OPEN, SHUTDOWN 방식)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqpug/STARTUP.html" target="_blank" rel="noopener">SQL*Plus 19c User's Guide and Reference · STARTUP</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/tutorial-start-oracle/index.html" target="_blank" rel="noopener">Oracle 튜토리얼 · Start up and Shut down the Oracle Database Instance (STARTUP·SHUTDOWN 출력)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-INSTANCE.html" target="_blank" rel="noopener">Oracle 19c Reference · V$INSTANCE</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-DATABASE.html" target="_blank" rel="noopener">Oracle 19c Reference · V$DATABASE</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-control-files.html" target="_blank" rel="noopener">Oracle 19c Administrator's Guide · Managing Control Files</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-00205/" target="_blank" rel="noopener">Oracle Error Help · ORA-00205</a>, <a href="https://docs.oracle.com/en/error-help/db/ora-01157/" target="_blank" rel="noopener">Oracle Error Help · ORA-01157</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/errmg/ORA-00910.html" target="_blank" rel="noopener">Oracle 19c Error Messages (ORA-01219)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/errmg/ORA-01500.html" target="_blank" rel="noopener">Oracle 19c Error Messages (ORA-01507)</a>.</p>
+      <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SITE = {
+  github: 'https://github.com/batiappa/oracle-anatomy',
+};
+/* 만든 사람 표기(이름·메일)는 아래쪽 footer의 .credit 줄에 직접 적는다. 다른 페이지와 같은 문구. */
+
+/* =====================================================================
+   Oracle 해부도 파트 1 레슨 1 "인스턴스와 데이터베이스". 엔진(../../anatomy.js)은 다른 해부도와 같다.
+   색 뜻(이 페이지): sql=명령·프로세스, redo=SGA·리두, undo=컨트롤 파일, data=파라미터·데이터 파일, signal=alert log·오류
+   서버 이름, SID, 경로, SGA 크기는 DBA 실습(dba/) 3단계의 가상 서버 dbserver02와 같은 값이다.
+   SGA 줄의 바이트 수도 dba/index.html의 sgaLines()와 같다(합계 8438939312).
+   ===================================================================== */
+const SGA = [
+  'Total System Global Area 8438939312 bytes',
+  'Fixed Size                  9137840 bytes',
+  'Variable Size            1694498816 bytes',
+  'Database Buffers         6727663616 bytes',
+  'Redo Buffers                7639040 bytes',
+];
+const LESSON = {
+  page: 'instance', base: '../../', storeKey: 'instance:maxSeen', consoleTitle: 'SQL*Plus', multiHost: true,
+  metrics: [
+    { key: 'state', label: '인스턴스 상태' },
+    { key: 'sga', label: 'SGA' },
+    { key: 'ctl', label: '컨트롤 파일' },
+    { key: 'files', label: '데이터 파일' },
+    { key: 'who', label: '접속' },
+  ],
+  goals: [
+    { text: '인스턴스(메모리·프로세스)와 데이터베이스(파일)의 차이', step: 2 },
+    { text: '파라미터 파일을 찾는 순서', step: 3 },
+    { text: 'NOMOUNT·MOUNT·OPEN에서 각각 여는 것', step: 4 },
+    { text: '비정상 종료 뒤 자동 인스턴스 복구', step: 7 },
+    { text: 'ORA-00205와 ORA-01157이 나는 단계', step: 8 },
+    { text: '종료 방식과 종료 단계', step: 10 },
+  ],
+  outline: [
+    { part: '먼저 보기 · 리눅스 해부도', items: [{ text: '명령 한 줄의 여정', href: '../../linux/', note: '리눅스 기초' }] },
+    { part: '파트 1 · 아키텍처', items: ['인스턴스와 데이터베이스', 'SGA와 PGA', '백그라운드 프로세스'], current: 0 },
+    { part: '파트 2 · 트랜잭션', items: [{ text: 'COMMIT의 여정', href: '../../', note: '완성' }, 'Undo와 읽기 일관성', '잠금과 대기', '체크포인트'] },
+    { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
+    { part: '파트 4 · 가용성', items: ['Archivelog와 RMAN', 'Data Guard', 'RAC와 Cache Fusion'] },
+  ],
+  zones: [
+    { id: 'cfg', from: [1.4, -1.3], to: [4.8, 7.6], label: '파라미터 · 진단 파일', members: ['pfile', 'alert'] },
+    { id: 'inst', from: [5.6, -1.4], to: [11.4, 7.6], label: '인스턴스 (메모리 + 프로세스)', members: ['sga', 'bg'] },
+    { id: 'db', from: [12.2, -1.6], to: [19.6, 7.9], label: '데이터베이스 (디스크의 파일)', members: ['ctl', 'dbf', 'redo'] },
+  ],
+  entities: {
+    term:  { type: 'box', at: [-1.2, 3], size: [2, 2, 0.5], label: 'sqlplus / as sysdba', tone: 'sql' },
+    pfile: { type: 'box', at: [2.2, -0.5], size: [1.8, 1.6, 0.6], label: 'spfileORCL.ora', tone: 'data' },
+    alert: { type: 'box', at: [2.2, 5.2], size: [1.8, 1.6, 0.6], label: 'alert log', tone: 'signal', labelPos: 'left' },
+    sga:   { type: 'box', at: [6.2, -0.8], size: [4.2, 2.6, 0.5], label: 'SGA', tone: 'redo', cells: [6, 3] },
+    bg:    { type: 'box', at: [7.6, 4.0], size: [1.7, 1.7, 1.2], label: '백그라운드 프로세스', tone: 'sql', led: true },
+    ctl:   { type: 'cyl', at: [13.6, 0.6], r: 0.9, h: 1.3, label: '컨트롤 파일 ×2', tone: 'undo' },
+    dbf:   { type: 'cyl', at: [18.0, 1.2], r: 1.1, h: 1.8, label: '데이터 파일', tone: 'data' },
+    redo:  { type: 'cyl', at: [15.4, 5.2], r: 0.95, h: 1.2, label: '온라인 리두 로그', tone: 'redo', labelPos: 'right', tagDir: 'down' },
+  },
+  // onDemand 링크는 그 링크를 쓰는 흐름이 있을 때만 보인다.
+  links: {
+    conn:   { from: 'term', to: 'bg', via: [[5.2, 4.85]] },
+    param:  { from: 'pfile', to: 'sga' },
+    attach: { from: 'bg', to: 'sga' },
+    log:    { from: 'bg', to: 'alert', onDemand: true },
+    mount:  { from: 'bg', to: 'ctl', onDemand: true },
+    where1: { from: 'ctl', to: 'dbf', onDemand: true },
+    where2: { from: 'ctl', to: 'redo', onDemand: true },
+    open1:  { from: 'bg', to: 'dbf', via: [[12.0, 4.4], [18.0, 4.4]], onDemand: true },
+    open2:  { from: 'bg', to: 'redo', onDemand: true },
+  },
+  baseCells: {},
+  steps: [
+    {
+      short: '문제', chapter: 'problem',
+      title: '"DB가 MOUNT에서 멈췄어요"는 무슨 뜻일까?',
+      body: [
+        '아침 점검 중에 선배가 말합니다. "어젯밤 재기동 때 MOUNT까지만 올라오고 멈췄대." 처음 들으면 DB가 반쯤 떴다는 말이 이상하게 들립니다.',
+        '오라클에서 <code>STARTUP</code>은 한 번에 켜지는 스위치가 아니라 세 단계(NOMOUNT, MOUNT, OPEN)를 차례로 밟는 과정입니다. 단계마다 여는 것이 다르고, 장애도 그 단계에서 멈춥니다. 이 차이를 알려면 먼저 "인스턴스"와 "데이터베이스"를 나눠 보아야 합니다.',
+      ],
+      callout: { kind: 'insight', text: '어느 단계에서 멈췄는지만 알아도 원인 후보가 크게 줄어듭니다. NOMOUNT에서 멈추면 컨트롤 파일, MOUNT에서 멈추면 데이터 파일이나 리두 로그를 먼저 봅니다.' },
+      changes: ['+ sqlplus 접속', '+ 디스크의 DB 파일 (아직 닫힘)'],
+      metrics: { state: '내려감', sga: null, ctl: '닫힘', files: '닫힘', who: '없음' },
+      show: ['term', 'ctl', 'dbf', 'redo'], focus: ['term'], dim: ['ctl', 'dbf', 'redo'],
+      tags: { term: [{ text: 'idle instance', tone: 'muted' }] },
+      flows: [],
+      console: { title: 'SQL*Plus', lines: ['$ sqlplus / as sysdba', '', 'SQL> startup'] },
+    },
+    {
+      short: '두 가지', chapter: 'technique',
+      title: '인스턴스는 메모리, 데이터베이스는 파일',
+      body: [
+        'Concepts 문서는 <span class="term">인스턴스</span>를 "데이터베이스 파일을 관리하는 메모리 구조의 묶음"이라고 정의합니다. 인스턴스가 뜨면 <span class="term">SGA</span>라는 공유 메모리를 잡고 백그라운드 프로세스를 띄웁니다.',
+        '좁은 뜻의 <span class="term">데이터베이스</span>는 "디스크에 있는 파일의 묶음"입니다. 컨트롤 파일, 데이터 파일, 온라인 리두 로그가 여기에 들어갑니다. 문서는 인스턴스 없이 DB 파일만 있을 수도, DB 없이 인스턴스만 있을 수도 있다고 말합니다.',
+      ],
+      callout: { kind: 'tip', text: '한 인스턴스는 한 번에 한 DB만 엽니다. RAC에서는 반대로 여러 인스턴스가 한 DB를 함께 엽니다. DBA 실습 11단계의 RAC가 그 모양입니다.' },
+      changes: ['+ 인스턴스 = SGA + 백그라운드 프로세스', '+ 데이터베이스 = 컨트롤 파일 · 데이터 파일 · 리두 로그'],
+      metrics: { state: '내려감', sga: null, ctl: '닫힘', files: '닫힘', who: '없음' },
+      show: ['term', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['sga', 'bg'], dim: ['ctl', 'dbf', 'redo'],
+      tags: { sga: [{ text: '메모리 (전원이 꺼지면 사라짐)', tone: 'redo' }], dbf: [{ text: '파일 (그대로 남음)', tone: 'data' }] },
+      flows: [],
+      console: { title: 'bash', lines: ['-- 인스턴스: 메모리(SGA) + 프로세스', '-- 데이터베이스: 디스크의 파일', '$ ls /u02/app/oracle/oradata/ORCL', 'control01.ctl  redo01.log  redo02.log  redo03.log  sysaux01.dbf  system01.dbf  temp01.dbf  undotbs01.dbf  users01.dbf'] },
+    },
+    {
+      short: '파라미터 파일', chapter: 'technique',
+      title: '먼저 파라미터 파일을 찾는다',
+      body: [
+        '인스턴스는 자기 크기와 설정을 <span class="term">초기화 파라미터 파일</span>에서 읽습니다. Administrator\'s Guide에 따르면 <code>STARTUP</code>에 PFILE을 주지 않으면 <code>spfileORCL.ora</code> → <code>spfile.ora</code> → <code>initORCL.ora</code> 순서로 찾습니다. 앞의 둘은 바이너리 SPFILE, 마지막은 글자로 된 PFILE입니다.',
+        '리눅스에서 이 파일들은 Oracle home의 <code>dbs</code> 디렉터리에 있습니다. 파일 이름에 SID(ORCL)가 들어가므로 SID를 잘못 설정하면 엉뚱한 파일을 찾게 됩니다.',
+      ],
+      callout: { kind: 'warn', text: '셋 다 없으면 인스턴스가 뜨지 못합니다. <code>ORACLE_SID</code> 환경 변수가 비었거나 대소문자가 다를 때도 같은 일이 생깁니다. 리눅스 해부도의 "셸과 PATH" 장면과 이어지는 내용입니다.' },
+      changes: ['+ spfileORCL.ora (dbs 디렉터리)', '~ 찾는 순서: spfileSID → spfile → initSID'],
+      metrics: { state: '내려감', sga: null, ctl: '닫힘', files: '닫힘', who: '없음' },
+      show: ['term', 'pfile', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['pfile'], dim: ['sga', 'bg', 'ctl', 'dbf', 'redo'],
+      tags: { pfile: [{ text: '$ORACLE_HOME/dbs', tone: 'data' }] },
+      flows: [],
+      console: { title: 'bash', lines: ['$ echo $ORACLE_SID', 'ORCL', '$ ls $ORACLE_HOME/dbs', 'hc_ORCL.dat  init.ora  lkORCL  orapwORCL  spfileORCL.ora|ok'] },
+    },
+    {
+      short: 'NOMOUNT', chapter: 'technique',
+      title: 'NOMOUNT: 메모리를 잡고 프로세스를 띄운다',
+      body: [
+        'Concepts 문서가 적은 인스턴스 시작 순서는 이렇습니다. 파라미터 파일을 찾아 읽고, 그 값으로 <span class="term">SGA</span>를 잡고, 백그라운드 프로세스를 띄우고, <span class="term">alert log</span>와 트레이스 파일을 열어 명시한 파라미터 값을 alert log에 적습니다.',
+        '여기까지가 <code>NOMOUNT</code>입니다. 아직 어떤 DB 파일도 열지 않았으므로 DB 이름조차 모릅니다. <code>V$INSTANCE</code>는 <code>STARTED</code>이고, 컨트롤 파일에서 읽는 <code>V$DATABASE</code>를 조회하면 <code>ORA-01507</code>(database not mounted)가 납니다.',
+      ],
+      callout: { kind: 'tip', text: '문서에 따르면 NOMOUNT에서 멈추는 일은 보통 DB를 새로 만들거나 컨트롤 파일을 다시 만들 때뿐입니다. 평소 재기동에서 NOMOUNT에 머문다면 다음 단계가 실패한 것입니다.' },
+      changes: ['+ SGA 할당 (sga_target 8G)', '+ 백그라운드 프로세스 시작', '+ alert log에 시작 기록'],
+      metrics: { state: 'STARTED', sga: '7.9 GB', ctl: '닫힘', files: '닫힘', who: '없음' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['sga', 'bg'], dim: ['ctl', 'dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { bg: [{ text: 'ora_pmon_ORCL …', tone: 'sql' }], alert: [{ text: 'Starting ORACLE instance', tone: 'signal' }] },
+      flows: [{ link: 'conn', kind: 'sql', n: 1 }, { link: 'param', kind: 'data', n: 2 }, { link: 'attach', kind: 'redo', n: 2 }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup nomount', 'ORACLE instance started.', '', ...SGA, '', 'SQL> select status from v$instance;', 'STATUS', '------------', 'STARTED', 'SQL> select name from v$database;', 'ORA-01507: database not mounted|warn'] },
+    },
+    {
+      short: 'MOUNT', chapter: 'technique',
+      title: 'MOUNT: 컨트롤 파일을 연다',
+      body: [
+        'MOUNT 단계에서 인스턴스는 <code>CONTROL_FILES</code> 파라미터에 적힌 <span class="term">컨트롤 파일</span>을 엽니다. 컨트롤 파일은 DB의 지도입니다. 문서에 따르면 인스턴스는 컨트롤 파일을 읽어 데이터 파일과 온라인 리두 로그의 이름을 알아냅니다.',
+        'dbserver02의 ORCL은 컨트롤 파일 사본 두 개를 서로 다른 디스크에 둡니다. MOUNT된 DB는 아직 닫혀 있어서 DBA만 쓸 수 있습니다. 업무 테이블을 조회하면 <code>ORA-01219</code>가 나고, 메모리와 컨트롤 파일에서 나오는 V$ 뷰만 볼 수 있습니다.',
+      ],
+      callout: { kind: 'insight', text: '아카이브 모드로 바꾸기, 데이터 파일 복구 같은 작업은 이 단계에서 합니다. 그래서 "MOUNT까지 올려 놓고 작업한다"는 말을 자주 듣게 됩니다.' },
+      changes: ['+ 컨트롤 파일 2개 열림', '~ 데이터 파일 · 리두 로그 위치를 앎'],
+      metrics: { state: 'MOUNTED', sga: '7.9 GB', ctl: '2/2 열림', files: '닫힘', who: 'DBA' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['ctl'], dim: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { ctl: [{ text: 'control01.ctl · control02.ctl', tone: 'undo' }], dbf: [{ text: '위치만 앎', tone: 'muted' }] },
+      flows: [{ link: 'mount', kind: 'undo', n: 2 }, { link: 'where1', kind: 'undo', n: 1, rate: 0.7 }, { link: 'where2', kind: 'undo', n: 1, rate: 0.7 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> show parameter control_files', 'NAME           TYPE    VALUE', '-------------- ------- ------------------------------------------------', 'control_files  string  /u02/app/oracle/oradata/ORCL/control01.ctl,', '                       /u01/app/oracle/fast_recovery_area/ORCL/control02.ctl', 'SQL> alter database mount;', 'Database altered.|ok', 'SQL> select name, open_mode from v$database;', 'NAME      OPEN_MODE', '--------- --------------------', 'ORCL      MOUNTED'] },
+    },
+    {
+      short: 'OPEN', chapter: 'technique',
+      title: 'OPEN: 데이터 파일과 리두 로그를 연다',
+      body: [
+        'OPEN 단계에서 문서가 적은 일은 세 가지입니다. Undo가 아닌 테이블스페이스의 온라인 <span class="term">데이터 파일</span>을 열고, Undo 테이블스페이스를 잡고, <span class="term">온라인 리두 로그</span>를 엽니다. 이제 권한이 있는 사용자가 데이터에 접근할 수 있습니다.',
+        '평소에는 이 세 단계를 따로 치지 않습니다. 인수 없는 <code>startup</code> 한 번이 NOMOUNT, MOUNT, OPEN을 모두 거치고 단계마다 한 줄씩 결과를 보여 줍니다.',
+      ],
+      callout: { kind: 'tip', text: '이미 떠 있는 DB에 다시 <code>startup</code>을 치면 <code>ORA-01081: cannot start already-running ORACLE - shut it down first</code>가 납니다. 먼저 <code>select status from v$instance;</code>로 지금 단계를 확인하는 습관을 들이세요.' },
+      changes: ['+ 데이터 파일 열림', '+ 온라인 리두 로그 열림', '~ 사용자 접속 가능'],
+      metrics: { state: 'OPEN', sga: '7.9 GB', ctl: '2/2 열림', files: '열림', who: '모두' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { dbf: [{ text: 'system01.dbf …', tone: 'data' }], redo: [{ text: 'redo01~03.log', tone: 'redo' }] },
+      flows: [{ link: 'open1', kind: 'data', n: 2 }, { link: 'open2', kind: 'redo', n: 2 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'Database mounted.', 'Database opened.|ok', 'SQL> select open_mode from v$database;', 'OPEN_MODE', '--------------------', 'READ WRITE'] },
+    },
+    {
+      short: '인스턴스 복구', chapter: 'technique',
+      title: '전원이 꺼졌다면, 열 때 자동으로 복구한다',
+      body: [
+        '정상 종료는 SGA의 내용을 데이터 파일과 리두 로그에 쓰고 파일을 닫습니다. 하지만 정전이나 <code>SHUTDOWN ABORT</code>에서는 이 과정을 건너뜁니다. 메모리에만 있던 변경은 사라지고, 데이터 파일은 일관되지 않은 상태로 남습니다.',
+        'Concepts 문서에 따르면 이렇게 비정상으로 내려간 DB를 다시 열 때 <span class="term">인스턴스 복구</span>가 자동으로 일어납니다. 온라인 리두 로그의 변경을 데이터 파일에 다시 적용(롤 포워드)하고, 커밋되지 않은 변경은 되돌립니다. 이 일은 SMON 백그라운드 프로세스가 맡습니다.',
+      ],
+      callout: { kind: 'insight', text: '복구에 쓰는 것은 온라인 리두 로그와 현재 데이터 파일뿐입니다. 백업은 필요 없습니다. 그래서 리두 로그를 잃으면 안 됩니다. ‘COMMIT의 여정’ 8장면 "정전"에서 같은 이야기를 커밋 쪽에서 봅니다.' },
+      changes: ['~ OPEN 중 롤 포워드 (온라인 리두 → 데이터 파일)', '~ 커밋 안 된 변경 되돌리기'],
+      metrics: { state: 'OPEN', sga: '7.9 GB', ctl: '2/2 열림', files: '복구 열림', who: '모두' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['redo', 'dbf', 'bg'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { bg: [{ text: 'SMON: 인스턴스 복구', tone: 'sql' }], redo: [{ text: '변경 다시 적용', tone: 'redo' }] },
+      flows: [{ link: 'open2', kind: 'redo', n: 2, bounce: true }, { link: 'open1', kind: 'redo', n: 2 }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'alert.log', lines: ['Beginning crash recovery of 1 threads', 'Started redo scan', 'Completed redo scan', 'Started redo application at', 'Completed redo application of 0.01MB', 'Completed crash recovery at|ok'] },
+    },
+    {
+      short: '컨트롤 파일', chapter: 'case',
+      title: '사례: 컨트롤 파일 하나가 사라졌다',
+      body: [
+        '디스크 정리 중에 누군가 <code>control02.ctl</code>을 지웠습니다. 재기동하자 <code>ORACLE instance started.</code>와 SGA 줄까지 나온 뒤 <code>ORA-00205</code> 오류가 납니다. 컨트롤 파일을 찾지 못했으니 alert log를 보라는 뜻입니다.',
+        '인스턴스는 떴으니 NOMOUNT까지는 성공했고, MOUNT에서 컨트롤 파일을 열지 못한 것입니다. 사본 하나만 없어도 MOUNT는 실패합니다. alert log에 어느 파일을 못 열었는지 적혀 있습니다.',
+      ],
+      callout: { kind: 'warn', text: '남은 사본이 멀쩡하면 DB를 내리고 그 사본을 복사해 빠진 자리를 채운 뒤 다시 올립니다(Managing Control Files). 사본을 모두 잃었다면 RMAN으로 복원해야 합니다. DBA 실습 5단계(사본 하나)와 6단계(모두 잃었을 때)에서 직접 해 봅니다.' },
+      changes: ['× control02.ctl 없음', '× ORA-00205 → NOMOUNT에 머묾'],
+      metrics: { state: 'STARTED', sga: '7.9 GB', ctl: '실패', files: '닫힘', who: '없음' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['ctl', 'alert'], dim: ['dbf', 'redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { ctl: [{ text: 'control02.ctl 없음', tone: 'signal' }], alert: [{ text: 'ORA-00205', tone: 'signal' }] },
+      flows: [{ link: 'mount', kind: 'signal', n: 2, bounce: true }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'ORA-00205: error in identifying control file, check alert log for more info|warn', 'SQL> select status from v$instance;', 'STATUS', '------------', 'STARTED'] },
+    },
+    {
+      short: '데이터 파일', chapter: 'case',
+      title: '사례: 데이터 파일 하나가 사라졌다',
+      body: [
+        '이번에는 <code>Database mounted.</code>까지 나온 뒤 <code>ORA-01157</code>(데이터 파일 1번을 찾거나 잠글 수 없음)과 <code>ORA-01110</code>이 납니다. 컨트롤 파일은 읽었으니 MOUNT는 성공했고, OPEN에서 데이터 파일 1번을 열지 못했습니다.',
+        '이것이 선배가 말한 "MOUNT에서 멈췄다"입니다. 컨트롤 파일이 알려 준 자리에 파일이 없으니, 어느 파일인지는 <code>ORA-01110</code> 줄이 정확히 알려 줍니다.',
+      ],
+      callout: { kind: 'warn', text: '데이터 파일은 리눅스 <code>rm</code>으로 지우면 휴지통이 없습니다. 백업에서 그 파일만 RESTORE하고 RECOVER한 뒤 엽니다. DBA 실습 5단계에서 일반 데이터 파일과 SYSTEM 데이터 파일을 하나씩 되살려 봅니다.' },
+      changes: ['× system01.dbf 없음', '× ORA-01157 → MOUNTED에 머묾'],
+      metrics: { state: 'MOUNTED', sga: '7.9 GB', ctl: '2/2 열림', files: '실패', who: 'DBA' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: ['dbf'], dim: ['redo'],
+      cells: { sga: { 0: 'redo', 1: 'redo', 2: 'redo', 3: 'redo', 6: 'redo', 7: 'redo', 8: 'redo', 9: 'redo', 12: 'undo', 13: 'undo' } },
+      tags: { dbf: [{ text: 'data file 1 없음', tone: 'signal' }], ctl: [{ text: '위치는 앎', tone: 'undo' }] },
+      flows: [{ link: 'open1', kind: 'signal', n: 2, bounce: true }, { link: 'log', kind: 'signal', n: 1 }],
+      console: { title: 'SQL*Plus', lines: ['SQL> startup', 'ORACLE instance started.', '', ...SGA, 'Database mounted.', 'ORA-01157: cannot identify/lock data file 1 - see DBWR trace file|warn', "ORA-01110: data file 1: '/u02/app/oracle/oradata/ORCL/system01.dbf'|warn"] },
+    },
+    {
+      short: '정리', chapter: 'recap',
+      title: '정리: 내릴 때는 거꾸로 닫는다',
+      body: [
+        '올릴 때는 파라미터 파일 → 인스턴스(NOMOUNT) → 컨트롤 파일(MOUNT) → 데이터 파일과 리두 로그(OPEN) 순서였습니다. 내릴 때는 문서의 표대로 거꾸로 갑니다. DB를 닫고(Database closed), 컨트롤 파일을 놓고(Database dismounted), 인스턴스를 내립니다(ORACLE instance shut down).',
+        '종료 방식은 넷입니다. NORMAL(기본값)은 사용자가 모두 나갈 때까지 기다리고, TRANSACTIONAL은 진행 중인 트랜잭션이 끝나기를 기다리고, IMMEDIATE는 트랜잭션을 롤백하고 내립니다. ABORT만 체크포인트 없이 바로 멈추므로 다음 시작 때 인스턴스 복구가 필요합니다.',
+      ],
+      callout: { kind: 'tip', text: '장애 전화를 받으면 먼저 "어디까지 올라왔나"를 확인하세요. <code>STARTED</code>면 컨트롤 파일, <code>MOUNTED</code>면 데이터 파일과 리두 로그, alert log에는 그 이유가 적혀 있습니다.' },
+      changes: ['~ 닫기 → 마운트 해제 → 인스턴스 종료'],
+      metrics: { state: '내려감', sga: null, ctl: '닫힘', files: '닫힘', who: '없음' },
+      show: ['term', 'pfile', 'alert', 'sga', 'bg', 'ctl', 'dbf', 'redo'], focus: [],
+      tags: { pfile: [{ text: '① 설정', tone: 'data' }], sga: [{ text: '② NOMOUNT', tone: 'redo' }], ctl: [{ text: '③ MOUNT', tone: 'undo' }], dbf: [{ text: '④ OPEN', tone: 'data' }] },
+      flows: [
+        { link: 'param', kind: 'data', n: 1 },
+        { link: 'attach', kind: 'redo', n: 1 },
+        { link: 'mount', kind: 'undo', n: 1 },
+        { link: 'open1', kind: 'data', n: 1, rate: 0.6 },
+        { link: 'open2', kind: 'redo', n: 1, rate: 0.6 },
+      ],
+      console: { title: 'SQL*Plus', lines: ['SQL> shutdown immediate', 'Database closed.', 'Database dismounted.', 'ORACLE instance shut down.|ok'] },
+    },
+  ],
+};
+</script>
+<script src="../../course.js"></script>
+<script src="../../anatomy.js"></script>
+
+</body>
+</html>
