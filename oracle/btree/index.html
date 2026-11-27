@@ -119,7 +119,7 @@
     </div>
     <div class="legal">
       <h2>참고 사항</h2>
-      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02)과 앱 계정(APP)은 DBA 실습과 같은 이름이고, DELIVERY_LOG 테이블과 인덱스 이름, 키 범위, 높이, 블록 수, 클러스터링 팩터, 행 수, 비용은 설명을 위한 예시 값입니다. 실행 계획 화면은 화면 폭 때문에 Bytes와 Time 열을 뺐습니다. 단일 열 B-tree 인덱스가 NULL을 저장하지 않고, 인덱스 열이 모두 NULL인 행은 인덱스에 들어가지 않는다는 것은 문서에서 확인했습니다. 9장면의 해결 방법(NOT NULL 열을 뒤에 붙인 복합 인덱스로 모든 행이 인덱스에 들어가게 하는 것)은 이 문장에서 이끌어 낸 것으로, 문서에 이 해결 방법이 그대로 적혀 있지는 않습니다. 운영에 적용하기 전에 같은 데이터로 실행 계획을 꼭 확인하세요.</p>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02)과 앱 계정(APP)은 DBA 실습과 같은 이름이고, DELIVERY_LOG 테이블과 인덱스 이름, 키 범위, 높이, 블록 수, 클러스터링 팩터, 행 수, 비용은 설명을 위한 예시 값입니다. 실행 계획 화면은 화면 폭 때문에 Bytes와 Time 열을 뺐습니다. Concepts의 "모든 키 열이 NULL인 행은 인덱스에 넣지 않는다"는 문장과 SQL Tuning Guide의 "인덱스에는 NULL 항목이 들어갈 수 없어 COUNT에 인덱스를 쓰지 못한다"는 설명은 원문으로 확인했습니다. 9장면의 복합 인덱스에 모든 행이 들어간다는 것은 이 규칙에서 바로 나오지만, 옵티마이저가 그 인덱스로 IS NULL 조건을 찾는다는 것과 9장면의 실행 계획은 문서에 적혀 있지 않습니다. 운영에 적용하기 전에 같은 데이터로 실행 계획을 꼭 확인하세요.</p>
       <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/indexes-and-index-organized-tables.html" target="_blank" rel="noopener">Oracle Database 19c Concepts · Indexes and Index-Organized Tables (B-tree 구조, 높이, 리프 연결, 고유 스캔·범위 스캔, 클러스터링 팩터, NULL, 복합 인덱스, 인덱스 유지)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgsql/optimizer-access-paths.html" target="_blank" rel="noopener">SQL Tuning Guide 19c · Optimizer Access Paths (rowid, 인덱스 고유 스캔·범위 스캔, 전체 스캔을 고르는 이유)</a>.</p>
       <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
     </div>

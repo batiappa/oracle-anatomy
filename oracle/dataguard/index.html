@@ -119,8 +119,8 @@
     </div>
     <div class="legal">
       <h2>참고 사항</h2>
-      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02, dbserver03), DB 이름(orcl, orclstby), 구성 이름(orcl_dg), 최대 성능 모드는 DBA 실습 10단계와 같은 값이고, 장애 상황, 시각, 지연 값, 로그 번호는 설명을 위한 예시 값입니다. DGMGRL의 FAILOVER가 성공했을 때 나오는 메시지는 이번에 읽은 문서에서 찾지 못해 줄임표(…)로 줄였습니다. SHOW CONFIGURATION·VALIDATE DATABASE·V$DATAGUARD_PROCESS 화면은 줄을 줄였고, V$STANDBY_LOG의 상태 값은 실제와 다를 수 있습니다. 대기 DB에서 redo를 받아 쓰고 적용하는 세부 프로세스(PRnn 등)와 ASYNC 전송 프로세스 이름은 다루지 않았습니다.</p>
-      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/introduction-to-oracle-data-guard-concepts.html" target="_blank" rel="noopener">Data Guard Concepts and Administration 19c · Introduction (물리 대기 DB, 보호 모드, 스위치오버·페일오버)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html" target="_blank" rel="noopener">Redo Transport Services (SYNC·ASYNC, 대기 리두 로그, RFS)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html" target="_blank" rel="noopener">Redo Apply Services (MRP, 실시간 적용)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-protection-modes.html" target="_blank" rel="noopener">Data Guard Protection Modes</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-role-transitions.html" target="_blank" rel="noopener">Role Transitions (페일오버의 데이터 손실, 옛 주 DB 되살리기)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html" target="_blank" rel="noopener">Data Guard Broker 19c · Switchover and Failover Operations (FAILOVER, IMMEDIATE, REINSTATE DATABASE, ORA-16661, fast-start failover)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/managing-oracle-data-guard-broker-configuration-members.html" target="_blank" rel="noopener">Data Guard Broker 19c · Managing Configuration Members (APPLY-ON·OFF, TRANSPORT-ON·OFF)</a>.</p>
+      <p>설명은 Oracle Database 19c 공식 문서 기준입니다. 서버 이름(dbserver02, dbserver03), DB 이름(orcl, orclstby), 구성 이름(orcl_dg), 최대 성능 모드는 DBA 실습 10단계와 같은 값이고, 장애 상황, 시각, 지연 값, 로그 번호는 설명을 위한 예시 값입니다. FAILOVER·REINSTATE DATABASE의 출력 문구와 페일오버 뒤 옛 주 DB에 ORA-16661이 보이는 것은 Data Guard Broker 19c의 예제 장(Scenario 10, 11) 출력 모양을 따랐습니다. SHOW CONFIGURATION·VALIDATE DATABASE·V$DATAGUARD_PROCESS 화면은 줄을 줄였고, V$STANDBY_LOG의 상태 값은 실제와 다를 수 있습니다. 대기 DB에서 redo를 받아 쓰고 적용하는 세부 프로세스(PRnn 등)와 ASYNC 전송 프로세스 이름은 다루지 않았습니다.</p>
+      <p>근거 문서: <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/introduction-to-oracle-data-guard-concepts.html" target="_blank" rel="noopener">Data Guard Concepts and Administration 19c · Introduction (물리 대기 DB, 보호 모드, 스위치오버·페일오버)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-transport-services.html" target="_blank" rel="noopener">Redo Transport Services (SYNC·ASYNC, 대기 리두 로그, RFS)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-redo-apply-services.html" target="_blank" rel="noopener">Redo Apply Services (MRP, 실시간 적용)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/oracle-data-guard-protection-modes.html" target="_blank" rel="noopener">Data Guard Protection Modes</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sbydb/managing-oracle-data-guard-role-transitions.html" target="_blank" rel="noopener">Role Transitions (페일오버의 데이터 손실, 옛 주 DB 되살리기)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/using-data-guard-broker-to-manage-switchovers-failovers.html" target="_blank" rel="noopener">Data Guard Broker 19c · Switchover and Failover Operations (FAILOVER, IMMEDIATE, REINSTATE DATABASE, ORA-16661, fast-start failover)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/managing-oracle-data-guard-broker-configuration-members.html" target="_blank" rel="noopener">Data Guard Broker 19c · Managing Configuration Members (APPLY-ON·OFF, TRANSPORT-ON·OFF)</a>, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/dgbkr/examples-using-data-guard-broker-DGMGRL-utility.html" target="_blank" rel="noopener">Data Guard Broker 19c · Examples Using DGMGRL (Scenario 10 수동 페일오버, Scenario 11 되살리기 출력)</a>.</p>
       <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle과 Java는 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. 그 밖의 이름은 각 소유자의 상표일 수 있습니다.</p>
     </div>
   </div>
@@ -425,12 +425,15 @@ const LESSON = {
         title: 'DGMGRL (orclstby)',
         lines: [
           'DGMGRL> failover to orclstby;',
-          '… (받아 둔 redo 적용 후 역할 전환)',
+          'Performing failover NOW, please wait...',
+          'Failover succeeded, new primary is "orclstby"|ok',
           '',
           '-- 하루 뒤, dbserver02 수리 후 orcl을 마운트까지 올리고',
           'DGMGRL> show database orcl',
           '  ORA-16661: the standby database needs to be reinstated|warn',
           'DGMGRL> reinstate database orcl;',
+          'Reinstating database "orcl", please wait...',
+          'Reinstatement of database "orcl" succeeded|ok',
         ],
       },
     },
