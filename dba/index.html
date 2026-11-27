@@ -237,9 +237,10 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
 <footer class="foot">
   <p class="credit"><svg class="logo-mark sm" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8v16c0 2.2 4.9 4 11 4s11-1.8 11-4V8" fill="var(--accent)"/><ellipse cx="16" cy="8" rx="11" ry="4" fill="color-mix(in srgb, var(--accent) 55%, #fff)"/><path d="M10 14.5l4 3-4 3M16 21h6" fill="none" stroke="var(--accent-ink, #fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>만든 사람: 미스터오라클(김영조) · <a href="mailto:ambrokim@gmail.com">ambrokim@gmail.com</a> · <a href="https://github.com/batiappa/oracle-anatomy" target="_blank" rel="noopener">GitHub 저장소</a></p>
   <p>이 실습은 1·2단계 리눅스 실습실에서 이어집니다. 2단계에서 준비한 dbserver02에 Oracle Database 19c(설치 버전 19.3)를 설치하고 ORCL 데이터베이스를 만든 상황입니다. 명령과 절차는 Oracle Database 19c 공식 문서(Administrator's Guide, SQL Language Reference, SQL*Plus User's Guide, Net Services Reference, Backup and Recovery User's Guide, Database Reference, Error Messages, Database Patch Maintenance, SQL Tuning Guide, PL/SQL Packages and Types Reference)를 기준으로 삼았고, 레슨마다 근거 문서를 붙였습니다.</p>
-  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 5단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE·V$RECOVERY_FILE_DEST·DBA_RECYCLEBIN의 열 이름. 6·7단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 10단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 5단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 6단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 7단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 9단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 8단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 8단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 10단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
+  <p><b>공식 문서 예시로 확인한 출력</b>: SQL*Plus 시작 화면의 형식(문서 예시는 19.1), STARTUP의 "Connected to an idle instance.", "ORACLE instance started.", SGA 줄 이름, "Database mounted.", "Database opened."와 SHUTDOWN의 "Database closed.", "Database dismounted.", "ORACLE instance shut down."(Oracle 19c 시작·종료 튜토리얼), lsnrctl status·start·stop·services의 형식, tnsping의 출력 형식, rman 시작 문구의 형식과 접속 문구, CONFIGURE의 old/new RMAN configuration parameters 문구, LIST BACKUP SUMMARY의 제목 줄, CROSSCHECK 결과 줄과 "Crosschecked n objects", DELETE의 "deleted backup piece"와 "Deleted n objects", ARCHIVE LOG LIST(아카이브 모드)의 형식, KILL 뒤의 KILLED·PSEUDO 표시, 레슨에 인용한 ORA-·RMAN-·TNS- 오류 문구(ORA-19573·ORA-01124·ORA-38312·ORA-01541·RMAN-06094·RMAN-06149·TNS-12560·TNS-00511 포함), SP2-0771·SP2-0606·SP2-0223·SP2-0103 문구, SHOW PARAMETER의 열 제목(NAME, TYPE, VALUE). 5단계에서는 VALIDATE DATABASE의 RMAN-06056 줄, RESTORE·RECOVER 진행 줄 중 문서 예시에 있는 줄(Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished), SHOW RECYCLEBIN의 열 제목과 DROP TIME 형식, V$RECOVER_FILE, V$RECOVERY_FILE_DEST, DBA_RECYCLEBIN의 열 이름. 6·7단계에서는 RMAN RUN 블록의 SET UNTIL·RESTORE·RECOVER 순서, RESTORE CONTROLFILE FROM AUTOBACKUP 절차, ORA-01589·ORA-01139·ORA-01152·ORA-01861 문구, awrrpt.sql의 질문(report_type, num_days, begin_snap, end_snap, report_name)과 기본 보고서 이름, 대기 이벤트와 대기 클래스 이름. 10단계의 SHOW CONFIGURATION과 대기 DB의 SHOW DATABASE 모양, VALIDATE DATABASE의 Database Role·Ready for Switchover·Ready for Failover 줄, EDIT DATABASE ... SET STATE 뒤의 "Succeeded.", SWITCHOVER의 진행 줄과 "Switchover succeeded, new primary is ...", DGMGRL의 "Welcome to DGMGRL..."과 "Connected as SYSDG." 줄(Data Guard Broker 19c 예시), V$DATAGUARD_STATS의 열과 NAME 값, 주 DB에서 행이 없다는 점(Database Reference 19c). <b>확인하지 못한 출력</b>: DDL 뒤의 "User created." 같은 피드백 문구, SHOW PARAMETER의 열 폭, SHOW ALL의 줄 형식, SPOOL 상태 문구, NOARCHIVELOG일 때의 ARCHIVE LOG LIST, RMAN 시작 문구의 19.0.0.0.0 버전 표기, RMAN BACKUP 진행 줄과 REPORT NEED BACKUP의 표, DELETE OBSOLETE의 지울 목록 표, 리스너가 없을 때 lsnrctl의 오류 줄 전체 순서, orapwd의 암호 질문 문구와 OPW-00005, 레슨에 인용하지 않은 일부 오류 문구, 5단계의 RMAN 프롬프트에서 SQL 문을 실행할 때의 출력, 나머지 RESTORE 진행 줄, "Flashback complete.", SHOW RECYCLEBIN의 열 폭과 BIN$ 이름 모양, 6단계의 "executing command: SET until clause"와 RESTORE CONTROLFILE 진행 줄, 온라인 리두 로그 적용 줄, 7단계의 "PL/SQL procedure successfully completed.", awrrpt.sql의 안내문과 스냅샷 목록 모양, AWR 보고서 본문의 모양과 숫자., 9단계 실행 계획의 Rows·Bytes·Cost·Time 숫자와 Plan hash value(계획의 모양과 열 제목, Predicate Information, "Explained."는 SQL Tuning Guide 19c와 DBMS_XPLAN 예시로 확인), DISPLAY_CURSOR 권한 오류 문구, 8단계의 OPatch와 datapatch 화면 전체(문서에 출력 예시가 없음, "Log file for this invocation:" 줄만 26ai 문서에서 확인)와 unzip 출력. 8단계의 패치 번호, RU 버전, OPatch 버전 번호는 설명용 예시 값입니다. 10단계의 DGMGRL 시작 줄 가운데 판 번호·저작권 줄, 주 DB 쪽 SHOW DATABASE 출력, 지연이 시간 단위일 때의 표시(예: 2 hours 14 minutes 9 seconds), 적용을 멈춘 상태의 Configuration Status와 VALIDATE 판정, V$DATAGUARD_STATS의 UNIT 값, V$DATAGUARD_PROCESS의 프로세스 이름·PID·줄 구성, 서버 이름과 IP도 확인하지 못했거나 예시 값입니다. 이런 출력은 실제 19c에서 보이는 형식을 따르려 했지만 공식 문서로는 확인하지 못했고, 화면에 ⓘ 줄로 함께 알려 줍니다.</p>
   <p><b>4단계 SQL 기초</b>: 공식 문서로 확인한 것은 ORA-00001·ORA-01400 오류 문구의 형식(Database Concepts 19c 예시), "Table created."와 SET FEEDBACK의 "n rows selected." 동작, SQL*Plus 종료 때 EXITCOMMIT 기본값 ON(커밋), 길이 0인 문자열이 NULL이라는 점과 = NULL이 참이 아니라는 점, COUNT(*)를 뺀 집계 함수가 NULL을 무시한다는 점, 왼쪽 외부 조인이 짝 없는 행을 NULL로 채운다는 점, DDL이 앞뒤로 암묵 커밋한다는 점(SQL Language Reference 19c)입니다. <b>확인하지 못한 것</b>: "1 row created./updated./deleted." 같은 DML 피드백 문구, ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, 01427의 화면 문구 전체, NULL이 정렬에서 놓이는 위치의 화면 표시, 열 폭. 이런 줄에는 터미널에 ⓘ 표시가 붙습니다. STUDY 스키마의 사원·부서 행과 제약 조건 이름(SYS_C...)은 설명용 예시입니다.</p>
   <p><b>11단계 RAC 기초</b>: 공식 문서로 확인한 것은 crsctl check cluster -all의 노드별 CRS-4537·4529·4533 줄 형식(Clusterware 19c 문서 예시), olsnodes의 -n·-s·-c·-l·-t 옵션과 -n 출력 예시, crsctl stat res -t 표의 구조와 "Instance ... is running on node ..." 문구(21c Private Cloud Appliance 문서 예시), CRSCTL이 Grid 홈 bin에 있고 SRVCTL은 데이터베이스 홈에서 실행한다는 점, SRVCTL이 성공하면 아무것도 출력하지 않는다는 점, stop instance의 -stopoption 값, relocate service의 -oldinst·-newinst 문법, preferred·available 인스턴스의 뜻과 원래 인스턴스로 자동으로 돌아가지 않는다는 점, GV$ 뷰의 INST_ID, gc cr block 2-way·gc current block 2-way 대기 이벤트와 Cluster 대기 클래스(Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c)입니다. <b>확인하지 못한 것</b>: srvctl status·config service와 config database 줄의 정확한 문구, "is not running" 문구, crsctl stat res -t의 열 간격과 서비스 자원 이름(ora.paydb.*.svc), check crs와 query crs activeversion의 화면 문구, olsnodes -s의 대소문자, 실패할 때의 PRC·PRK 오류 번호(지어내지 않고 ⓘ 안내로 바꿨습니다). 클러스터·노드·DB·서비스 이름, IP, 세션 수와 시각은 설명용 예시입니다. <b>레슨 104~108(RAC 19c CRSCTL·SRVCTL 실무 가이드 반영)</b>: 공식 문서로 확인한 것은 crsctl stat res -w 필터의 연산자(=, !=, co, st, en, AND, OR)와 ora. 자원을 CRSCTL로 직접 다루지 말라는 권고, 클러스터 명령이 OHASD에 기대어 동작한다는 점(Clusterware 19c), crsctl query css votedisk의 열 모양(19c OCR·보팅 파일 장 예시), CRS-4639 문구(19c 오류 메시지), query crs activeversion -f의 뜻(CRS-04172 사용법), srvctl config database의 줄 이름과 순서·-all 옵션, -startoption 기본값 OPEN, disable database가 인스턴스까지 비활성화한다는 점, 같은 대상에 SRVCTL을 동시에 실행하지 말라는 점, 종료 코드 0·1·2, -eval, -statefile·-scannumber 옵션의 뜻(RAC 19c), stop instance·relocate service의 -drain_timeout·-stopoption·-failover 사용 예(High Availability Overview 19c), srvctl config asm·status asm -verbose 모양(Clusterware 19c)입니다. 19c 문서 일부가 읽히지 않아 11.2 CRSCTL 문서로만 확인한 것: check crs의 CRS-4638 줄, config crs의 CRS-4622·CRS-4621, stop crs가 남은 자원이 있으면 실패하고 -f가 무조건 멈춘다는 설명, 여러 노드는 stop cluster가 자원 재배치를 막는다는 설명, "Located n voting disk(s)." 줄, -t 없는 NAME=·TYPE=·TARGET=·STATE= 모양. <b>확인하지 못한 것</b>: crsctl stop crs·start crs의 진행 줄(CRS-2791, 2673, 2677, 2793, 4133, 4123, 2672, 2676, 6016, 6017, 6023, 6024), -init 표의 전체 목록과 상세 문구, Target·State 값(INTERMEDIATE, UNKNOWN 등)의 공식 정의, srvctl status -detail의 "Instance status:" 문구, config scan, scan_listener, vip, network, nodeapps, listener, service의 줄 문구, status diskgroup·vip 문구, stop home·start home 문법 전체와 상태 파일 안의 모양, -wait 옵션 설명, 권한이 없을 때의 오류 번호. 선생님이 주신 실무 가이드의 설명 가운데 "DB가 열린 채 crsctl stop crs를 하면 shutdown abort가 쓰일 수 있다", "stop diskgroup -force는 DB를 먼저 멈춰 주지 않는다"는 공식 문서에서 확인하지 못해 레슨에 그렇게 밝혀 두었습니다.</p>
+  <p><b>12단계 OS 원인 장애</b>: 공식 자료로 확인한 것은 ORA-09925 문구와 조치(Oracle 오류 도움말), "Linux-x86_64 Error: 28: No space left on device" 줄 형식(My Oracle Support 문서 제목), 리눅스 오류 28이 ENOSPC라는 점(커널 소스), OOM killer의 badness와 oom_score_adj 범위(커널 문서), 커널 메시지 "invoked oom-killer", "Out of memory: Killed process"의 형식(현재 커널 소스 mm/oom_kill.c), HugePages가 스왑되지 않는다는 점과 THP 끄기·AMM과 함께 못 쓴다는 점(Linux 관리 문서 19c), CRS-2409·CRS-4700 문구, NTP가 있으면 CTSS가 observer 모드라는 점과 CTSS deprecated(Grid 설치 가이드 19c), Clusterware alert log 위치(Clusterware 19c 문제 해결 부록), chronyc tracking 항목과 makestep 경고, maxslewrate 기본값(chrony 4.5 문서)입니다. Oracle Linux 8 커널의 정확한 OOM 문구, OOM으로 죽었을 때 alert log에 남는 문구, systemctl status 화면 모양, crsctl check ctss 출력 전체, alert log의 [OCTSSD(...)] 표시는 확인하지 못했거나 실습용으로 만든 것입니다.</p>
   <p>SQL 엔진은 실습에 필요한 SELECT(조인, 외부 조인, 하위 질의, WHERE, GROUP BY, HAVING, ORDER BY, 집계 함수), 실습용 STUDY 스키마의 INSERT·UPDATE·DELETE·COMMIT·ROLLBACK, 몇 가지 DDL만 흉내 냅니다. 숫자, 날짜, SID, PID, DBID, 백업 파일 이름과 업무 테이블의 행은 설명용 예시입니다.</p>
   <p>이 사이트는 Oracle Corporation 및 그 계열사와 관련이 없으며, 후원이나 승인을 받지 않았습니다. Oracle은 Oracle 및 그 계열사의 등록상표입니다. ‘미스터오라클’은 만든 사람의 필명이며 Oracle 제품이나 서비스 이름이 아닙니다. Linux는 Linus Torvalds의 등록상표입니다.</p>
 </footer>
@@ -1106,7 +1107,7 @@ const CMDS = {
     if (f.r) ls.reverse();
     return ok(ls.length ? ls.join('\n') + '\n' : '');
   },
-  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  8단계 패치: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  10단계 Data Guard: dgmgrl /\n  11단계 RAC: olsnodes [-n -s -t -l -c], crsctl check cluster -all, crsctl stat res -t, crsctl check crs, srvctl (srvctl help 로 형식 보기)\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
+  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('실습용 요약입니다. 실제 bash의 help 는 영어로 나옵니다.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('이 실습 터미널에서 쓸 수 있는 명령:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  오라클: sqlplus  lsnrctl  rman  orapwd  tnsping\n  8단계 패치: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  10단계 Data Guard: dgmgrl /\n  11단계 RAC: olsnodes [-n -s -t -l -c], crsctl check cluster -all, crsctl stat res -t, crsctl check crs, srvctl (srvctl help 로 형식 보기)\n  12단계 OS 원인 장애: dmesg [-T], systemctl status|start|enable chronyd, chronyc tracking, crsctl check ctss\n  SQL*Plus 안에서 쓸 수 있는 것은 sqlplus 접속 뒤 help 를 치면 나옵니다.\n  옵션 찾아보기: man 명령, 명령 --help (실습용 요약)    결과 저장: 명령 > 파일, 명령 >> 파일, 명령 | tee 파일    정렬: sort -n, sort -h')); },
   whoami() { return ok(S.user + '\n'); },
   hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
@@ -1459,7 +1460,7 @@ const CMDS = {
     const cv = (k) => f.m ? Math.round(k / 1024) : f.g ? Math.round(k / 1048576) : f.h ? hum(k) : k;
     function hum(k) { const v = k * 1024; if (v >= GB) return (v / GB).toFixed(v / GB >= 10 ? 0 : 1) + 'Gi'; if (v >= MB) return Math.round(v / MB) + 'Mi'; return Math.round(v / KB) + 'Ki'; }
     const c = (x) => String(cv(x)).padStart(11);
-    return ok(`              total        used        free      shared  buff/cache   available\nMem:   ${c(K.total)} ${c(K.used)} ${c(K.free)} ${c(K.shared)} ${c(K.buff)} ${c(K.avail)}\nSwap:  ${c(K.stotal)} ${c(0)} ${c(K.stotal)}\n`);
+    return ok(`              total        used        free      shared  buff/cache   available\nMem:   ${c(K.total)} ${c(K.used)} ${c(K.free)} ${c(K.shared)} ${c(K.buff)} ${c(K.avail)}\nSwap:  ${c(K.stotal)} ${c(K.sused || 0)} ${c(K.stotal - (K.sused || 0))}\n`);
   },
   echo(argv) { const a = argv.slice(1); const n = a[0] === '-n'; if (n) a.shift(); return ok(a.join(' ') + (n ? '' : '\n')); },
   export(argv) {
@@ -2728,6 +2729,7 @@ function resolveSvc(svc) {
 }
 /* 접속 시도. 성공하면 null, 실패하면 오류 문장을 돌려준다. */
 function tryConnect(c) {
+  if (u01Full()) { if (c.priv) S.osfail.privTried = true; return ORA09925; }
   let db = S.db; const me = S.sql;
   if (S.dg) { db = S.dg.local; S.dgTgt = db; }
   let remote = false;
@@ -6772,6 +6774,231 @@ LESSONS.push(
 );
 
 /* =====================================================================
+   12단계. OS가 원인인 오라클 장애 (레슨 111~113)
+   ===================================================================== */
+const CRS_ALERT = '/u01/app/grid/diag/crs/racnode1/crs/trace/alert.log';
+const ORA09925 = 'ORA-09925: Unable to create audit trail file\nLinux-x86_64 Error: 28: No space left on device';
+const atToday = (h, m) => { let d = ago(0, h, m); if (d > NOW) d = ago(1, h, m); return d; };
+function u01Free() { const r = (S.dfRows ? S.dfRows() : []).find(x => x[3] === '/u01'); return r ? r[1] - r[2] : 1e15; }
+const u01Full = () => !!S.osfail && S.osfail.kind === 'disk' && u01Free() < 64 * MB;
+function makeWorld12(lid) {
+  const O = 'oracle', OI = 'oinstall', R = 'root';
+  if (lid === 3) { makeWorld11(1); makeChrony(); return; }
+  makeWorld4(0);
+  S.osfail = { kind: lid === 1 ? 'disk' : 'oom' };
+  const db = S.db;
+  if (lid === 1) { // 개발자가 어젯밤 받은 전체 export가 /u01을 가득 채웠다
+    const dp = OB + '/admin/orcl/dpdump';
+    const when = atToday(2, 47);
+    putFile(dp + '/exp_full_app.log', F(O, OI, 0o640, 'Export: Release 19.0.0.0.0 - Production\nStarting "SYSTEM"."SYS_EXPORT_FULL_01":  system/******** full=y directory=DATA_PUMP_DIR dumpfile=exp_full_app.dmp logfile=exp_full_app.log\n', { mt: when }));
+    const rest = 200 * GB - 4.4 * GB - duOf(lookup('/u01').node) - 40 * MB;
+    putFile(dp + '/exp_full_app.dmp', F(O, OI, 0o640, Math.floor(rest), { mt: when }));
+    lookup(dp).node.mt = when;
+    const u02 = lookup('/u02').node.c;
+    u02.backup = D(O, OI, 0o775, { expdp: D(O, OI, 0o775, {}, { mt: ago(20, 10, 0) }) }, { mt: ago(20, 10, 0) });
+  }
+  if (lid === 2) { // 03:12 OOM killer가 오라클 프로세스를 죽였고 인스턴스가 내려갔다
+    const when = atToday(3, 12);
+    db.state = 'DOWN'; db.lsnr.reg = false; db.sessions = [];
+    S.procs = S.procs.filter(p => !/^ora_|oracleORCL/.test(p.cmd));
+    S.procs.push({ user: 'rptuser', pid: 4471, ppid: 1, stime: stimeOf(atToday(2, 50)), tty: '?', time: '01:52:10', cmd: 'java -Xms4g -Xmx20g -jar /opt/report/report-batch.jar --month-end', cpu: 96, mem: 61.2 });
+    USERS.rptuser = { uid: 1501, gid: 1501, group: 'rptuser', groups: ['rptuser'], home: '/home/rptuser', pass: null };
+    S.mem = { total: 32622588, used: 30101220, free: 402112, shared: 9880, buff: 2119256, avail: 1210440, stotal: 16777212, sused: 16102344 };
+    S.osfail.oomAt = when;
+    const dfb = S.dfRows; S.dfRows = () => dfb().map(r => r[3] === '/dev/shm' && S.db.state === 'DOWN' ? [r[0], r[1], 0, r[3]] : r);
+    S.osfail.boot = ago(41, 6, 3);
+    lookup('/proc').node.c.meminfo = F(R, R, 0o444, MEMINFO12, { mt: new Date() });
+  }
+}
+const MEMINFO12 = `MemTotal:       32622588 kB
+MemFree:          402112 kB
+MemAvailable:    1210440 kB
+SwapTotal:      16777212 kB
+SwapFree:         674868 kB
+AnonHugePages:  18432000 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+`;
+function dmesgLines() {
+  const o = S.osfail; if (!o || o.kind !== 'oom') return [['', 'Linux version ' + KVER]];
+  const t = o.oomAt.getTime();
+  return [
+    [t - 5000, 'java invoked oom-killer: gfp_mask=0x6280ca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), order=0, oom_score_adj=0'],
+    [t - 4990, 'oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/,task=oracle,pid=2058,uid=54321'],
+    [t - 4980, 'Out of memory: Killed process 2058 (oracle) total-vm:9884120kB, anon-rss:12044kB, file-rss:21104kB, shmem-rss:8392716kB, UID:54321 pgtables:17108kB oom_score_adj:0'],
+  ];
+}
+CMDS.dmesg = function (argv) {
+  const { f } = opts(argv);
+  const o = S.osfail; const boot = o && o.boot ? o.boot.getTime() : ago(41, 6, 3).getTime();
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], mons = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const stamp = (t) => { if (t === '') return '[    0.000000]'; if (f.T) { const d = new Date(t); return `[${days[d.getDay()]} ${mons[d.getMonth()]} ${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${d.getFullYear()}]`; } return '[' + ((t - boot) / 1000).toFixed(6).padStart(12) + ']'; };
+  S.ev.dmesg = true;
+  return ok(dmesgLines().map(([t, s]) => stamp(t) + ' ' + s).join('\n') + '\n' + (f.T ? '' : note('괄호 안 숫자는 부팅 뒤 지난 초입니다. dmesg -T 를 붙이면 사람이 읽는 시각으로 바꿔 보여 줍니다.')));
+};
+/* RAC 시계: racnode1의 chronyd가 꺼져 있고 시계가 2.3초 늦다 */
+function makeChrony() {
+  const O = 'grid', OI = 'oinstall', R = 'root';
+  const now = Date.now();
+  S.chrony = { active: false, enabled: false, off0: 2.3104, since: null, deadSince: ago(1, 23, 41) };
+  const app = lookup('/u01/app').node.c;
+  const tr = D(O, OI, 0o750, { 'alert.log': F(O, OI, 0o660, '', { mt: new Date() }) });
+  app.grid = D(O, OI, 0o775, { diag: D(O, OI, 0o775, { crs: D(O, OI, 0o775, { racnode1: D(O, OI, 0o775, { crs: D(O, OI, 0o775, { trace: tr, alert: D(O, OI, 0o750) }) }) }) }) });
+  const L = [];
+  const add = (d, s) => L.push(ts(d, 100000 + (d.getMinutes() * 7919) % 800000) + ' [OCTSSD(' + 2311 + ')]' + s);
+  add(ago(1, 23, 40), 'CRS-2408: The clock on host racnode1 has been updated by the Cluster Time Synchronization Service to be synchronous with the mean cluster time.');
+  for (let h = 0; h < 10; h++) { const d = new Date(now - (10 - h) * 3600 * 1000); if (d < S.chrony.deadSince) continue; const us = Math.round((0.31 + h * 0.2) * 1e6); add(d, `CRS-2409: The clock on host racnode1 differs from mean cluster time by ${us} microseconds. No action has been taken because the Cluster Time Synchronization Service is running in observer mode.`); }
+  tr.c['alert.log'].txt = L.join('\n') + '\n';
+  lookup('/etc').node.c['chrony.conf'] = F(R, R, 0o644, '# Company time servers\nserver ntp1.example.com iburst\nserver ntp2.example.com iburst\n\n# Record the rate at which the system clock gains/losses time.\ndriftfile /var/lib/chrony/drift\n\n# Enable kernel synchronization of the real-time clock (RTC).\nrtcsync\n\nlogdir /var/log/chrony\n', { mt: ago(120, 10, 0) });
+  S.procs = S.procs.filter(p => !/chronyd/.test(p.cmd));
+}
+function chronyOffset() {
+  const c = S.chrony; if (!c) return 0;
+  if (!c.active) return c.off0 + 0.00002 * ((Date.now() - c.deadSince.getTime()) / 60000 % 50);
+  const el = (Date.now() - c.since) / 1000;
+  return Math.max(0.000006523, c.off0 - el * 0.0833333);
+}
+CMDS.systemctl = function (argv) {
+  const { f, rest } = opts(argv); const verb = rest[0], unit = (rest[1] || '').replace(/\.service$/, '');
+  const c = S.chrony;
+  if (!verb) return ok(note('실습의 systemctl은 chronyd 서비스만 다룹니다: systemctl status|start|stop|enable|disable|is-active|is-enabled chronyd'));
+  if (unit !== 'chronyd') return fail(note(`이 실습의 systemctl은 chronyd만 흉내 냅니다(지금 입력: ${unit || '(없음)'}).`), 1);
+  if (!c) return ok(note('이 레슨에서는 chronyd 문제를 다루지 않습니다.'));
+  const ev = S.ev; ev.systemctl = verb;
+  const needR = () => S.user !== 'root' ? fail(`Failed to ${verb} chronyd.service: Access denied\nSee system logs and 'systemctl status chronyd.service' for details.\n` + note('서비스를 켜고 끄는 일은 root가 합니다. su - 로 root가 된 뒤 다시 실행하세요.'), 1) : null;
+  if (verb === 'status') {
+    const d = c.active ? new Date(c.since) : c.deadSince;
+    const st = c.active ? `active (running) since ${dayName(d)}; ${Math.max(1, Math.round((Date.now() - c.since) / 1000))}s ago` : `inactive (dead) since ${dayName(d)}`;
+    return ok(`${c.active ? '●' : '○'} chronyd.service - NTP client/server\n   Loaded: loaded (/usr/lib/systemd/system/chronyd.service; ${c.enabled ? 'enabled' : 'disabled'}; vendor preset: enabled)\n   Active: ${st}\n     Docs: man:chronyd(8)\n           man:chrony.conf(5)\n` + (c.active ? ` Main PID: 3518 (chronyd)\n` : '') + racNote('systemctl', 'systemctl status 화면의 줄 모양은 Oracle Linux 8의 systemd 출력을 흉내 낸 것으로, 문서 예시와 한 줄씩 맞춰 보지는 못했습니다. 읽을 곳은 Loaded 줄의 enabled/disabled(부팅 때 자동 시작 여부)와 Active 줄의 active/inactive(지금 도는지)입니다.'));
+  }
+  if (verb === 'is-active') return c.active ? ok('active\n') : fail('', 3, 'inactive\n');
+  if (verb === 'is-enabled') return c.enabled ? ok('enabled\n') : fail('', 1, 'disabled\n');
+  const e = needR(); if (e) return e;
+  if (verb === 'start' || verb === 'restart') { if (!c.active) { c.active = true; c.since = Date.now(); S.procs.push({ user: 'chrony', pid: 3518, ppid: 1, stime: '09:52', tty: '?', time: '00:00:00', cmd: '/usr/sbin/chronyd', cpu: 0, mem: 0 }); } return ok(); }
+  if (verb === 'stop') { if (c.active) { c.off0 = chronyOffset(); c.active = false; c.deadSince = new Date(); S.procs = S.procs.filter(p => !/chronyd/.test(p.cmd)); } return ok(); }
+  if (verb === 'enable') { const was = c.enabled; c.enabled = true; if (f.now && !c.active) { c.active = true; c.since = Date.now(); } return was ? ok() : { out: '', err: 'Created symlink /etc/systemd/system/multi-user.target.wants/chronyd.service → /usr/lib/systemd/system/chronyd.service.\n', code: 0 }; }
+  if (verb === 'disable') { c.enabled = false; return { out: '', err: 'Removed /etc/systemd/system/multi-user.target.wants/chronyd.service.\n', code: 0 }; }
+  return fail(note('실습에서 쓸 수 있는 형식: systemctl status|start|stop|enable|disable|is-active|is-enabled chronyd'), 1);
+};
+CMDS.chronyc = function (argv) {
+  const c = S.chrony; const sub = (argv[1] || '').toLowerCase();
+  if (!c) return fail('506 Cannot talk to daemon\n', 1);
+  if (!c.active) return fail('506 Cannot talk to daemon\n', 1);
+  if (sub === 'tracking') {
+    const off = chronyOffset(); S.ev.tracking = off;
+    const synced = (Date.now() - c.since) > 3000;
+    const nt = new Date();
+    return ok(`Reference ID    : ${synced ? '0A000105 (ntp1.example.com)' : '00000000 ()'}\nStratum         : ${synced ? 3 : 0}\nRef time (UTC)  : ${synced ? (() => { const W = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; const d = new Date(nt.getTime() - 41000); return `${W[d.getUTCDay()]} ${M[d.getUTCMonth()]} ${p2(d.getUTCDate())} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}:${p2(d.getUTCSeconds())} ${d.getUTCFullYear()}`; })() : 'Thu Jan 01 00:00:00 1970'}\nSystem time     : ${off.toFixed(9)} seconds slow of NTP time\nLast offset     : ${synced ? '-0.000006747' : '+0.000000000'} seconds\nRMS offset      : ${synced ? '0.000013209' : '0.000000000'} seconds\nFrequency       : 3.225 ppm slow\nResidual freq   : -0.000 ppm\nSkew            : 0.041 ppm\nRoot delay      : ${synced ? '0.001834021' : '1.000000000'} seconds\nRoot dispersion : ${synced ? '0.000392110' : '1.000000000'} seconds\nUpdate interval : ${synced ? '64.2' : '0.0'} seconds\nLeap status     : ${synced ? 'Normal' : 'Not synchronised'}\n`);
+  }
+  if (sub === 'makestep') { S.ev.makestep = true; return ok(note('실습에서는 makestep을 실행하지 않습니다. chronyc 문서는 이 명령이 남은 보정을 취소하고 시계를 한 번에 옮긴다고 하면서, 어떤 소프트웨어는 이런 시간 점프에 심각한 영향을 받는다고 경고합니다. 데이터베이스가 도는 서버에서는 chronyd가 천천히 맞추게(slew) 둡니다.')); }
+  if (sub === 'sources') return ok(note('실습에서는 chronyc tracking 만 흉내 냅니다. sources는 시간 서버 목록과 상태를 보여 줍니다.'));
+  return ok(note('이 실습의 chronyc에서 쓸 수 있는 명령: chronyc tracking'));
+};
+{ const old = CMDS.crsctl; CMDS.crsctl = function (argv) {
+  const t = argv.slice(1).map(x => x.toLowerCase()).join(' ');
+  if (S.rac && /^check ctss$/.test(t)) { S.ev.crs = 'check-ctss'; return ok('CRS-4700: The Cluster Time Synchronization Service is in Observer mode.\n' + racNote('ctss', 'CRS-4700 문구는 Oracle 오류 도움말에서 확인했습니다. crsctl check ctss 가 이 줄 하나만 찍는지는 문서 예시로 확인하지 못했습니다. Observer 모드는 노드에 운영체제의 시간 동기화(NTP, chrony) 설정이 있어서 CTSS가 시계를 직접 고치지 않고 지켜보기만 한다는 뜻입니다.')); }
+  return old(argv);
+}; }
+Object.assign(SRC, {
+  e09925:  ['Oracle Error Help · ORA-09925 (unable to create audit trail file)', 'https://docs.oracle.com/en/error-help/db/ora-09925/'],
+  ms09925: ['My Oracle Support 문서 2295143.1 제목(ORA-09925:Linux-x86_64 Error: 28: No space left on device), 1987611.1 제목(SYSDBA 접속의 ORA-09925) · 본문은 로그인 필요', 'https://support.oracle.com/knowledge/Sun%20Microsystems/2295143_1.html'],
+  enospc:  ['Linux 커널 소스 · include/uapi/asm-generic/errno-base.h (ENOSPC 28 "No space left on device")', 'https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno-base.h'],
+  oomsrc:  ['Linux 커널 소스 · mm/oom_kill.c (invoked oom-killer, Out of memory: Killed process 줄의 형식)', 'https://github.com/torvalds/linux/blob/master/mm/oom_kill.c'],
+  oomadj:  ['Linux 커널 문서 · The /proc Filesystem 3.1 /proc/<pid>/oom_score_adj', 'https://docs.kernel.org/filesystems/proc.html'],
+  unxhp:   ['Administrator\'s Reference 19c for Linux and UNIX · Administering Oracle Database on Linux (HugePages, Transparent HugePages, AMM)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html'],
+  msoom:   ['My Oracle Support 문서 2363021.1 제목(옛 커널의 "Out of memory: Kill process nnnnn (oracle)" 형식) · 본문은 로그인 필요', 'https://support.oracle.com/knowledge/Oracle%20Database%20Products/2363021_1.html'],
+  cwntp:   ['Grid Infrastructure Installation Guide 19c for Linux · Setting Network Time Protocol for Cluster Time Synchronization', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/setting-network-time-protocol-for-cluster-time-synchronization.html'],
+  e2409:   ['Oracle Error Help · CRS-02409', 'https://docs.oracle.com/en/error-help/db/crs-02409/'],
+  e4700:   ['Oracle Error Help · CRS-04700 (CTSS Observer mode)', 'https://docs.oracle.com/en/error-help/db/crs-04700/'],
+  cwtrbl:  ['Clusterware Administration and Deployment Guide 19c · Troubleshooting Oracle Clusterware (ADR 홈 ORACLE_BASE/diag/crs/host_name/crs, trace의 alert.log)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/troubleshooting-oracle-clusterware.html'],
+  chronyc: ['chrony 4.5 문서 · chronyc(1) (tracking, makestep)', 'https://chrony-project.org/doc/4.5/chronyc.html'],
+  chronyf: ['chrony 4.5 문서 · chrony.conf(5) (makestep, maxslewrate 기본 83333.333 ppm)', 'https://chrony-project.org/doc/4.5/chrony.conf.html'],
+});
+const DUMP12 = OB + '/admin/orcl/dpdump/exp_full_app.dmp';
+const ex12 = (p) => { const r = lookup(p); return !!(r && r.node); };
+const dumpMoved = () => !ex12(DUMP12) && ex12('/u02/backup/expdp/exp_full_app.dmp');
+LESSONS.push(
+  { id: 111, stage: 12, title: '디스크가 가득 차 아무도 접속하지 못할 때', short: '디스크 가득 참', start: 'oracle',
+    who: '앱 담당 최대리 (전화)',
+    situation: '"아침부터 새 접속이 전부 안 돼요. ORA-09925라는 처음 보는 오류가 나와요." 이미 붙어 있던 화면은 아직 움직인다고 합니다. 어젯밤 개발팀 이대리가 이관 준비로 전체 export를 받았다는 메시지가 와 있습니다.',
+    tasks: [
+      { text: '앱 계정으로 증상 확인하기', hint: 'sqlplus app/App#2026@ORCL\n(오류를 확인하고 Ctrl+C)', done: ev => failed(ev, 'ORA-09925'),
+        why: '<code>ORA-09925: Unable to create audit trail file</code> 아래에 <code>Linux-x86_64 Error: 28: No space left on device</code>가 붙어 나옵니다. 오라클은 접속할 때마다 감사 기록 파일을 만드는데(AUDIT_FILE_DEST), 그 파일을 만들지 못했습니다. 오류 도움말의 조치는 "UNIX 오류 번호를 보고 운영체제 오류인지 확인하라"입니다. 리눅스 오류 28은 ENOSPC, 장치에 남은 공간이 없다는 뜻입니다(커널 errno-base.h).' },
+      { text: 'SYSDBA 접속도 막혔는지 보기', hint: 'sqlplus / as sysdba', done: () => !!(S.osfail && S.osfail.privTried),
+        why: 'SYSDBA도 같은 오류로 막힙니다. FRA가 가득 찬 ORA-00257 때는 SYSDBA로 들어가서 풀 수 있었지만, 이번에는 DB가 아니라 운영체제의 디스크가 막혔기 때문에 SQL로는 손쓸 수 없습니다. 리눅스 쪽에서 풀어야 합니다.' },
+      { text: '파일 시스템 사용량 보기', hint: 'df -h', done: ev => has(ev, 'df') && ev.dfU01,
+        why: '<code>/u01</code>이 100%이고 Avail이 0입니다. 오라클 홈, ADR(alert log, 트레이스), 감사 파일, Data Pump 기본 폴더가 모두 /u01에 있습니다. 데이터 파일이 있는 /u02는 여유가 많습니다.' },
+      { text: '/u01에서 무엇이 공간을 차지했는지 찾기', hint: 'du -sh /u01/app/oracle/admin/orcl/*', done: ev => has(ev, 'du') && /admin|\/u01/.test(ev.line),
+        why: '<code>dpdump</code> 폴더가 거의 다 차지합니다. 한 단계씩 내려가며 du -sh 로 큰 폴더를 찾는 것이 기본 방법입니다. 실제 서버에서는 <code>du -sh /u01/* 2>/dev/null | sort -h</code>처럼 정렬해 보기도 합니다.' },
+      { text: '큰 파일이 무엇이고 언제 생겼는지 보기', hint: 'ls -lh /u01/app/oracle/admin/orcl/dpdump', done: ev => has(ev, 'ls') && /dpdump/.test(ev.line),
+        why: '<code>exp_full_app.dmp</code>가 오늘 02:47에 만들어졌습니다. 같은 폴더의 .log를 보면 전체 export(full=y)입니다. 이대리가 말한 그 파일입니다. 지우기 전에 주인에게 물어야 하는 파일입니다. 이관에 쓸 파일이므로 지우지 않고 옮기기로 합니다.' },
+      { text: '덤프를 여유 있는 /u02로 옮기기', hint: 'mv /u01/app/oracle/admin/orcl/dpdump/exp_full_app.dmp /u02/backup/expdp/', done: () => dumpMoved(),
+        why: '다른 파일 시스템으로 옮기는 mv는 복사한 뒤 원본을 지웁니다. 옮기는 동안 /u02에 그만큼 공간이 있어야 합니다(지금 500GB 중 여유 충분). 실습에서는 바로 끝나지만, 실제로 큰 파일은 시간이 걸립니다. 열려 있는 파일(예: 아직 쓰는 중인 export)을 옮기거나 지우면 공간이 바로 돌아오지 않을 수 있으니, 작업이 끝났는지 먼저 확인합니다.' },
+      { text: '/u01 사용률이 내려갔는지 확인하기', hint: 'df -h /u01', done: ev => has(ev, 'df') && ev.dfU01 && !u01Full(),
+        why: '사용률이 몇 %로 떨어졌습니다. 이제 감사 파일을 만들 수 있습니다.' },
+      { text: '앱 계정으로 다시 접속해 보기', hint: 'sqlplus app/App#2026@ORCL', done: () => asUser('APP'),
+        why: '접속됩니다. 앱팀과 이대리에게 덤프를 /u02/backup/expdp/ 로 옮겼다고 알립니다. 다음 export부터는 /u02 쪽을 가리키는 디렉터리 객체를 만들어 쓰도록 정합니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '재발을 막으려면 /u01 사용률 경보(예: 80%, 90%)를 걸고, export 같은 큰 파일은 오라클 홈·ADR이 있는 파일 시스템에 받지 않게 디렉터리 객체를 따로 둡니다. 감사 파일(adump)과 트레이스도 쌓이므로 보관 기간을 정해 정리합니다(ADRCI의 PURGE 명령이 ADR 정리에 쓰입니다. 세부 옵션은 Utilities 19c ADRCI 장을 보세요). 오라클이 쓰는 파일을 rm으로 지우는 것은 마지막 수단입니다. 이 레슨의 오류 화면에서 "Linux-x86_64 Error: 28" 줄의 형식은 My Oracle Support 문서 제목으로 확인했고, ORA-09925 도움말 자체에는 디스크 가득 참이 적혀 있지 않습니다.',
+    sources: ['e09925', 'ms09925', 'enospc'] },
+
+  { id: 112, stage: 12, title: '메모리가 모자라 리눅스가 오라클을 죽였을 때', short: 'OOM killer', start: 'oracle',
+    who: '관제팀 (메신저)',
+    situation: '"03시 15분부터 ORCL 접속 감시가 실패하고 있습니다." 이 서버(메모리 32GB)는 DB 전용인데, 이번 달부터 보고서팀의 월말 배치(java)가 임시로 같은 서버에서 돈다고 합니다. 누가 DB를 내렸다는 기록은 없습니다.',
+    tasks: [
+      { text: '인스턴스 프로세스가 살아 있는지 보기', hint: 'ps -ef | grep pmon', done: ev => ev.psSeen,
+        why: '<code>ora_pmon_ORCL</code>이 없습니다. 인스턴스가 내려가 있습니다. 앱 계정으로 접속하면 ORA-01034, ORA-27101이 나올 상황입니다.' },
+      { text: 'alert log 끝부분 보기', hint: 'tail -20 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => ev.read.has(ALERT),
+        why: '마지막 줄은 평소 기록(로그 전환)이고, 누가 SHUTDOWN을 했다는 기록(Shutting down instance ...)이 없습니다. 오라클 스스로 정상 종료한 것이 아닙니다. 이럴 때는 운영체제 쪽 기록을 봐야 합니다.' },
+      { text: '커널 메시지에서 원인 찾기', hint: 'dmesg -T | grep -i -E "oom|killed process"', done: ev => ev.dmesg,
+        why: '03:12에 <code>java invoked oom-killer</code>, 이어서 <code>Out of memory: Killed process 2058 (oracle) ... UID:54321</code>이 있습니다. 메모리가 바닥나자 리눅스 커널의 OOM killer가 프로세스 하나를 골라 죽였습니다. 커널 문서: 프로세스마다 0(죽이지 않음)~1000(항상 죽임)의 점수(badness)를 매겨 대상을 고르고, 점수에는 그 프로세스가 쓰는 메모리 비율이 반영됩니다. 오라클 프로세스는 SGA(공유 메모리, shmem-rss)를 많이 만지기 때문에 점수가 높게 나올 수 있습니다. 필수 백그라운드 프로세스가 죽으면 인스턴스 전체가 내려갑니다.' },
+      { text: 'UID 54321이 누구인지 확인하기', hint: 'id oracle', done: ev => has(ev, 'id'),
+        why: 'uid=54321(oracle)입니다. 죽은 프로세스는 오라클 계정의 것입니다. 커널 메시지의 이름 칸에는 ora_dbw0_ORCL 같은 이름 대신 실행 파일 이름(oracle)이 찍힙니다.' },
+      { text: '지금 메모리와 스왑 상태 보기', hint: 'free -m', done: ev => has(ev, 'free'),
+        why: '32GB 중 available이 1GB쯤이고, 스왑 16GB도 거의 다 썼습니다. 오라클이 내려가 SGA가 풀렸는데도 이렇다면 다른 무언가가 메모리를 쥐고 있습니다.' },
+      { text: '메모리를 쓰는 프로세스 찾기', hint: 'ps -ef | grep java', done: ev => ev.psSeen && /java/.test(ev.line),
+        why: '보고서팀의 <code>java -Xmx20g ... report-batch.jar</code>가 02:50부터 돌고 있습니다. 힙 최대 20GB를 DB 서버에서 쓰고 있으니 SGA와 함께 32GB를 넘겼습니다. 이 프로세스를 죽일지는 DBA가 혼자 정하지 않고 보고서팀과 정합니다.' },
+      { text: 'HugePages를 쓰고 있었는지 보기', hint: 'grep -i huge /proc/meminfo', done: ev => ev.read.has('/proc/meminfo'),
+        why: '<code>HugePages_Total: 0</code>입니다. SGA가 일반 페이지에 있었다는 뜻이고, <code>AnonHugePages</code>가 큰 것은 Transparent HugePages가 켜져 있다는 신호입니다. 19c Linux 관리 문서: HugePages는 메모리에 고정되어 스왑되지 않고, Oracle은 Transparent HugePages를 끄고 표준 HugePages를 쓰라고 권합니다. 또 AMM(MEMORY_TARGET)과 HugePages는 함께 쓸 수 없습니다.' },
+      { text: '보고서팀과 배치를 멈추기로 정한 뒤 DB 다시 올리기', hint: 'sqlplus / as sysdba\nstartup', done: () => S.db.state === 'OPEN',
+        why: '배치는 보고서팀이 멈추기로 했다고 가정합니다. STARTUP은 인스턴스 복구(instance recovery)를 스스로 해서 커밋된 것은 살리고 커밋 안 된 것은 되돌립니다. 비정상 종료 뒤라도 데이터 파일이 멀쩡하면 RMAN 복구는 필요 없습니다.' },
+      { text: '앱 계정으로 접속되는지 확인하기', hint: 'conn app/App#2026@ORCL', done: () => asUser('APP'),
+        why: '접속됩니다. 관제팀에 복구 시각을 알리고, 원인(같은 서버의 java 배치로 메모리 부족 → OOM killer가 oracle 프로세스 종료)을 공유합니다.' },
+      { text: '나가기', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: '재발 방지는 순서대로 생각합니다. 1) DB 서버에서 다른 큰 프로그램을 돌리지 않는다(배치를 다른 서버로). 2) SGA를 HugePages에 올린다(스왑되지 않음, AMM 끄기, Transparent HugePages 끄기). 3) 메모리 사용률 경보를 건다. /proc/<pid>/oom_score_adj를 -1000으로 하면 그 프로세스는 OOM killer 대상에서 빠지지만(커널 문서), 메모리가 모자란 원인은 그대로라 다른 프로세스가 대신 죽습니다. 커널 메시지 형식은 현재 리눅스 소스(mm/oom_kill.c) 기준이며, 옛 커널은 "Out of memory: Kill process ... score ... or sacrifice child"로 찍습니다. Oracle Linux 8 커널의 정확한 문구와, 이때 alert log에 남는 백그라운드 프로세스 종료 문구는 문서로 확인하지 못해 화면에 넣지 않았습니다.',
+    sources: ['oomsrc', 'oomadj', 'msoom', 'unxhp'] },
+
+  { id: 113, stage: 12, title: 'RAC 노드의 시계가 어긋났을 때', short: '시간 어긋남', start: 'oracle',
+    who: '관제팀 (메신저)',
+    situation: '"racnode1의 Clusterware alert log에 CRS-2409가 밤새 한 시간마다 찍혀요. 숫자가 점점 커져요." 어제 저녁 인프라팀이 racnode1의 OS 보안 패치를 했다는 기록이 있습니다. 접속한 곳은 racnode1입니다.',
+    tasks: [
+      { text: 'Clusterware alert log에서 경고 보기', hint: 'grep CRS-2409 /u01/app/grid/diag/crs/racnode1/crs/trace/alert.log', done: ev => has(ev, 'grep') && ev.read.has(CRS_ALERT),
+        why: '<code>CRS-2409: The clock on host racnode1 differs from mean cluster time by ... microseconds.</code> 오류 도움말: 이 노드의 시계가 클러스터 평균 시각과 1000마이크로초(1밀리초) 넘게 차이 나는데, CTSS가 observer 모드라서 아무 조치도 하지 않았다. 조치는 "운영체제의 시간 동기화 서비스가 제대로 도는지 확인하라"입니다. Clusterware alert log는 Grid의 ORACLE_BASE 아래 diag/crs/호스트/crs/trace/alert.log입니다(Clusterware 19c 문제 해결 부록).' },
+      { text: 'CTSS가 어떤 모드인지 보기', hint: 'crsctl check ctss', done: ev => ev.crs === 'check-ctss',
+        why: 'Observer 모드입니다. Grid 설치 가이드 19c: NTP(chrony)를 쓰면 ctssd는 observer 모드로 뜨고, NTP가 없으면 active 모드로 노드끼리 시간을 맞춥니다. 또 CTSS는 19c에서 deprecated입니다. 즉 이 클러스터에서 시간을 맞추는 책임은 운영체제의 chronyd에 있습니다.' },
+      { text: 'chronyd 서비스 상태 보기', hint: 'systemctl status chronyd', done: ev => ev.systemctl === 'status',
+        why: 'inactive (dead)이고 disabled입니다. 어제 패치 작업 중 꺼진 뒤 다시 켜지지 않았고, 부팅 때 자동 시작도 꺼졌습니다. 그 뒤로 이 노드 시계가 조금씩 늦어졌습니다.' },
+      { text: 'root가 되어 chronyd 켜기', hint: 'su -\n(root 암호: root123)\nsystemctl start chronyd', done: () => S.chrony && S.chrony.active,
+        why: '켜졌습니다. 출력이 없으면 성공입니다. 시간 서버 주소는 /etc/chrony.conf의 server 줄에 있습니다.' },
+      { text: '부팅 때 자동으로 켜지게 하기', hint: 'systemctl enable chronyd', done: () => S.chrony && S.chrony.enabled,
+        why: '<code>Created symlink ...</code>가 나오면 다음 부팅부터 자동으로 켜집니다. start(지금 켜기)와 enable(부팅 때 켜기)은 따로입니다. 패치 뒤 점검 목록에 둘 다 넣습니다.' },
+      { text: '시계가 맞춰지는지 보기 (몇 번 반복)', hint: 'chronyc tracking', done: ev => ev.tracking != null,
+        why: '<code>System time</code>은 NTP 시각과 이 서버 시계의 차이입니다. chronyc 문서: 시계는 보통 조금 빠르게 또는 느리게 가게 해서(slew) 고치므로, 차이가 크면 시간이 걸립니다. <code>Leap status</code>가 Not synchronised에서 Normal로 바뀌면 시간 서버와 맞물린 것입니다. 몇 초 뒤 다시 실행해 보세요.' },
+      { text: '차이가 1밀리초 아래로 줄었는지 확인하기', hint: 'chronyc tracking', done: ev => ev.tracking != null && ev.tracking < 0.001,
+        why: 'System time이 0.000006초 정도가 되었습니다. CRS-2409 기준(1000마이크로초) 안입니다. chrony.conf 문서에 따르면 chronyd의 최대 slew 속도는 기본 83333.333ppm(1/12)이라, 2.3초 차이는 30초쯤에 따라잡습니다. <code>chronyc makestep</code>으로 한 번에 옮기는 방법도 있지만, chronyc 문서는 이런 시간 점프에 어떤 소프트웨어는 심각한 영향을 받는다고 경고합니다. DB가 도는 노드에서는 천천히 맞춥니다.' },
+      { text: 'root에서 나오기', hint: 'exit', done: ev => ev.type === 'su-exit' },
+    ],
+    field: 'RAC 노드끼리 시간이 어긋나면 로그 시각을 맞춰 보기 어렵고, 차이가 크면 Clusterware가 경고합니다. 패치나 재부팅 뒤 점검 목록에 systemctl is-active chronyd, systemctl is-enabled chronyd, chronyc tracking, crsctl check ctss를 넣고, 설치 가이드가 드는 cluvfy comp clocksync -n all로 전체 노드를 확인합니다(이 실습에는 cluvfy가 없습니다). 모든 노드가 같은 시간 서버를 보게 하는 것이 기본입니다. alert log의 [OCTSSD(...)] 표시, systemctl status 화면 모양, chronyc tracking의 숫자는 실습용으로 만든 것입니다.',
+    sources: ['e2409', 'e4700', 'cwntp', 'cwtrbl', 'chronyc', 'chronyf'] },
+);
+
+/* =====================================================================
    9. 레슨 진행
    ===================================================================== */
 let cur = null, prog = {};
@@ -6784,7 +7011,9 @@ function startLesson(id) {
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
-  if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  S.osfail = null; S.chrony = null;
+  if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -6833,7 +7062,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '5단계 · 장애 대응', sub: '5단계 · 장애 대응과 복구' }, 5: { name: '6단계 · 고급 복구', sub: '6단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '7단계 · 성능 점검', sub: '7단계 · 대기 이벤트와 AWR' }, 7: { name: '8단계 · 패치', sub: '8단계 · OPatch와 분기별 RU' }, 8: { name: '9단계 · SQL 튜닝 입문', sub: '9단계 · 실행 계획과 인덱스' }, 9: { name: '10단계 · Data Guard 기초', sub: '10단계 · 주 DB와 물리 대기 DB' }, 10: { name: '4단계 · SQL 기초', sub: '4단계 · SELECT, 조인, DML, DDL' }, 11: { name: '11단계 · RAC 기초', sub: '11단계 · Clusterware와 2노드 RAC' } };
+const STAGES = { 3: { name: '3단계 · 오라클 19c 기본 운영', sub: '3단계 · Oracle 19c 기본 운영' }, 4: { name: '5단계 · 장애 대응', sub: '5단계 · 장애 대응과 복구' }, 5: { name: '6단계 · 고급 복구', sub: '6단계 · 시점 복구와 컨트롤 파일 복구' }, 6: { name: '7단계 · 성능 점검', sub: '7단계 · 대기 이벤트와 AWR' }, 7: { name: '8단계 · 패치', sub: '8단계 · OPatch와 분기별 RU' }, 8: { name: '9단계 · SQL 튜닝 입문', sub: '9단계 · 실행 계획과 인덱스' }, 9: { name: '10단계 · Data Guard 기초', sub: '10단계 · 주 DB와 물리 대기 DB' }, 10: { name: '4단계 · SQL 기초', sub: '4단계 · SELECT, 조인, DML, DDL' }, 11: { name: '11단계 · RAC 기초', sub: '11단계 · Clusterware와 2노드 RAC' }, 12: { name: '12단계 · OS 원인 장애', sub: '12단계 · 디스크, 메모리, 시계' } };
 const stageOf = (l) => l.stage || 3;
 /* 화면에 보이는 단계 번호. 내부 단계 키(stage)는 그대로 두고 course.js의 순서로 번호를 붙인다(4단계 SQL 기초를 3단계 뒤에 넣었다). */
 const dno = (st) => { const i = Course.STAGES.findIndex(x => x.st === st); return i >= 0 ? i + 1 : st; };

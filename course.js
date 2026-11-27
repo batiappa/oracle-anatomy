@@ -18,6 +18,7 @@
     { st: 8, part: 'dba', group: 'DBA', name: 'SQL 튜닝 입문', ids: range(71, 73) },
     { st: 9, part: 'dba', group: 'DBA', name: 'Data Guard 기초', ids: range(81, 83) },
     { st: 11, part: 'dba', group: 'DBA', name: 'RAC 기초', ids: [101, 102, 104, 105, 106, 107, 108, 103] },
+    { st: 12, part: 'dba', group: 'DBA', name: 'OS 원인 장애', ids: range(111, 113) },
   ];
   STAGES.forEach((s, i) => { s.no = i + 1; });
   const KEY = { lab: 'ohb:lab:done', dba: 'ohb:dba:done' };

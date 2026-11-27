@@ -240,6 +240,7 @@ a.btn { display: inline-block; text-decoration: none; color: inherit; }
   <p><b>Output confirmed against examples in the official documentation</b>: the format of the SQL*Plus startup banner (the documentation example is 19.1); for STARTUP, "Connected to an idle instance.", "ORACLE instance started.", the SGA line names, "Database mounted.", "Database opened.", and for SHUTDOWN, "Database closed.", "Database dismounted.", "ORACLE instance shut down." (Oracle 19c startup and shutdown tutorial); the formats of lsnrctl status, start, stop, and services; the output format of tnsping; the format of the rman startup banner and connection messages; the old/new RMAN configuration parameters messages of CONFIGURE; the heading lines of LIST BACKUP SUMMARY; CROSSCHECK result lines and "Crosschecked n objects"; "deleted backup piece" and "Deleted n objects" for DELETE; the format of ARCHIVE LOG LIST (archivelog mode); the KILLED and PSEUDO markers after KILL; the ORA-, RMAN-, and TNS- error messages quoted in the lessons (including ORA-19573, ORA-01124, ORA-38312, ORA-01541, RMAN-06094, RMAN-06149, TNS-12560, TNS-00511); the SP2-0771, SP2-0606, SP2-0223, and SP2-0103 messages; and the column headings of SHOW PARAMETER (NAME, TYPE, VALUE). In stage 5: the RMAN-06056 line of VALIDATE DATABASE; the RESTORE and RECOVER progress lines that appear in documentation examples (Starting restore/recover at, restoring datafile, restore complete, starting media recovery, archived log ... is on disk as file, media recovery complete, Finished); the column headings and DROP TIME format of SHOW RECYCLEBIN; and the column names of V$RECOVER_FILE, V$RECOVERY_FILE_DEST, and DBA_RECYCLEBIN. In stages 6 and 7: the SET UNTIL, RESTORE, RECOVER order in an RMAN RUN block; the RESTORE CONTROLFILE FROM AUTOBACKUP procedure; the ORA-01589, ORA-01139, ORA-01152, and ORA-01861 messages; the questions of awrrpt.sql (report_type, num_days, begin_snap, end_snap, report_name) and the default report name; and the names of wait events and wait classes. In stage 10: the shape of SHOW CONFIGURATION and of SHOW DATABASE for the standby; the Database Role, Ready for Switchover, and Ready for Failover lines of VALIDATE DATABASE; "Succeeded." after EDIT DATABASE ... SET STATE; the SWITCHOVER progress lines and "Switchover succeeded, new primary is ..."; DGMGRL's "Welcome to DGMGRL..." and "Connected as SYSDG." lines (Data Guard Broker 19c examples); and the columns and NAME values of V$DATAGUARD_STATS and the fact that it has no rows on the primary (Database Reference 19c). <b>Output not confirmed</b>: feedback messages such as "User created." after DDL; the column widths of SHOW PARAMETER; the line format of SHOW ALL; SPOOL status messages; ARCHIVE LOG LIST in NOARCHIVELOG mode; the 19.0.0.0.0 version notation in the RMAN startup banner; the RMAN BACKUP progress lines and the REPORT NEED BACKUP table; the table of files to delete in DELETE OBSOLETE; the full order of lsnrctl error lines when there is no listener; orapwd's password prompts and OPW-00005; some error messages not quoted in the lessons; the output of SQL statements run at the RMAN prompt in stage 5; the remaining RESTORE progress lines; "Flashback complete."; the column widths and BIN$ name shape of SHOW RECYCLEBIN; "executing command: SET until clause" and the RESTORE CONTROLFILE progress lines in stage 6; online redo log apply lines; "PL/SQL procedure successfully completed." in stage 7; the guidance text and snapshot list layout of awrrpt.sql; the layout and numbers of the AWR report body; the Rows, Bytes, Cost, Time numbers and Plan hash value of the stage 9 execution plans (the plan layout and column headings, Predicate Information, and "Explained." were confirmed with SQL Tuning Guide 19c and DBMS_XPLAN examples); the DISPLAY_CURSOR privilege error message; the full OPatch and datapatch screens in stage 8 (the documentation has no output examples; only the "Log file for this invocation:" line was confirmed in the 26ai documentation) and the unzip output. The patch numbers, RU versions, and OPatch version numbers in stage 8 are example values. In stage 10, the edition and copyright lines among DGMGRL's startup lines, the SHOW DATABASE output for the primary, how lag is shown when it is in hours (e.g. 2 hours 14 minutes 9 seconds), the Configuration Status and VALIDATE verdict while apply is stopped, the UNIT values of V$DATAGUARD_STATS, the process names, PIDs, and line layout of V$DATAGUARD_PROCESS, and the server names and IPs were also not confirmed or are example values. This output tries to follow the format seen in real 19c, but it could not be confirmed in the official documentation, and the screen says so with an ⓘ line.</p>
   <p><b>Stage 4 SQL basics</b>: confirmed in the official documentation are the format of the ORA-00001 and ORA-01400 error messages (Database Concepts 19c examples), "Table created." and the "n rows selected." behavior of SET FEEDBACK, EXITCOMMIT defaulting to ON (commit) when SQL*Plus exits, that a zero-length string is NULL and that = NULL is not true, that aggregate functions other than COUNT(*) ignore NULLs, that a left outer join fills unmatched rows with NULLs, and that DDL implicitly commits before and after (SQL Language Reference 19c). <b>Not confirmed</b>: DML feedback messages such as "1 row created./updated./deleted.", the full screen text of ORA-02291, 02292, 01407, 12899, 01722, 01438, 00937, 00979, and 01427, how the position of NULLs in sorting is displayed, and column widths. Such lines get an ⓘ mark in the terminal. The employee and department rows of the STUDY schema and the constraint names (SYS_C...) are illustrative examples.</p>
   <p><b>Stage 11 RAC basics</b>: confirmed in the official documentation are the per-node CRS-4537, 4529, and 4533 line format of crsctl check cluster -all (Clusterware 19c documentation example); the -n, -s, -c, -l, and -t options of olsnodes and the -n output example; the structure of the crsctl stat res -t table and the "Instance ... is running on node ..." message (21c Private Cloud Appliance documentation example); that CRSCTL is in the Grid home's bin and SRVCTL is run from the database home; that SRVCTL prints nothing on success; the -stopoption values of stop instance; the -oldinst and -newinst syntax of relocate service; the meaning of preferred and available instances and that a service does not automatically return to its original instance; INST_ID in GV$ views; and the gc cr block 2-way and gc current block 2-way wait events and the Cluster wait class (Real Application Clusters Administration and Deployment Guide 19c, Database Reference 19c). <b>Not confirmed</b>: the exact wording of the lines of srvctl status and config service and config database, the "is not running" message, the column spacing of crsctl stat res -t and the service resource names (ora.paydb.*.svc), the screen text of check crs and query crs activeversion, the capitalization of olsnodes -s, and the PRC and PRK error numbers on failure (replaced with ⓘ guidance instead of being made up). Cluster, node, DB, and service names, IPs, session counts, and times are illustrative examples. <b>Lessons 104 to 108 (reflecting the RAC 19c CRSCTL and SRVCTL field guide)</b>: confirmed in the official documentation are the operators of the crsctl stat res -w filter (=, !=, co, st, en, AND, OR) and the advice not to manage ora. resources directly with CRSCTL, that cluster commands depend on OHASD (Clusterware 19c), the column layout of crsctl query css votedisk (19c OCR and voting files chapter example), the CRS-4639 message (19c error messages), the meaning of query crs activeversion -f (CRS-04172 usage), the line names and order and the -all option of srvctl config database, -startoption defaulting to OPEN, that disable database also disables the instances, not running SRVCTL on the same target concurrently, exit codes 0, 1, and 2, -eval, and the meaning of the -statefile and -scannumber options (RAC 19c), usage examples of -drain_timeout, -stopoption, and -failover for stop instance and relocate service (High Availability Overview 19c), and the layout of srvctl config asm and status asm -verbose (Clusterware 19c). Confirmed only in the 11.2 CRSCTL documentation because part of the 19c documentation could not be read: the CRS-4638 line of check crs, CRS-4622 and CRS-4621 of config crs, the explanation that stop crs fails if resources remain and -f stops unconditionally, the explanation that for several nodes stop cluster prevents resource relocation, the "Located n voting disk(s)." line, and the NAME=, TYPE=, TARGET=, STATE= layout without -t. <b>Not confirmed</b>: the progress lines of crsctl stop crs and start crs (CRS-2791, 2673, 2677, 2793, 4133, 4123, 2672, 2676, 6016, 6017, 6023, 6024), the full list and detailed wording of the -init table, the official definitions of Target and State values (INTERMEDIATE, UNKNOWN, etc.), the "Instance status:" wording of srvctl status -detail, the line wording of config scan, scan_listener, vip, network, nodeapps, listener, and service, the wording of status diskgroup and vip, the full syntax of stop home and start home and the contents of the state file, the description of the -wait option, and the error numbers when privileges are missing. Of the explanations in the field guide the site owner provided, "crsctl stop crs with the DB open may use shutdown abort" and "stop diskgroup -force does not stop the DB first" could not be confirmed in the official documentation, and the lessons say so.</p>
+  <p><b>Stage 12 OS-caused failures</b>: Confirmed from official sources: the ORA-09925 message and action (Oracle Error Help), the line format "Linux-x86_64 Error: 28: No space left on device" (My Oracle Support document titles), Linux error 28 being ENOSPC (kernel source), the OOM killer badness score and the oom_score_adj range (kernel documentation), the format of the kernel messages "invoked oom-killer" and "Out of memory: Killed process" (current kernel source mm/oom_kill.c), HugePages not being swapped, disabling THP, and AMM not working with HugePages (Linux administration reference 19c), the CRS-2409 and CRS-4700 messages, CTSS running in observer mode when NTP is present and CTSS being deprecated (Grid installation guide 19c), the Clusterware alert log location (Clusterware 19c troubleshooting appendix), and the chronyc tracking fields, the makestep warning and the maxslewrate default (chrony 4.5 documentation). Not confirmed or made up for the lab: the exact OOM wording on the Oracle Linux 8 kernel, what the alert log records when OOM kills the instance, the look of the systemctl status screen, the full crsctl check ctss output, and the [OCTSSD(...)] tag in the alert log.</p>
   <p>The SQL engine imitates only what the lab needs: SELECT (joins, outer joins, subqueries, WHERE, GROUP BY, HAVING, ORDER BY, aggregate functions), INSERT, UPDATE, DELETE, COMMIT, and ROLLBACK on the lab's STUDY schema, and a few DDL statements. Numbers, dates, SIDs, PIDs, DBIDs, backup file names, and rows of business tables are illustrative examples.</p>
   <p>This site is not affiliated with, sponsored by, or endorsed by Oracle Corporation or its affiliates. Oracle is a registered trademark of Oracle and/or its affiliates. 'Mr.Oracle' is the creator's pen name, not the name of an Oracle product or service. Linux is a registered trademark of Linus Torvalds.</p>
 </footer>
@@ -1106,7 +1107,7 @@ const CMDS = {
     if (f.r) ls.reverse();
     return ok(ls.length ? ls.join('\n') + '\n' : '');
   },
-  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('This is a lab summary. Real bash help is printed in English.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('Commands available in this lab terminal:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  Oracle: sqlplus  lsnrctl  rman  orapwd  tnsping\n  Stage 8 patching: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  Stage 10 Data Guard: dgmgrl /\n  Stage 11 RAC: olsnodes [-n -s -t -l -c], crsctl check cluster -all, crsctl stat res -t, crsctl check crs, srvctl (see the forms with srvctl help)\n  To see what works inside SQL*Plus, type help after connecting with sqlplus.\n  Look up options: man COMMAND, COMMAND --help (lab summary)    Save results: COMMAND > FILE, COMMAND >> FILE, COMMAND | tee FILE    Sort: sort -n, sort -h')); },
+  help(argv) { if (argv && argv[1]) { const r = Tips.ref(argv[1]); if (r && r.b) return ok(Tips.manText(argv[1], 'help') + note('This is a lab summary. Real bash help is printed in English.')); return fail(`-bash: help: no help topics match \`${argv[1]}'.  Try \`help help' or \`man -k ${argv[1]}' or \`info ${argv[1]}'.\n`); } return ok(note('Commands available in this lab terminal:\n  ssh exit whoami hostname uname id date uptime ping\n  pwd cd ls mkdir rmdir touch cp mv rm cat less more head tail grep find wc\n  vi chmod chown su  ps top kill ss vmstat  df du free swapon lsblk  echo export env printenv which source umask\n  history clear\n  Oracle: sqlplus  lsnrctl  rman  orapwd  tnsping\n  Stage 8 patching: $ORACLE_HOME/OPatch/opatch (version, lspatches, lsinventory, prereq, apply, rollback), $ORACLE_HOME/OPatch/datapatch, unzip\n  Stage 10 Data Guard: dgmgrl /\n  Stage 11 RAC: olsnodes [-n -s -t -l -c], crsctl check cluster -all, crsctl stat res -t, crsctl check crs, srvctl (see the forms with srvctl help)\n  Stage 12 OS-caused failures: dmesg [-T], systemctl status|start|enable chronyd, chronyc tracking, crsctl check ctss\n  To see what works inside SQL*Plus, type help after connecting with sqlplus.\n  Look up options: man COMMAND, COMMAND --help (lab summary)    Save results: COMMAND > FILE, COMMAND >> FILE, COMMAND | tee FILE    Sort: sort -n, sort -h')); },
   whoami() { return ok(S.user + '\n'); },
   hostname() { return ok(S.hn + '\n'); },
   uname(argv) {
@@ -1459,7 +1460,7 @@ const CMDS = {
     const cv = (k) => f.m ? Math.round(k / 1024) : f.g ? Math.round(k / 1048576) : f.h ? hum(k) : k;
     function hum(k) { const v = k * 1024; if (v >= GB) return (v / GB).toFixed(v / GB >= 10 ? 0 : 1) + 'Gi'; if (v >= MB) return Math.round(v / MB) + 'Mi'; return Math.round(v / KB) + 'Ki'; }
     const c = (x) => String(cv(x)).padStart(11);
-    return ok(`              total        used        free      shared  buff/cache   available\nMem:   ${c(K.total)} ${c(K.used)} ${c(K.free)} ${c(K.shared)} ${c(K.buff)} ${c(K.avail)}\nSwap:  ${c(K.stotal)} ${c(0)} ${c(K.stotal)}\n`);
+    return ok(`              total        used        free      shared  buff/cache   available\nMem:   ${c(K.total)} ${c(K.used)} ${c(K.free)} ${c(K.shared)} ${c(K.buff)} ${c(K.avail)}\nSwap:  ${c(K.stotal)} ${c(K.sused || 0)} ${c(K.stotal - (K.sused || 0))}\n`);
   },
   echo(argv) { const a = argv.slice(1); const n = a[0] === '-n'; if (n) a.shift(); return ok(a.join(' ') + (n ? '' : '\n')); },
   export(argv) {
@@ -2728,6 +2729,7 @@ function resolveSvc(svc) {
 }
 /* 접속 시도. 성공하면 null, 실패하면 오류 문장을 돌려준다. */
 function tryConnect(c) {
+  if (u01Full()) { if (c.priv) S.osfail.privTried = true; return ORA09925; }
   let db = S.db; const me = S.sql;
   if (S.dg) { db = S.dg.local; S.dgTgt = db; }
   let remote = false;
@@ -6812,6 +6814,231 @@ LESSONS.push(
 );
 
 /* =====================================================================
+   12단계. OS가 원인인 오라클 장애 (레슨 111~113)
+   ===================================================================== */
+const CRS_ALERT = '/u01/app/grid/diag/crs/racnode1/crs/trace/alert.log';
+const ORA09925 = 'ORA-09925: Unable to create audit trail file\nLinux-x86_64 Error: 28: No space left on device';
+const atToday = (h, m) => { let d = ago(0, h, m); if (d > NOW) d = ago(1, h, m); return d; };
+function u01Free() { const r = (S.dfRows ? S.dfRows() : []).find(x => x[3] === '/u01'); return r ? r[1] - r[2] : 1e15; }
+const u01Full = () => !!S.osfail && S.osfail.kind === 'disk' && u01Free() < 64 * MB;
+function makeWorld12(lid) {
+  const O = 'oracle', OI = 'oinstall', R = 'root';
+  if (lid === 3) { makeWorld11(1); makeChrony(); return; }
+  makeWorld4(0);
+  S.osfail = { kind: lid === 1 ? 'disk' : 'oom' };
+  const db = S.db;
+  if (lid === 1) { // 개발자가 어젯밤 받은 전체 export가 /u01을 가득 채웠다
+    const dp = OB + '/admin/orcl/dpdump';
+    const when = atToday(2, 47);
+    putFile(dp + '/exp_full_app.log', F(O, OI, 0o640, 'Export: Release 19.0.0.0.0 - Production\nStarting "SYSTEM"."SYS_EXPORT_FULL_01":  system/******** full=y directory=DATA_PUMP_DIR dumpfile=exp_full_app.dmp logfile=exp_full_app.log\n', { mt: when }));
+    const rest = 200 * GB - 4.4 * GB - duOf(lookup('/u01').node) - 40 * MB;
+    putFile(dp + '/exp_full_app.dmp', F(O, OI, 0o640, Math.floor(rest), { mt: when }));
+    lookup(dp).node.mt = when;
+    const u02 = lookup('/u02').node.c;
+    u02.backup = D(O, OI, 0o775, { expdp: D(O, OI, 0o775, {}, { mt: ago(20, 10, 0) }) }, { mt: ago(20, 10, 0) });
+  }
+  if (lid === 2) { // 03:12 OOM killer가 오라클 프로세스를 죽였고 인스턴스가 내려갔다
+    const when = atToday(3, 12);
+    db.state = 'DOWN'; db.lsnr.reg = false; db.sessions = [];
+    S.procs = S.procs.filter(p => !/^ora_|oracleORCL/.test(p.cmd));
+    S.procs.push({ user: 'rptuser', pid: 4471, ppid: 1, stime: stimeOf(atToday(2, 50)), tty: '?', time: '01:52:10', cmd: 'java -Xms4g -Xmx20g -jar /opt/report/report-batch.jar --month-end', cpu: 96, mem: 61.2 });
+    USERS.rptuser = { uid: 1501, gid: 1501, group: 'rptuser', groups: ['rptuser'], home: '/home/rptuser', pass: null };
+    S.mem = { total: 32622588, used: 30101220, free: 402112, shared: 9880, buff: 2119256, avail: 1210440, stotal: 16777212, sused: 16102344 };
+    S.osfail.oomAt = when;
+    const dfb = S.dfRows; S.dfRows = () => dfb().map(r => r[3] === '/dev/shm' && S.db.state === 'DOWN' ? [r[0], r[1], 0, r[3]] : r);
+    S.osfail.boot = ago(41, 6, 3);
+    lookup('/proc').node.c.meminfo = F(R, R, 0o444, MEMINFO12, { mt: new Date() });
+  }
+}
+const MEMINFO12 = `MemTotal:       32622588 kB
+MemFree:          402112 kB
+MemAvailable:    1210440 kB
+SwapTotal:      16777212 kB
+SwapFree:         674868 kB
+AnonHugePages:  18432000 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+`;
+function dmesgLines() {
+  const o = S.osfail; if (!o || o.kind !== 'oom') return [['', 'Linux version ' + KVER]];
+  const t = o.oomAt.getTime();
+  return [
+    [t - 5000, 'java invoked oom-killer: gfp_mask=0x6280ca(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), order=0, oom_score_adj=0'],
+    [t - 4990, 'oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/,task=oracle,pid=2058,uid=54321'],
+    [t - 4980, 'Out of memory: Killed process 2058 (oracle) total-vm:9884120kB, anon-rss:12044kB, file-rss:21104kB, shmem-rss:8392716kB, UID:54321 pgtables:17108kB oom_score_adj:0'],
+  ];
+}
+CMDS.dmesg = function (argv) {
+  const { f } = opts(argv);
+  const o = S.osfail; const boot = o && o.boot ? o.boot.getTime() : ago(41, 6, 3).getTime();
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], mons = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const stamp = (t) => { if (t === '') return '[    0.000000]'; if (f.T) { const d = new Date(t); return `[${days[d.getDay()]} ${mons[d.getMonth()]} ${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${d.getFullYear()}]`; } return '[' + ((t - boot) / 1000).toFixed(6).padStart(12) + ']'; };
+  S.ev.dmesg = true;
+  return ok(dmesgLines().map(([t, s]) => stamp(t) + ' ' + s).join('\n') + '\n' + (f.T ? '' : note('The number in brackets is seconds since boot. Add -T (dmesg -T) to show human-readable times.')));
+};
+/* RAC 시계: racnode1의 chronyd가 꺼져 있고 시계가 2.3초 늦다 */
+function makeChrony() {
+  const O = 'grid', OI = 'oinstall', R = 'root';
+  const now = Date.now();
+  S.chrony = { active: false, enabled: false, off0: 2.3104, since: null, deadSince: ago(1, 23, 41) };
+  const app = lookup('/u01/app').node.c;
+  const tr = D(O, OI, 0o750, { 'alert.log': F(O, OI, 0o660, '', { mt: new Date() }) });
+  app.grid = D(O, OI, 0o775, { diag: D(O, OI, 0o775, { crs: D(O, OI, 0o775, { racnode1: D(O, OI, 0o775, { crs: D(O, OI, 0o775, { trace: tr, alert: D(O, OI, 0o750) }) }) }) }) });
+  const L = [];
+  const add = (d, s) => L.push(ts(d, 100000 + (d.getMinutes() * 7919) % 800000) + ' [OCTSSD(' + 2311 + ')]' + s);
+  add(ago(1, 23, 40), 'CRS-2408: The clock on host racnode1 has been updated by the Cluster Time Synchronization Service to be synchronous with the mean cluster time.');
+  for (let h = 0; h < 10; h++) { const d = new Date(now - (10 - h) * 3600 * 1000); if (d < S.chrony.deadSince) continue; const us = Math.round((0.31 + h * 0.2) * 1e6); add(d, `CRS-2409: The clock on host racnode1 differs from mean cluster time by ${us} microseconds. No action has been taken because the Cluster Time Synchronization Service is running in observer mode.`); }
+  tr.c['alert.log'].txt = L.join('\n') + '\n';
+  lookup('/etc').node.c['chrony.conf'] = F(R, R, 0o644, '# Company time servers\nserver ntp1.example.com iburst\nserver ntp2.example.com iburst\n\n# Record the rate at which the system clock gains/losses time.\ndriftfile /var/lib/chrony/drift\n\n# Enable kernel synchronization of the real-time clock (RTC).\nrtcsync\n\nlogdir /var/log/chrony\n', { mt: ago(120, 10, 0) });
+  S.procs = S.procs.filter(p => !/chronyd/.test(p.cmd));
+}
+function chronyOffset() {
+  const c = S.chrony; if (!c) return 0;
+  if (!c.active) return c.off0 + 0.00002 * ((Date.now() - c.deadSince.getTime()) / 60000 % 50);
+  const el = (Date.now() - c.since) / 1000;
+  return Math.max(0.000006523, c.off0 - el * 0.0833333);
+}
+CMDS.systemctl = function (argv) {
+  const { f, rest } = opts(argv); const verb = rest[0], unit = (rest[1] || '').replace(/\.service$/, '');
+  const c = S.chrony;
+  if (!verb) return ok(note('The lab systemctl handles only the chronyd service: systemctl status|start|stop|enable|disable|is-active|is-enabled chronyd'));
+  if (unit !== 'chronyd') return fail(note(`The lab systemctl imitates only chronyd (you typed: ${unit || '(none)'}).`), 1);
+  if (!c) return ok(note('This lesson does not deal with chronyd.'));
+  const ev = S.ev; ev.systemctl = verb;
+  const needR = () => S.user !== 'root' ? fail(`Failed to ${verb} chronyd.service: Access denied\nSee system logs and 'systemctl status chronyd.service' for details.\n` + note('Starting and stopping services is done by root. Become root with su - and run it again.'), 1) : null;
+  if (verb === 'status') {
+    const d = c.active ? new Date(c.since) : c.deadSince;
+    const st = c.active ? `active (running) since ${dayName(d)}; ${Math.max(1, Math.round((Date.now() - c.since) / 1000))}s ago` : `inactive (dead) since ${dayName(d)}`;
+    return ok(`${c.active ? '●' : '○'} chronyd.service - NTP client/server\n   Loaded: loaded (/usr/lib/systemd/system/chronyd.service; ${c.enabled ? 'enabled' : 'disabled'}; vendor preset: enabled)\n   Active: ${st}\n     Docs: man:chronyd(8)\n           man:chrony.conf(5)\n` + (c.active ? ` Main PID: 3518 (chronyd)\n` : '') + racNote('systemctl', 'The lines of the systemctl status screen imitate systemd output on Oracle Linux 8. They were not checked line by line against a documented example. What to read: enabled/disabled on the Loaded line (whether it starts at boot) and active/inactive on the Active line (whether it is running now).'));
+  }
+  if (verb === 'is-active') return c.active ? ok('active\n') : fail('', 3, 'inactive\n');
+  if (verb === 'is-enabled') return c.enabled ? ok('enabled\n') : fail('', 1, 'disabled\n');
+  const e = needR(); if (e) return e;
+  if (verb === 'start' || verb === 'restart') { if (!c.active) { c.active = true; c.since = Date.now(); S.procs.push({ user: 'chrony', pid: 3518, ppid: 1, stime: '09:52', tty: '?', time: '00:00:00', cmd: '/usr/sbin/chronyd', cpu: 0, mem: 0 }); } return ok(); }
+  if (verb === 'stop') { if (c.active) { c.off0 = chronyOffset(); c.active = false; c.deadSince = new Date(); S.procs = S.procs.filter(p => !/chronyd/.test(p.cmd)); } return ok(); }
+  if (verb === 'enable') { const was = c.enabled; c.enabled = true; if (f.now && !c.active) { c.active = true; c.since = Date.now(); } return was ? ok() : { out: '', err: 'Created symlink /etc/systemd/system/multi-user.target.wants/chronyd.service → /usr/lib/systemd/system/chronyd.service.\n', code: 0 }; }
+  if (verb === 'disable') { c.enabled = false; return { out: '', err: 'Removed /etc/systemd/system/multi-user.target.wants/chronyd.service.\n', code: 0 }; }
+  return fail(note('Forms you can use in the lab: systemctl status|start|stop|enable|disable|is-active|is-enabled chronyd'), 1);
+};
+CMDS.chronyc = function (argv) {
+  const c = S.chrony; const sub = (argv[1] || '').toLowerCase();
+  if (!c) return fail('506 Cannot talk to daemon\n', 1);
+  if (!c.active) return fail('506 Cannot talk to daemon\n', 1);
+  if (sub === 'tracking') {
+    const off = chronyOffset(); S.ev.tracking = off;
+    const synced = (Date.now() - c.since) > 3000;
+    const nt = new Date();
+    return ok(`Reference ID    : ${synced ? '0A000105 (ntp1.example.com)' : '00000000 ()'}\nStratum         : ${synced ? 3 : 0}\nRef time (UTC)  : ${synced ? (() => { const W = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; const d = new Date(nt.getTime() - 41000); return `${W[d.getUTCDay()]} ${M[d.getUTCMonth()]} ${p2(d.getUTCDate())} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}:${p2(d.getUTCSeconds())} ${d.getUTCFullYear()}`; })() : 'Thu Jan 01 00:00:00 1970'}\nSystem time     : ${off.toFixed(9)} seconds slow of NTP time\nLast offset     : ${synced ? '-0.000006747' : '+0.000000000'} seconds\nRMS offset      : ${synced ? '0.000013209' : '0.000000000'} seconds\nFrequency       : 3.225 ppm slow\nResidual freq   : -0.000 ppm\nSkew            : 0.041 ppm\nRoot delay      : ${synced ? '0.001834021' : '1.000000000'} seconds\nRoot dispersion : ${synced ? '0.000392110' : '1.000000000'} seconds\nUpdate interval : ${synced ? '64.2' : '0.0'} seconds\nLeap status     : ${synced ? 'Normal' : 'Not synchronised'}\n`);
+  }
+  if (sub === 'makestep') { S.ev.makestep = true; return ok(note('The lab does not run makestep. The chronyc documentation says this command cancels the remaining correction and moves the clock at once, and warns that certain software is seriously affected by such time jumps. On a server running a database, let chronyd correct the clock gradually (slew).')); }
+  if (sub === 'sources') return ok(note('The lab imitates only chronyc tracking. sources shows the list of time servers and their state.'));
+  return ok(note('Commands you can use with chronyc in this lab: chronyc tracking'));
+};
+{ const old = CMDS.crsctl; CMDS.crsctl = function (argv) {
+  const t = argv.slice(1).map(x => x.toLowerCase()).join(' ');
+  if (S.rac && /^check ctss$/.test(t)) { S.ev.crs = 'check-ctss'; return ok('CRS-4700: The Cluster Time Synchronization Service is in Observer mode.\n' + racNote('ctss', 'The CRS-4700 message was confirmed in Oracle Error Help. Whether crsctl check ctss prints only this one line was not confirmed with a documented example. Observer mode means the node has an operating system time sync setup (NTP, chrony), so CTSS only watches and does not correct the clock itself.')); }
+  return old(argv);
+}; }
+Object.assign(SRC, {
+  e09925:  ['Oracle Error Help · ORA-09925 (unable to create audit trail file)', 'https://docs.oracle.com/en/error-help/db/ora-09925/'],
+  ms09925: ['My Oracle Support document 2295143.1 title (ORA-09925:Linux-x86_64 Error: 28: No space left on device), 1987611.1 title (ORA-09925 on a SYSDBA connection) · body requires sign-in', 'https://support.oracle.com/knowledge/Sun%20Microsystems/2295143_1.html'],
+  enospc:  ['Linux kernel source · include/uapi/asm-generic/errno-base.h (ENOSPC 28 "No space left on device")', 'https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno-base.h'],
+  oomsrc:  ['Linux kernel source · mm/oom_kill.c (format of the invoked oom-killer and Out of memory: Killed process lines)', 'https://github.com/torvalds/linux/blob/master/mm/oom_kill.c'],
+  oomadj:  ['Linux kernel documentation · The /proc Filesystem 3.1 /proc/<pid>/oom_score_adj', 'https://docs.kernel.org/filesystems/proc.html'],
+  unxhp:   ['Administrator\'s Reference 19c for Linux and UNIX · Administering Oracle Database on Linux (HugePages, Transparent HugePages, AMM)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/unxar/administering-oracle-database-on-linux.html'],
+  msoom:   ['My Oracle Support document 2363021.1 title (older kernel format "Out of memory: Kill process nnnnn (oracle)") · body requires sign-in', 'https://support.oracle.com/knowledge/Oracle%20Database%20Products/2363021_1.html'],
+  cwntp:   ['Grid Infrastructure Installation Guide 19c for Linux · Setting Network Time Protocol for Cluster Time Synchronization', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwlin/setting-network-time-protocol-for-cluster-time-synchronization.html'],
+  e2409:   ['Oracle Error Help · CRS-02409', 'https://docs.oracle.com/en/error-help/db/crs-02409/'],
+  e4700:   ['Oracle Error Help · CRS-04700 (CTSS Observer mode)', 'https://docs.oracle.com/en/error-help/db/crs-04700/'],
+  cwtrbl:  ['Clusterware Administration and Deployment Guide 19c · Troubleshooting Oracle Clusterware (ADR home ORACLE_BASE/diag/crs/host_name/crs, alert.log in trace)', 'https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/troubleshooting-oracle-clusterware.html'],
+  chronyc: ['chrony 4.5 documentation · chronyc(1) (tracking, makestep)', 'https://chrony-project.org/doc/4.5/chronyc.html'],
+  chronyf: ['chrony 4.5 documentation · chrony.conf(5) (makestep, maxslewrate default 83333.333 ppm)', 'https://chrony-project.org/doc/4.5/chrony.conf.html'],
+});
+const DUMP12 = OB + '/admin/orcl/dpdump/exp_full_app.dmp';
+const ex12 = (p) => { const r = lookup(p); return !!(r && r.node); };
+const dumpMoved = () => !ex12(DUMP12) && ex12('/u02/backup/expdp/exp_full_app.dmp');
+LESSONS.push(
+  { id: 111, stage: 12, title: 'When a full disk stops everyone from connecting', short: 'Disk full', start: 'oracle',
+    who: 'Choi, app team (phone)',
+    situation: '"Since this morning every new connection fails. We get an error we have never seen, ORA-09925." Screens that were already connected still work. There is a message that last night Lee from the development team took a full export to prepare a migration.',
+    tasks: [
+      { text: 'Check the symptom with the app account', hint: 'sqlplus app/App#2026@ORCL\n(check the error, then Ctrl+C)', done: ev => failed(ev, 'ORA-09925'),
+        why: 'Under <code>ORA-09925: Unable to create audit trail file</code> comes <code>Linux-x86_64 Error: 28: No space left on device</code>. Oracle creates an audit trail file at every connection (AUDIT_FILE_DEST) and could not create it. The action in Error Help is "check the UNIX error number for a possible operating system error". Linux error 28 is ENOSPC, no space left on the device (kernel errno-base.h).' },
+      { text: 'See whether SYSDBA connections are blocked too', hint: 'sqlplus / as sysdba', done: () => !!(S.osfail && S.osfail.privTried),
+        why: 'SYSDBA is blocked by the same error. When the FRA was full (ORA-00257) you could get in as SYSDBA and fix it, but this time the operating system disk is full, not the database, so SQL cannot help. It has to be fixed on the Linux side.' },
+      { text: 'Check file system usage', hint: 'df -h', done: ev => has(ev, 'df') && ev.dfU01,
+        why: '<code>/u01</code> is at 100% with 0 available. The Oracle home, ADR (alert log, traces), audit files and the default Data Pump folder are all on /u01. /u02, which holds the data files, has plenty of room.' },
+      { text: 'Find what is taking up space on /u01', hint: 'du -sh /u01/app/oracle/admin/orcl/*', done: ev => has(ev, 'du') && /admin|\/u01/.test(ev.line),
+        why: 'The <code>dpdump</code> folder takes almost all of it. Going down one level at a time with du -sh to find the big folder is the basic method. On a real server you may also sort it, as in <code>du -sh /u01/* 2>/dev/null | sort -h</code>.' },
+      { text: 'See what the big file is and when it was made', hint: 'ls -lh /u01/app/oracle/admin/orcl/dpdump', done: ev => has(ev, 'ls') && /dpdump/.test(ev.line),
+        why: '<code>exp_full_app.dmp</code> was created today at 02:47. The .log in the same folder shows a full export (full=y). It is the file Lee mentioned. Before deleting a file like this you must ask its owner. It is for the migration, so we move it instead of deleting it.' },
+      { text: 'Move the dump to /u02, which has room', hint: 'mv /u01/app/oracle/admin/orcl/dpdump/exp_full_app.dmp /u02/backup/expdp/', done: () => dumpMoved(),
+        why: 'mv to a different file system copies the file and then deletes the original, so /u02 needs that much free space while it runs (500GB, plenty now). In the lab it finishes at once, but a big file takes time in reality. Moving or deleting a file that is still open (for example an export still being written) may not free the space right away, so first check that the job has finished.' },
+      { text: 'Check that /u01 usage went down', hint: 'df -h /u01', done: ev => has(ev, 'df') && ev.dfU01 && !u01Full(),
+        why: 'Usage dropped to a low percentage. Audit files can be created again.' },
+      { text: 'Try connecting again with the app account', hint: 'sqlplus app/App#2026@ORCL', done: () => asUser('APP'),
+        why: 'It connects. Tell the app team and Lee that the dump was moved to /u02/backup/expdp/. Agree that future exports use a directory object pointing to /u02.' },
+      { text: 'Leave', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: 'To prevent a repeat, set usage alerts on /u01 (for example 80% and 90%) and keep a separate directory object so that big files like exports are not written to the file system that holds the Oracle home and ADR. Audit files (adump) and traces also pile up, so set a retention period and clean them (the ADRCI PURGE command is used to clean ADR; see the ADRCI chapter of Utilities 19c for its options). Deleting files Oracle uses with rm is the last resort. The format of the "Linux-x86_64 Error: 28" line in this lesson was confirmed from My Oracle Support document titles; the ORA-09925 help page itself does not mention a full disk.',
+    sources: ['e09925', 'ms09925', 'enospc'] },
+
+  { id: 112, stage: 12, title: 'When Linux killed Oracle because memory ran out', short: 'OOM killer', start: 'oracle',
+    who: 'Monitoring team (messenger)',
+    situation: '"Since 03:15 the ORCL connection check has been failing." This server (32GB memory) is meant only for the database, but since this month the reporting team\'s month-end batch (java) runs on the same server for now. There is no record of anyone shutting down the database.',
+    tasks: [
+      { text: 'Check whether the instance processes are alive', hint: 'ps -ef | grep pmon', done: ev => ev.psSeen,
+        why: 'There is no <code>ora_pmon_ORCL</code>. The instance is down. Connecting with the app account would give ORA-01034 and ORA-27101.' },
+      { text: 'Look at the end of the alert log', hint: 'tail -20 /u01/app/oracle/diag/rdbms/orcl/ORCL/trace/alert_ORCL.log', done: ev => ev.read.has(ALERT),
+        why: 'The last lines are routine (log switches), and there is no record of anyone running SHUTDOWN (Shutting down instance ...). Oracle did not shut itself down normally. In this case, look at the operating system\'s records.' },
+      { text: 'Find the cause in the kernel messages', hint: 'dmesg -T | grep -i -E "oom|killed process"', done: ev => ev.dmesg,
+        why: 'At 03:12 there is <code>java invoked oom-killer</code>, then <code>Out of memory: Killed process 2058 (oracle) ... UID:54321</code>. When memory ran out, the Linux kernel\'s OOM killer picked one process and killed it. Kernel documentation: each process gets a badness score from 0 (never kill) to 1000 (always kill) to pick the target, and the score reflects the share of memory the process uses. Oracle processes touch a lot of SGA (shared memory, shmem-rss), so their score can come out high. When an essential background process dies, the whole instance goes down.' },
+      { text: 'Find out who UID 54321 is', hint: 'id oracle', done: ev => has(ev, 'id'),
+        why: 'It is uid=54321(oracle). The killed process belonged to the oracle account. The name field of the kernel message shows the executable name (oracle), not names like ora_dbw0_ORCL.' },
+      { text: 'Check memory and swap now', hint: 'free -m', done: ev => has(ev, 'free'),
+        why: 'Of 32GB only about 1GB is available, and the 16GB of swap is nearly used up. If it is still like this after Oracle went down and released the SGA, something else is holding the memory.' },
+      { text: 'Find the process using the memory', hint: 'ps -ef | grep java', done: ev => ev.psSeen && /java/.test(ev.line),
+        why: 'The reporting team\'s <code>java -Xmx20g ... report-batch.jar</code> has been running since 02:50. With a heap of up to 20GB on the database server, it went over 32GB together with the SGA. The DBA does not decide alone whether to kill this process; it is agreed with the reporting team.' },
+      { text: 'Check whether HugePages were in use', hint: 'grep -i huge /proc/meminfo', done: ev => ev.read.has('/proc/meminfo'),
+        why: 'It shows <code>HugePages_Total: 0</code>. The SGA was in regular pages, and a large <code>AnonHugePages</code> is a sign that Transparent HugePages are on. Linux administration reference 19c: HugePages are locked in memory and never swapped out, and Oracle recommends disabling Transparent HugePages and using standard HugePages. Also, AMM (MEMORY_TARGET) and HugePages cannot be used together.' },
+      { text: 'After agreeing with the reporting team to stop the batch, start the database again', hint: 'sqlplus / as sysdba\nstartup', done: () => S.db.state === 'OPEN',
+        why: 'We assume the reporting team agreed to stop the batch. STARTUP performs instance recovery by itself, keeping committed changes and rolling back uncommitted ones. Even after an abnormal stop, if the data files are intact no RMAN recovery is needed.' },
+      { text: 'Check that the app account can connect', hint: 'conn app/App#2026@ORCL', done: () => asUser('APP'),
+        why: 'It connects. Tell the monitoring team when service was restored and share the cause (memory ran out because of a java batch on the same server, so the OOM killer ended an oracle process).' },
+      { text: 'Leave', hint: 'exit', done: ev => ev.type === 'sql-exit' },
+    ],
+    field: 'Think about prevention in this order. 1) Do not run other big programs on the database server (move the batch to another server). 2) Put the SGA in HugePages (not swapped; turn off AMM and Transparent HugePages). 3) Set memory usage alerts. Setting /proc/<pid>/oom_score_adj to -1000 takes that process out of the OOM killer\'s targets (kernel documentation), but the memory shortage remains and another process dies instead. The kernel message format follows the current Linux source (mm/oom_kill.c); older kernels print "Out of memory: Kill process ... score ... or sacrifice child". The exact wording on the Oracle Linux 8 kernel, and what the alert log records about the background process ending in this case, could not be confirmed from documentation, so they are not shown.',
+    sources: ['oomsrc', 'oomadj', 'msoom', 'unxhp'] },
+
+  { id: 113, stage: 12, title: 'When a RAC node\'s clock drifted', short: 'Clock drift', start: 'oracle',
+    who: 'Monitoring team (messenger)',
+    situation: '"CRS-2409 has been logged every hour all night in the Clusterware alert log on racnode1. The number keeps growing." There is a record that the infrastructure team applied an OS security patch to racnode1 yesterday evening. You are connected to racnode1.',
+    tasks: [
+      { text: 'Look at the warning in the Clusterware alert log', hint: 'grep CRS-2409 /u01/app/grid/diag/crs/racnode1/crs/trace/alert.log', done: ev => has(ev, 'grep') && ev.read.has(CRS_ALERT),
+        why: '<code>CRS-2409: The clock on host racnode1 differs from mean cluster time by ... microseconds.</code> Error Help: this node\'s clock differs from the mean cluster time by more than 1000 microseconds (1 millisecond), and no action was taken because CTSS is in observer mode. The action is "verify correct operation of the vendor time synchronization service". The Clusterware alert log is diag/crs/host/crs/trace/alert.log under the Grid ORACLE_BASE (Clusterware 19c troubleshooting appendix).' },
+      { text: 'Check which mode CTSS is in', hint: 'crsctl check ctss', done: ev => ev.crs === 'check-ctss',
+        why: 'It is in Observer mode. Grid installation guide 19c: if you use NTP (chrony), ctssd starts in observer mode; without NTP it starts in active mode and synchronizes time among the nodes. CTSS is also deprecated in 19c. So in this cluster, keeping time is the job of the operating system\'s chronyd.' },
+      { text: 'Check the chronyd service status', hint: 'systemctl status chronyd', done: ev => ev.systemctl === 'status',
+        why: 'It is inactive (dead) and disabled. It was stopped during yesterday\'s patching and not started again, and start at boot was turned off too. Since then this node\'s clock has been falling behind little by little.' },
+      { text: 'Become root and start chronyd', hint: 'su -\n(root password: root123)\nsystemctl start chronyd', done: () => S.chrony && S.chrony.active,
+        why: 'It started. No output means success. The time server addresses are on the server lines of /etc/chrony.conf.' },
+      { text: 'Make it start automatically at boot', hint: 'systemctl enable chronyd', done: () => S.chrony && S.chrony.enabled,
+        why: 'When <code>Created symlink ...</code> appears, it starts automatically from the next boot. start (start now) and enable (start at boot) are separate. Put both on the post-patch checklist.' },
+      { text: 'Watch the clock being corrected (repeat a few times)', hint: 'chronyc tracking', done: ev => ev.tracking != null,
+        why: '<code>System time</code> is the difference between NTP time and this server\'s clock. chronyc documentation: the clock is normally corrected by making it run slightly faster or slower (slew), so a large difference takes time. When <code>Leap status</code> changes from Not synchronised to Normal, it is locked to the time server. Run it again after a few seconds.' },
+      { text: 'Check that the difference fell below 1 millisecond', hint: 'chronyc tracking', done: ev => ev.tracking != null && ev.tracking < 0.001,
+        why: 'System time is now about 0.000006 seconds. That is within the CRS-2409 threshold (1000 microseconds). According to the chrony.conf documentation, chronyd\'s maximum slew rate is 83333.333 ppm (one twelfth) by default, so a 2.3-second difference is caught up in about 30 seconds. You could move it at once with <code>chronyc makestep</code>, but the chronyc documentation warns that certain software is seriously affected by such time jumps. On a node running a database, correct it slowly.' },
+      { text: 'Exit from root', hint: 'exit', done: ev => ev.type === 'su-exit' },
+    ],
+    field: 'When RAC nodes disagree on time, log times are hard to line up, and a large difference makes Clusterware warn. Put systemctl is-active chronyd, systemctl is-enabled chronyd, chronyc tracking and crsctl check ctss on the checklist after patching or rebooting, and check all nodes with cluvfy comp clocksync -n all, which the installation guide mentions (cluvfy is not in this lab). The basic rule is that all nodes use the same time servers. The [OCTSSD(...)] tag in the alert log, the look of the systemctl status screen and the numbers in chronyc tracking are made up for the lab.',
+    sources: ['e2409', 'e4700', 'cwntp', 'cwtrbl', 'chronyc', 'chronyf'] },
+);
+
+/* =====================================================================
    9. 레슨 진행
    ===================================================================== */
 let cur = null, prog = {};
@@ -6824,7 +7051,9 @@ function startLesson(id) {
   cur = { L, idx: 0, hints: {}, done: false };
   S = { stage: L.stage || 1, host: L.start === 'laptop' ? 'laptop' : 'db', user: null, cwd: '/', env: {}, umask: 0o022, history: [], stack: [], lastCode: 0, shellPid: 30117, known: L.start !== 'laptop', ev: newEv('') };
   SQLVER = '19.3.0.0.0';
-  if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  S.osfail = null; S.chrony = null;
+  if (S.stage === 12) { makeWorld12(L.id - 110); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
+  else if (S.stage === 10 || S.stage === 11) { if (S.stage === 10) makeWorld10(L.id - 90); else makeWorld11(L.id - 100); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 9) { makeWorld9(L.id - 80); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 8) { makeWorld8(L.id - 70); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
   else if (S.stage === 7) { makeWorld7(L.id - 60); S.user = 'oracle'; loginEnv('oracle'); S.cwd = '/home/oracle'; S.sql = null; UNV_TOLD.clear(); if (S.lsnrTimer) clearTimeout(S.lsnrTimer); }
@@ -6874,7 +7103,7 @@ function checkLesson(ev) {
   if (cur.idx >= cur.L.tasks.length) { cur.done = true; prog[cur.L.id] = true; saveProg(); renderTabs(); }
   if (moved) renderMission();
 }
-const STAGES = { 3: { name: 'Stage 3 · Oracle 19c basic operations', sub: 'Stage 3 · Oracle 19c basic operations' }, 4: { name: 'Stage 5 · Incident response', sub: 'Stage 5 · Incident response and recovery' }, 5: { name: 'Stage 6 · Advanced recovery', sub: 'Stage 6 · Point-in-time recovery and control file recovery' }, 6: { name: 'Stage 7 · Performance checks', sub: 'Stage 7 · Wait events and AWR' }, 7: { name: 'Stage 8 · Patching', sub: 'Stage 8 · OPatch and quarterly RUs' }, 8: { name: 'Stage 9 · Intro to SQL tuning', sub: 'Stage 9 · Execution plans and indexes' }, 9: { name: 'Stage 10 · Data Guard basics', sub: 'Stage 10 · Primary DB and physical standby DB' }, 10: { name: 'Stage 4 · SQL basics', sub: 'Stage 4 · SELECT, joins, DML, DDL' }, 11: { name: 'Stage 11 · RAC basics', sub: 'Stage 11 · Clusterware and 2-node RAC' } };
+const STAGES = { 3: { name: 'Stage 3 · Oracle 19c basic operations', sub: 'Stage 3 · Oracle 19c basic operations' }, 4: { name: 'Stage 5 · Incident response', sub: 'Stage 5 · Incident response and recovery' }, 5: { name: 'Stage 6 · Advanced recovery', sub: 'Stage 6 · Point-in-time recovery and control file recovery' }, 6: { name: 'Stage 7 · Performance checks', sub: 'Stage 7 · Wait events and AWR' }, 7: { name: 'Stage 8 · Patching', sub: 'Stage 8 · OPatch and quarterly RUs' }, 8: { name: 'Stage 9 · Intro to SQL tuning', sub: 'Stage 9 · Execution plans and indexes' }, 9: { name: 'Stage 10 · Data Guard basics', sub: 'Stage 10 · Primary DB and physical standby DB' }, 10: { name: 'Stage 4 · SQL basics', sub: 'Stage 4 · SELECT, joins, DML, DDL' }, 11: { name: 'Stage 11 · RAC basics', sub: 'Stage 11 · Clusterware and 2-node RAC' }, 12: { name: 'Stage 12 · OS-caused failures', sub: 'Stage 12 · Disk, memory, clock' } };
 const stageOf = (l) => l.stage || 3;
 /* 화면에 보이는 단계 번호. 내부 단계 키(stage)는 그대로 두고 course.js의 순서로 번호를 붙인다(4단계 SQL 기초를 3단계 뒤에 넣었다). */
 const dno = (st) => { const i = Course.STAGES.findIndex(x => x.st === st); return i >= 0 ? i + 1 : st; };
