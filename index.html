@@ -160,7 +160,7 @@ const LESSON = {
     { part: '파트 1 · 아키텍처', items: [{ text: '인스턴스와 데이터베이스', href: 'oracle/instance/', note: '완성' }, 'SGA와 PGA', '백그라운드 프로세스'] },
     { part: '파트 2 · 트랜잭션', items: ['COMMIT의 여정', 'Undo와 읽기 일관성', '잠금과 대기', '체크포인트'], current: 0 },
     { part: '파트 3 · SQL 실행', items: ['파싱과 Shared Pool', '옵티마이저와 실행계획', 'B-tree 인덱스'] },
-    { part: '파트 4 · 가용성', items: ['Archivelog와 RMAN', 'Data Guard', 'RAC와 Cache Fusion'] },
+    { part: '파트 4 · 가용성', items: [{ text: 'Archivelog와 RMAN', href: 'oracle/archive/', note: '완성' }, 'Data Guard', 'RAC와 Cache Fusion'] },
   ],
   zones: [
     { id: 'sga', from: [5.2, -1.4], to: [11.2, 8.4], label: 'SGA · 공유 메모리', members: ['bc', 'lb'] },

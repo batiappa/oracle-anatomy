@@ -29,6 +29,10 @@ Oracle Database 19c의 내부 구조를 한 단계씩 넘겨 보며 이해하는
 
 `STARTUP` 한 번이 NOMOUNT(파라미터 파일 → SGA·백그라운드 프로세스 → alert log), MOUNT(컨트롤 파일), OPEN(데이터 파일·온라인 리두 로그)을 거치며 무엇을 여는지 따라갑니다. 비정상 종료 뒤 인스턴스 복구, 사례 두 가지(컨트롤 파일 하나 없음 `ORA-00205`, 데이터 파일 하나 없음 `ORA-01157`), 종료 방식 네 가지를 다룹니다. 서버 이름·SID·파일 경로·SGA 크기는 DBA 실습의 dbserver02와 같습니다. 근거는 19c Concepts의 Oracle Database Instance 장, Administrator's Guide의 Starting Up and Shutting Down 장입니다.
 
+### Oracle 해부도 · Archivelog와 RMAN (10장면, `oracle/archive/`)
+
+온라인 리두 로그를 돌려 쓰는 방식과 NOARCHIVELOG의 한계에서 시작합니다. ARCHIVELOG로 바꾸는 순서, ARCn이 남기는 아카이브 로그, 빠른 복구 영역(FRA), RMAN 백업 세트와 컨트롤 파일 자동 백업을 차례로 따라갑니다. 사례는 두 가지로, 데이터 파일을 잃었을 때의 RESTORE와 RECOVER, FRA가 가득 찼을 때 나는 `ORA-19809`와 `ORA-00257`입니다. 근거는 19c Administrator's Guide 12장과 Backup and Recovery User's Guide입니다. 컨트롤 파일 자동 백업의 기본값은 19c 문서 두 곳의 설명이 달라서, 레슨 화면에도 그렇게 밝혀 두었습니다.
+
 ## 무엇을 보여 주나
 
 첫 레슨 **COMMIT의 여정**은 `UPDATE` 한 문장과 `COMMIT` 한 번을 10단계로 따라갑니다. 주요 내용은 다음과 같습니다.
@@ -244,7 +248,7 @@ python3 -m http.server 8000
 
 ## 로드맵
 
-- 해부도 다음 레슨: Archivelog와 RMAN, SQL 처리와 메모리 구조
+- 해부도 다음 레슨: SQL 처리와 메모리 구조, Data Guard
 - DBA 실습 다음 후보: Data Guard 페일오버와 복원(REINSTATE), RMAN으로 대기 DB 만들기
 - Oracle Database 19c 실습 환경에서 수치를 측정해 예시 값을 실측값으로 교체하고, 검증 스크립트와 결과를 저장소에 기록
 

@@ -89,7 +89,7 @@
   /* ---------- 해부도 ↔ 실습 연결표 ----------
      해부도(원리)의 장면 하나와 그 내용을 직접 해 보는 실습 레슨을 잇는다. 한 곳에서만 관리하고,
      해부도 쪽 "이 내용 실습하기"와 실습 쪽 "원리 먼저 보기"가 모두 이 표에서 만들어진다.
-     page: 'linux'(linux/ 리눅스 해부도) | 'oracle'(루트 Oracle 해부도 · COMMIT의 여정) | 'instance'(oracle/instance/ 인스턴스와 데이터베이스), step: 장면 번호(#step-N), t: 장면 이름(그 페이지 steps[].short와 같아야 한다)
+     page: 'linux'(linux/ 리눅스 해부도) | 'oracle'(루트 Oracle 해부도 · COMMIT의 여정) | 'instance'(oracle/instance/ 인스턴스와 데이터베이스) | 'archive'(oracle/archive/ Archivelog와 RMAN), step: 장면 번호(#step-N), t: 장면 이름(그 페이지 steps[].short와 같아야 한다)
      lessons: 실습 레슨 id. 제목은 아래 TITLES에서 가져온다(실습 페이지 LESSONS의 title과 같아야 한다. 자동 점검이 비교한다). */
   const THEORY = [
     { page: 'linux', step: 1, t: 'Problem', lessons: [1] },
@@ -124,6 +124,16 @@
     { page: 'instance', step: 8, t: 'Control file', lessons: [33, 42] },
     { page: 'instance', step: 9, t: 'Data files', lessons: [31, 32] },
     { page: 'instance', step: 10, t: 'Summary', lessons: [22, 29] },
+    { page: 'archive', step: 1, t: 'Problem', lessons: [28] },
+    { page: 'archive', step: 2, t: 'Reuse', lessons: [28] },
+    { page: 'archive', step: 3, t: 'Switch mode', lessons: [28] },
+    { page: 'archive', step: 4, t: 'ARCn', lessons: [28] },
+    { page: 'archive', step: 5, t: 'FRA', lessons: [34] },
+    { page: 'archive', step: 6, t: 'RMAN backup', lessons: [28] },
+    { page: 'archive', step: 7, t: 'Autobackup', lessons: [42] },
+    { page: 'archive', step: 8, t: 'Restore & recover', lessons: [31, 32] },
+    { page: 'archive', step: 9, t: 'FRA full', lessons: [34] },
+    { page: 'archive', step: 10, t: 'Summary', lessons: [41, 34] },
   ];
   const TITLES = {
     1: 'Connecting to the DB server for the first time', 2: 'Exploring the directories where Oracle lives', 3: 'Finding errors in the alert log', 4: 'Writing a work log with vi',
@@ -134,10 +144,10 @@
     17: 'Creating installation directories and path conventions', 18: 'Graduation mission: check and fix a server someone else prepared',
     21: 'Connecting to the DB with SQL*Plus for the first time', 22: 'Shutting down the DB and starting it up step by step', 26: 'Re-create a deleted password file', 28: 'Switching to archivelog mode and taking the first RMAN backup',
     29: 'Graduation mission: morning check after a reboot', 31: 'Bring back one deleted data file', 32: 'Save a DB that lost its SYSTEM data file', 33: 'When one control file copy is lost', 42: 'When all control files are lost',
-    34: 'When the DB stops because the fast recovery area is full', 51: 'Seeing what the DB is waiting on right now (wait events)',
+    34: 'When the DB stops because the fast recovery area is full', 41: 'Roll the DB back to just before the mistake (point-in-time recovery)', 51: 'Seeing what the DB is waiting on right now (wait events)',
     52: 'Looking into last night\'s batch with an AWR report', 91: 'Reading tables with SELECT', 95: 'INSERT, UPDATE, DELETE and COMMIT, ROLLBACK',
   };
-  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' } };
+  const PAGES = { linux: { name: 'Linux Anatomy', dir: 'linux/' }, oracle: { name: 'Oracle Anatomy', dir: '' }, instance: { name: 'Instance and database', dir: 'oracle/instance/' }, archive: { name: 'Archivelog and RMAN', dir: 'oracle/archive/' } };
   // "2단계 레슨 3"처럼 과정 메뉴와 같은 번호로 부른다.
   const whereOf = (id) => { const s = stageOfId(id); return s ? `Stage ${s.no}, lesson ${s.ids.indexOf(id) + 1}` : ''; };
   /* 해부도 장면 → 실습 레슨 목록. base는 해부도 페이지에서 사이트 뿌리까지의 경로('' 또는 '../') */

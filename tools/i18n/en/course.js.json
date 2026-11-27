@@ -72,5 +72,13 @@
 "파라미터 파일": "Parameter file",
 "인스턴스 복구": "Instance recovery",
 "데이터 파일": "Data files",
-"⟦0⟧ ⟦1⟧장면부터 · 관련 장면 ⟦2⟧개": "⟦0⟧ from scene ⟦1⟧ · ⟦2⟧ related scenes"
+"⟦0⟧ ⟦1⟧장면부터 · 관련 장면 ⟦2⟧개": "⟦0⟧ from scene ⟦1⟧ · ⟦2⟧ related scenes",
+"실수 직전 시각으로 DB 되돌리기 (시점 복구)": "Roll the DB back to just before the mistake (point-in-time recovery)",
+"Archivelog와 RMAN": "Archivelog and RMAN",
+"돌려 쓰기": "Reuse",
+"모드 바꾸기": "Switch mode",
+"RMAN 백업": "RMAN backup",
+"자동 백업": "Autobackup",
+"복원·복구": "Restore & recover",
+"FRA 가득": "FRA full"
 }
